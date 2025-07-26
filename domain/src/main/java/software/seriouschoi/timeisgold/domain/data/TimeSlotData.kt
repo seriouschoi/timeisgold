@@ -7,5 +7,5 @@ data class TimeSlotData(
     val startTime: LocalTime,
     val endTime: LocalTime,
     val title: String,
-    val memo: String
+    val createTime: Long
 )

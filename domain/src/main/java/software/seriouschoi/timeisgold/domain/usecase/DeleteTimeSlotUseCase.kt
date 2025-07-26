@@ -5,7 +5,7 @@ import software.seriouschoi.timeisgold.domain.repositories.TimeSlotRepository
 class DeleteTimeSlotUseCase(
     private val timeSlotRepository: TimeSlotRepository
 ) {
-    operator fun invoke(uuid: String) {
+    suspend operator fun invoke(uuid: String) {
         timeSlotRepository.deleteTimeSlot(uuid)
     }
 }
