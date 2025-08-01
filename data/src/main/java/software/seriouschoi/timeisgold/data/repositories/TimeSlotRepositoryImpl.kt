@@ -26,7 +26,7 @@ internal class TimeSlotRepositoryImpl @Inject constructor(
                 )
             }.let {
                 database.TimeSlotDao().insert(it)
-            }.takeIf { it > 0 } ?: throw IllegalStateException("time slot id is null")
+            }.takeIf { it > 0 } ?: throw IllegalStateException("time slot insert failed.")
 
             val timeSlotMemoId = timeSlotData.timeSlotMemoData?.let {
                 TimeSlotMemoEntity(
@@ -51,39 +51,71 @@ internal class TimeSlotRepositoryImpl @Inject constructor(
 
     override suspend fun setTimeSlot(timeSlotData: TimeSlotDetailData) {
         database.withTransaction {
-            val timeslotId = database.TimeSlotDao().getId(timeSlotData.timeSlotData.uuid)
-            requireNotNull(timeslotId) {
-                "time slot id is null"
+            updateTimeSlot(timeSlotData.timeSlotData)
+
+            val memoData = timeSlotData.timeSlotMemoData
+            if (memoData != null) {
+                updateMemo(memoData)
+            } else {
+                //delete memo.
+                deleteMemo(timeSlotData.timeSlotData.uuid)
             }
-            timeSlotData.timeSlotData.let {
-                TimeSlotEntity(
-                    id = timeslotId,
-                    uuid = it.uuid,
-                    title = it.title,
-                    startTime = it.startTime,
-                    endTime = it.endTime,
-                    createTime = it.createTime
-                )
-            }.let {
-                database.TimeSlotDao().update(it)
+        }
+    }
+
+    private fun deleteMemo(timeSlotUuid: String) {
+        val relation =
+            database.TimeSlotWithExtrasRelationDao().getRelation(timeSlotUuid = timeSlotUuid)
+                ?: return
+
+        val timeSlotId = relation.timeSlot.id ?: throw IllegalStateException("time slot id is null")
+        val memoId = relation.memo?.id
+        if (memoId != null) {
+            //delete relation
+            database.TimeSlot_TimeSlotMemo_Dao().get(
+                timeslotId = timeSlotId,
+                timeslotMemoId = memoId
+            )?.let {
+                database.TimeSlot_TimeSlotMemo_Dao().delete(it)
             }
 
+            //delete memo
+            database.TimeSlotMemoDao().delete(relation.memo)
+        } else {
+            //no work.
+        }
+    }
 
-            timeSlotData.timeSlotMemoData?.let { memoData ->
-                val memoId = database.TimeSlotMemoDao().getId(memoData.uuid)
-                val entity = TimeSlotMemoEntity(
-                    memo = memoData.memo,
-                    uuid = memoData.uuid,
-                    createTime = memoData.createTime,
-                )
-                if (memoId != null) {
-                    entity.copy(id = memoId).let {
-                        database.TimeSlotMemoDao().update(it)
-                    }
-                } else {
-                    database.TimeSlotMemoDao().insert(entity)
-                }
+    private fun updateMemo(memoData: TimeSlotMemoData) {
+        val memoId = database.TimeSlotMemoDao().getId(memoData.uuid)
+        val entity = TimeSlotMemoEntity(
+            memo = memoData.memo,
+            uuid = memoData.uuid,
+            createTime = memoData.createTime,
+        )
+        if (memoId != null) {
+            entity.copy(id = memoId).let {
+                database.TimeSlotMemoDao().update(it)
             }
+        } else {
+            database.TimeSlotMemoDao().insert(entity)
+        }
+    }
+
+    private fun updateTimeSlot(timeSlotData: TimeSlotData) {
+        val timeslotId = database.TimeSlotDao().getId(timeSlotData.uuid)
+            ?: throw IllegalStateException("time slot id is null")
+        timeSlotData.let {
+            TimeSlotEntity(
+                id = timeslotId,
+                uuid = it.uuid,
+                title = it.title,
+                startTime = it.startTime,
+                endTime = it.endTime,
+                createTime = it.createTime
+            )
+        }.let {
+            database.TimeSlotDao().update(it)
         }
     }
 
@@ -100,26 +132,27 @@ internal class TimeSlotRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getTimeSlot(timeslotUuid: String): TimeSlotDetailData? {
-        return database.TimeSlotWithExtrasRelationDao().getRelation(timeSlotUuid = timeslotUuid)?.let {
-            val timeSlot = TimeSlotData(
-                uuid = it.timeSlot.uuid,
-                title = it.timeSlot.title,
-                startTime = it.timeSlot.startTime,
-                endTime = it.timeSlot.endTime,
-                createTime = it.timeSlot.createTime
-            )
-            val timeSlotMemo = it.memo?.let {
-                TimeSlotMemoData(
-                    uuid = it.uuid,
-                    memo = it.memo,
-                    createTime = it.createTime
+        return database.TimeSlotWithExtrasRelationDao().getRelation(timeSlotUuid = timeslotUuid)
+            ?.let {
+                val timeSlot = TimeSlotData(
+                    uuid = it.timeSlot.uuid,
+                    title = it.timeSlot.title,
+                    startTime = it.timeSlot.startTime,
+                    endTime = it.timeSlot.endTime,
+                    createTime = it.timeSlot.createTime
+                )
+                val timeSlotMemo = it.memo?.let {
+                    TimeSlotMemoData(
+                        uuid = it.uuid,
+                        memo = it.memo,
+                        createTime = it.createTime
+                    )
+                }
+                TimeSlotDetailData(
+                    timeSlotData = timeSlot,
+                    timeSlotMemoData = timeSlotMemo
                 )
             }
-            TimeSlotDetailData(
-                timeSlotData = timeSlot,
-                timeSlotMemoData = timeSlotMemo
-            )
-        }
     }
 
     override suspend fun deleteTimeSlot(uuid: String) {
@@ -127,15 +160,10 @@ internal class TimeSlotRepositoryImpl @Inject constructor(
             val relation = database.TimeSlotWithExtrasRelationDao().getRelation(timeSlotUuid = uuid)
                 ?: return@withTransaction
 
-            //delete entities
-            database.TimeSlotDao().delete(relation.timeSlot)
-            relation.memo?.let { database.TimeSlotMemoDao().delete(it) }
-
+            //delete relation.
             val timeSlotId =
                 relation.timeSlot.id ?: throw IllegalStateException("time slot id is null")
             val memoId = relation.memo?.id
-
-            //delete relation.
             if (memoId != null) {
                 database.TimeSlot_TimeSlotMemo_Dao().get(
                     timeslotId = timeSlotId,
@@ -144,6 +172,10 @@ internal class TimeSlotRepositoryImpl @Inject constructor(
                     database.TimeSlot_TimeSlotMemo_Dao().delete(it)
                 }
             }
+
+            //delete entities
+            database.TimeSlotDao().delete(relation.timeSlot)
+            relation.memo?.let { database.TimeSlotMemoDao().delete(it) }
         }
     }
 }

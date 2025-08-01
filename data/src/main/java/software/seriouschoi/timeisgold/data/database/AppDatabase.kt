@@ -4,8 +4,8 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import software.seriouschoi.timeisgold.data.database.dao.TimeSlotDao
-import software.seriouschoi.timeisgold.data.database.dao.TimeSlotWithExtrasRelationDao
 import software.seriouschoi.timeisgold.data.database.dao.TimeSlotMemoDao
+import software.seriouschoi.timeisgold.data.database.dao.TimeSlotWithExtrasRelationDao
 import software.seriouschoi.timeisgold.data.database.dao.TimeSlot_TimeSlotMemo_Dao
 import software.seriouschoi.timeisgold.data.database.entities.TimeSlotEntity
 import software.seriouschoi.timeisgold.data.database.entities.TimeSlotMemoEntity
@@ -19,6 +19,7 @@ import software.seriouschoi.timeisgold.data.database.type_converter.LocalTimeCon
         TimeSlot_TimeSlotMemoInfo_Entity::class,
     ],
     version = 1,
+    exportSchema = true
 )
 @TypeConverters(LocalTimeConverter::class)
 internal abstract class AppDatabase : RoomDatabase() {
@@ -26,5 +27,4 @@ internal abstract class AppDatabase : RoomDatabase() {
     abstract fun TimeSlotMemoDao(): TimeSlotMemoDao
     abstract fun TimeSlotWithExtrasRelationDao(): TimeSlotWithExtrasRelationDao
     abstract fun TimeSlot_TimeSlotMemo_Dao(): TimeSlot_TimeSlotMemo_Dao
-
 }

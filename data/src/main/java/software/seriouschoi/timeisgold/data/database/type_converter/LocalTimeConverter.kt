@@ -5,12 +5,12 @@ import java.time.LocalTime
 
 internal class LocalTimeConverter {
     @TypeConverter
-    fun fromLocalTime(value: LocalTime): Int {
-        return value.toSecondOfDay()
+    fun fromLocalTime(value: LocalTime): Long {
+        return value.toNanoOfDay()
     }
 
     @TypeConverter
-    fun toLocalTime(value: Int): LocalTime {
-        return LocalTime.ofSecondOfDay(value.toLong())
+    fun toLocalTime(value: Long): LocalTime {
+        return LocalTime.ofNanoOfDay(value)
     }
 }
