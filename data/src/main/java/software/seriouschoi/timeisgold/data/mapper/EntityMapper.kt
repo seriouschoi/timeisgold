@@ -5,6 +5,7 @@ import software.seriouschoi.timeisgold.data.database.entities.TimeScheduleEntity
 import software.seriouschoi.timeisgold.data.database.entities.TimeSlotEntity
 import software.seriouschoi.timeisgold.data.database.entities.TimeSlotMemoEntity
 import software.seriouschoi.timeisgold.data.database.relations.TimeScheduleRelation
+import software.seriouschoi.timeisgold.data.database.relations.TimeScheduleWithDayOfWeeks
 import software.seriouschoi.timeisgold.data.database.relations.TimeSlotRelation
 import software.seriouschoi.timeisgold.domain.data.time_schedule.TimeScheduleData
 import software.seriouschoi.timeisgold.domain.data.time_schedule.TimeScheduleDayOfWeekData
@@ -86,7 +87,7 @@ internal fun TimeSlotData.toEntity(timeScheduleId: Long, timeSlotId: Long? = nul
 internal fun TimeSlotMemoData.toEntity(
     timeSlotId: Long,
     id: Long? = null
-) : TimeSlotMemoEntity {
+): TimeSlotMemoEntity {
     return TimeSlotMemoEntity(
         uuid = this.uuid,
         memo = this.memo,
@@ -96,7 +97,7 @@ internal fun TimeSlotMemoData.toEntity(
     )
 }
 
-internal fun TimeSlotMemoEntity.toDomain() : TimeSlotMemoData {
+internal fun TimeSlotMemoEntity.toDomain(): TimeSlotMemoData {
     return TimeSlotMemoData(
         uuid = this.uuid,
         memo = this.memo,
@@ -104,9 +105,23 @@ internal fun TimeSlotMemoEntity.toDomain() : TimeSlotMemoData {
     )
 }
 
-internal fun TimeSlotRelation.toDomain() : TimeSlotDetailData {
+internal fun TimeSlotRelation.toDomain(): TimeSlotDetailData {
     return TimeSlotDetailData(
         timeSlotData = this.timeSlot.toDomain(),
         timeSlotMemoData = this.memo?.toDomain()
+    )
+}
+
+internal fun TimeScheduleWithDayOfWeeks.toDomain(): TimeScheduleData {
+    return TimeScheduleData(
+        uuid = this.timeSchedule.uuid,
+        timeScheduleName = this.timeSchedule.title,
+        createTime = this.timeSchedule.createTime,
+        dayOfWeekList = this.dayOfWeeks.map {
+            TimeScheduleDayOfWeekData(
+                dayOfWeek = it.dayOfWeek,
+                uuid = it.uuid
+            )
+        }
     )
 }

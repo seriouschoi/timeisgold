@@ -6,7 +6,6 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
-import software.seriouschoi.timeisgold.data.database.entities.TimeScheduleDayOfWeekEntity
 import software.seriouschoi.timeisgold.data.database.entities.TimeScheduleEntity
 
 @Dao
@@ -23,5 +22,4 @@ internal abstract class TimeScheduleDao {
 
     @Delete
     abstract fun delete(timeScheduleEntity: TimeScheduleEntity)
-
 }

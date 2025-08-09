@@ -30,7 +30,7 @@ internal class DeleteTimeSlotTest : BaseRoomTest() {
     fun deleteTimeSlot_should_DeletedTimeSlotAndMemo() {
         runTest {
             val dayOfWeek = timeSlotTestFixtures.getTestScheduleDayOfWeeks1().first()
-            val schedule = timeScheduleRepo.getTimeSchedule(dayOfWeek)
+            val schedule = timeScheduleRepo.getTimeScheduleDetail(dayOfWeek)
                 ?: throw IllegalStateException("time schedule is null")
 
             val timeSlotDetailList = schedule.timeSlotList.map {

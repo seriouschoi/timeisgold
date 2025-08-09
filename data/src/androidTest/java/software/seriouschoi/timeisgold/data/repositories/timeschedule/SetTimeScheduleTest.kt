@@ -36,7 +36,7 @@ internal class SetTimeScheduleTest : BaseRoomTest() {
         runTest {
             val dayOfWeekForSchedule = timeSlotTestFixtures.getTestScheduleDayOfWeeks1()
             val scheduleDetailFromDb =
-                timeScheduleRepo.getTimeSchedule(dayOfWeekForSchedule.first())
+                timeScheduleRepo.getTimeScheduleDetail(dayOfWeekForSchedule.first())
                     ?: throw IllegalStateException("schedule is null")
             val scheduleFromDb = scheduleDetailFromDb.timeScheduleData
             val timeSlotList = scheduleDetailFromDb.timeSlotList

@@ -8,6 +8,7 @@ import software.seriouschoi.timeisgold.data.database.dao.TimeScheduleDayOfWeekDa
 import software.seriouschoi.timeisgold.data.database.dao.TimeSlotDao
 import software.seriouschoi.timeisgold.data.database.dao.TimeSlotMemoDao
 import software.seriouschoi.timeisgold.data.database.dao.relation.TimeScheduleRelationDao
+import software.seriouschoi.timeisgold.data.database.dao.relation.TimeScheduleWithDayOfWeeksDao
 import software.seriouschoi.timeisgold.data.database.dao.relation.TimeSlotRelationDao
 import software.seriouschoi.timeisgold.data.database.entities.TimeScheduleDayOfWeekEntity
 import software.seriouschoi.timeisgold.data.database.entities.TimeScheduleEntity
@@ -36,4 +37,6 @@ internal abstract class AppDatabase : RoomDatabase() {
 
     abstract fun TimeSlotRelationDao(): TimeSlotRelationDao
     abstract fun TimeScheduleRelationDao(): TimeScheduleRelationDao
+
+    abstract fun TimeScheduleWithDayOfWeeksDao(): TimeScheduleWithDayOfWeeksDao
 }

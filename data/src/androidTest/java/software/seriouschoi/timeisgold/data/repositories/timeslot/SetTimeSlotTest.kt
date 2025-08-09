@@ -34,7 +34,7 @@ internal class SetTimeSlotTest : BaseRoomTest() {
     fun setTimeSlot_should_PersistEntityCorrectly() {
         runTest {
             val dayOfWeek = timeSlotTestFixtures.getTestScheduleDayOfWeeks1().first()
-            val schedule = timeScheduleRepo.getTimeSchedule(dayOfWeek)
+            val schedule = timeScheduleRepo.getTimeScheduleDetail(dayOfWeek)
                 ?: throw IllegalStateException("time schedule is null")
 
             val allTimeSlotList = schedule.timeSlotList.map {
@@ -61,7 +61,7 @@ internal class SetTimeSlotTest : BaseRoomTest() {
     fun setTimeSlot_withoutMemo_should_PersistEntityCorrectly() {
         runTest {
             val dayOfWeek = timeSlotTestFixtures.getTestScheduleDayOfWeeks1().first()
-            val schedule = timeScheduleRepo.getTimeSchedule(dayOfWeek)
+            val schedule = timeScheduleRepo.getTimeScheduleDetail(dayOfWeek)
                 ?: throw IllegalStateException("time schedule is null")
 
             val testData = timeSlotTestFixtures.createDetailTimeSlot().copy(
@@ -89,7 +89,7 @@ internal class SetTimeSlotTest : BaseRoomTest() {
     fun setTimeSlot_deleteMemo_should_PersistEntityCorrectly() {
         runTest {
             val dayOfWeek = timeSlotTestFixtures.getTestScheduleDayOfWeeks1().first()
-            val schedule = timeScheduleRepo.getTimeSchedule(dayOfWeek)
+            val schedule = timeScheduleRepo.getTimeScheduleDetail(dayOfWeek)
                 ?: throw IllegalStateException("time schedule is null")
 
             val allTimeSlotList = schedule.timeSlotList.map {

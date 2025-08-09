@@ -34,7 +34,7 @@ internal class GetTimeSlotTest : BaseRoomTest() {
     fun getTimeSlotList_should_ReturnTimeSlotList() {
         runTest {
             val dayOfWeek = timeSlotTestFixtures.getTestScheduleDayOfWeeks1().first()
-            val schedule = timeScheduleRepo.getTimeSchedule(dayOfWeek)
+            val schedule = timeScheduleRepo.getTimeScheduleDetail(dayOfWeek)
                 ?: throw IllegalStateException("time schedule is null")
 
             //테스트를 위한 목록 추가.
@@ -68,7 +68,7 @@ internal class GetTimeSlotTest : BaseRoomTest() {
     fun getTimeSlot_should_ReturnTimeSlot() {
         runTest {
             val dayOfWeek = timeSlotTestFixtures.getTestScheduleDayOfWeeks1().first()
-            val schedule = timeScheduleRepo.getTimeSchedule(dayOfWeek)
+            val schedule = timeScheduleRepo.getTimeScheduleDetail(dayOfWeek)
                 ?: throw IllegalStateException("time schedule is null")
 
             val testData = timeSlotTestFixtures.createDetailTimeSlot()
@@ -87,7 +87,7 @@ internal class GetTimeSlotTest : BaseRoomTest() {
         runTest {
             //없는 데이터상태를 만들기 위해 기존 데이터중 하나를 삭제.
             val dayOfWeek = timeSlotTestFixtures.getTestScheduleDayOfWeeks1().first()
-            val schedule = timeScheduleRepo.getTimeSchedule(dayOfWeek)
+            val schedule = timeScheduleRepo.getTimeScheduleDetail(dayOfWeek)
                 ?: throw IllegalStateException("time schedule is null")
             val testData = schedule.timeSlotList.first().let {
                 timeSlotRepo.getTimeSlotDetail(it.uuid)
@@ -104,7 +104,7 @@ internal class GetTimeSlotTest : BaseRoomTest() {
     fun getTimeSlot_withDeletedTimeSlotMemo_should_ReturnOnlyTimeSlot() {
         runTest {
             val dayOfWeek = timeSlotTestFixtures.getTestScheduleDayOfWeeks1().first()
-            val schedule = timeScheduleRepo.getTimeSchedule(dayOfWeek)
+            val schedule = timeScheduleRepo.getTimeScheduleDetail(dayOfWeek)
                 ?: throw IllegalStateException("time schedule is null")
             //메모가 없는 데이터를 저장.
             val testData = schedule.timeSlotList.first().let {

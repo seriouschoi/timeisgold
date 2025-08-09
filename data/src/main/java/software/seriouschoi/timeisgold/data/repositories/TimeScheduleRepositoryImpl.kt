@@ -27,7 +27,7 @@ internal class TimeScheduleRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getTimeSchedule(week: DayOfWeek): TimeScheduleDetailData? {
+    override suspend fun getTimeScheduleDetail(week: DayOfWeek): TimeScheduleDetailData? {
         return appDatabase.withTransaction {
             val timeScheduleUuid =
                 appDatabase.TimeScheduleRelationDao().getByDayOfWeek(week).maxByOrNull {
@@ -86,6 +86,14 @@ internal class TimeScheduleRepositoryImpl @Inject constructor(
                 appDatabase.TimeScheduleDayOfWeekDao().add(
                     it.toEntity(timeScheduleId)
                 )
+            }
+        }
+    }
+
+    override suspend fun getAllTimeSchedules(): List<TimeScheduleData> {
+        return appDatabase.withTransaction {
+            appDatabase.TimeScheduleWithDayOfWeeksDao().getAll().map {
+                it.toDomain()
             }
         }
     }

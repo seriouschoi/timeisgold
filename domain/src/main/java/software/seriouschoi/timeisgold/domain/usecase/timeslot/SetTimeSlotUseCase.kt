@@ -1,13 +1,22 @@
 package software.seriouschoi.timeisgold.domain.usecase.timeslot
 
 import software.seriouschoi.timeisgold.domain.data.timeslot.TimeSlotDetailData
+import software.seriouschoi.timeisgold.domain.policy.TimeSlotPolicy
+import software.seriouschoi.timeisgold.domain.repositories.TimeScheduleRepository
 import software.seriouschoi.timeisgold.domain.repositories.TimeSlotRepository
 
 class SetTimeSlotUseCase(
-    private val timeslotRepository: TimeSlotRepository
+    private val timeslotRepository: TimeSlotRepository,
+    private val timeScheduleRepository: TimeScheduleRepository,
+    private val timeslotPolicy: TimeSlotPolicy
 ) {
 
-    suspend fun setTimeSlot(timeSlotData: TimeSlotDetailData) {
+    suspend fun setTimeSlot(timeScheduleUuid: String, timeSlotData: TimeSlotDetailData) {
+        val timeScheduleDetail = timeScheduleRepository.getTimeScheduleByUuid(timeScheduleUuid)
+            ?: throw IllegalStateException("time schedule is null")
+
+        timeslotPolicy.checkCanAdd(timeScheduleDetail.timeSlotList, timeSlotData.timeSlotData)
+
         timeslotRepository.setTimeSlot(timeSlotData)
     }
 }

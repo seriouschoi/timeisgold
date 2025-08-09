@@ -6,8 +6,9 @@ import java.time.DayOfWeek
 
 interface TimeScheduleRepository {
     suspend fun addTimeSchedule(timeSchedule: TimeScheduleData)
-    suspend fun getTimeSchedule(week: DayOfWeek): TimeScheduleDetailData?
+    suspend fun getTimeScheduleDetail(week: DayOfWeek): TimeScheduleDetailData?
     suspend fun setTimeSchedule(timeSchedule: TimeScheduleData)
     suspend fun deleteTimeSchedule(timeScheduleUuid: String)
     suspend fun getTimeScheduleByUuid(uuid: String): TimeScheduleDetailData?
+    suspend fun getAllTimeSchedules(): List<TimeScheduleData>
 }

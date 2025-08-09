@@ -41,7 +41,7 @@ internal class DeleteTimeScheduleTest : BaseRoomTest() {
         //time schedule을 삭제했을때, 관련된 모든 엔티티가 같이 삭제되었는가?
         runTest {
             val dayOfWeek = timeSlotTestFixtures.getTestScheduleDayOfWeeks1().first()
-            val schedule = timeScheduleRepo.getTimeSchedule(dayOfWeek)
+            val schedule = timeScheduleRepo.getTimeScheduleDetail(dayOfWeek)
                 ?: throw IllegalStateException("time schedule is null")
 
             timeScheduleRepo.deleteTimeSchedule(schedule.timeScheduleData.uuid)
@@ -61,12 +61,12 @@ internal class DeleteTimeScheduleTest : BaseRoomTest() {
         //엉뚱한 요일을 지워도 정상 동작 하는가?
         runTest {
             val dayOfWeek1 = timeSlotTestFixtures.getTestScheduleDayOfWeeks1().first()
-            val schedule1 = timeScheduleRepo.getTimeSchedule(dayOfWeek1)
+            val schedule1 = timeScheduleRepo.getTimeScheduleDetail(dayOfWeek1)
                 ?: throw IllegalStateException("time schedule is null")
 
             val dayOfWeekForDelete = timeSlotTestFixtures.getTestScheduleDayOfWeeks2().first()
             val scheduleForDelete =
-                timeScheduleRepo.getTimeSchedule(dayOfWeekForDelete) ?: throw IllegalStateException(
+                timeScheduleRepo.getTimeScheduleDetail(dayOfWeekForDelete) ?: throw IllegalStateException(
                     "time schedule is null"
                 )
 

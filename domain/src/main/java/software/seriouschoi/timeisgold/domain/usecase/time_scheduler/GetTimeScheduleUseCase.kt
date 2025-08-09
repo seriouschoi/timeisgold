@@ -8,6 +8,6 @@ class GetTimeScheduleUseCase (
     private val timeScheduleRepository: TimeScheduleRepository
 ) {
     suspend operator fun invoke(week: DayOfWeek) : TimeScheduleDetailData? {
-        return timeScheduleRepository.getTimeSchedule(week)
+        return timeScheduleRepository.getTimeScheduleDetail(week)
     }
 }

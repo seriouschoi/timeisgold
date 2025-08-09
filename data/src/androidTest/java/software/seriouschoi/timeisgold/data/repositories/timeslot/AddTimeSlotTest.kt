@@ -30,7 +30,7 @@ internal class AddTimeSlotTest : BaseRoomTest() {
     fun addTimeSlot_should_PersistEntityCorrectly() {
         runTest {
             val testDayOfWeek = timeSlotTestFixtures.getTestScheduleDayOfWeeks1().first()
-            val schedule = timeScheduleRepo.getTimeSchedule(testDayOfWeek)
+            val schedule = timeScheduleRepo.getTimeScheduleDetail(testDayOfWeek)
                 ?: throw IllegalStateException("time schedule is null")
 
             val testTimeSlotDetail = timeSlotTestFixtures.createDetailDataList().first()
@@ -51,7 +51,7 @@ internal class AddTimeSlotTest : BaseRoomTest() {
     fun addTimeSlot_withoutMemo_should_PersistEntityCorrectly() {
         runTest {
             val testDayOfWeek = timeSlotTestFixtures.getTestScheduleDayOfWeeks1().first()
-            val schedule = timeScheduleRepo.getTimeSchedule(testDayOfWeek)
+            val schedule = timeScheduleRepo.getTimeScheduleDetail(testDayOfWeek)
                 ?: throw IllegalStateException("time schedule is null")
 
             val testData = timeSlotTestFixtures.createDetailTimeSlot().copy(
@@ -73,7 +73,7 @@ internal class AddTimeSlotTest : BaseRoomTest() {
     fun addTimeSlot_duplicateUuid_shouldThrowException() {
         runTest {
             val testDayOfWeek = timeSlotTestFixtures.getTestScheduleDayOfWeeks1().first()
-            val schedule = timeScheduleRepo.getTimeSchedule(testDayOfWeek)
+            val schedule = timeScheduleRepo.getTimeScheduleDetail(testDayOfWeek)
                 ?: throw IllegalStateException("time schedule is null")
 
             val testData = timeSlotTestFixtures.createDetailTimeSlot()
@@ -96,7 +96,7 @@ internal class AddTimeSlotTest : BaseRoomTest() {
     fun addTimeSlot_duplicateMemoUuid_shouldThrowException() {
         runTest {
             val testDayOfWeek = timeSlotTestFixtures.getTestScheduleDayOfWeeks1().first()
-            val schedule = timeScheduleRepo.getTimeSchedule(testDayOfWeek)
+            val schedule = timeScheduleRepo.getTimeScheduleDetail(testDayOfWeek)
                 ?: throw IllegalStateException("time schedule is null")
 
             val testData1Source = timeSlotTestFixtures.createDetailTimeSlot()

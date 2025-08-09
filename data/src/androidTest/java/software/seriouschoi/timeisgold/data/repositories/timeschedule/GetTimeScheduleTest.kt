@@ -16,7 +16,7 @@ internal class GetTimeScheduleTest : BaseRoomTest() {
     @Test
     fun getTimeSchedule_whenEmptySchedule_returnNull() {
         runTest {
-            val schedule = timeScheduleRepo.getTimeSchedule(DayOfWeek.MONDAY)
+            val schedule = timeScheduleRepo.getTimeScheduleDetail(DayOfWeek.MONDAY)
             assert(schedule == null)
         }
     }
@@ -29,8 +29,16 @@ internal class GetTimeScheduleTest : BaseRoomTest() {
             )
             timeScheduleRepo.addTimeSchedule(scheduleForAdd)
 
-            val schedule = timeScheduleRepo.getTimeSchedule(DayOfWeek.MONDAY)
+            val schedule = timeScheduleRepo.getTimeScheduleDetail(DayOfWeek.MONDAY)
             assert(schedule?.timeScheduleData == scheduleForAdd)
+        }
+    }
+
+    @Test
+    fun getAllTimeSchedules_whenEmpty_returnEmptyList() {
+        runTest {
+            val allScheduleList = timeScheduleRepo.getAllTimeSchedules()
+            assert(allScheduleList.isEmpty())
         }
     }
 }

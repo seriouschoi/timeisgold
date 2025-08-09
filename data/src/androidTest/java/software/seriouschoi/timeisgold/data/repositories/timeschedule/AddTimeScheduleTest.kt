@@ -19,7 +19,7 @@ internal class AddTimeScheduleTest : BaseRoomTest() {
             )
             timeScheduleRepo.addTimeSchedule(schedule)
 
-            val scheduleFromDb = timeScheduleRepo.getTimeSchedule(DayOfWeek.SUNDAY)
+            val scheduleFromDb = timeScheduleRepo.getTimeScheduleDetail(DayOfWeek.SUNDAY)
             assert(scheduleFromDb?.timeScheduleData == schedule)
         }
     }
@@ -38,11 +38,11 @@ internal class AddTimeScheduleTest : BaseRoomTest() {
             )
             timeScheduleRepo.addTimeSchedule(schedule2)
 
-            val scheduleFromDb = timeScheduleRepo.getTimeSchedule(DayOfWeek.TUESDAY)
+            val scheduleFromDb = timeScheduleRepo.getTimeScheduleDetail(DayOfWeek.TUESDAY)
             assert(schedule1 != scheduleFromDb?.timeScheduleData)
             assert(schedule2 == scheduleFromDb?.timeScheduleData)
 
-            val scheduleFromDb2 = timeScheduleRepo.getTimeSchedule(DayOfWeek.SATURDAY)
+            val scheduleFromDb2 = timeScheduleRepo.getTimeScheduleDetail(DayOfWeek.SATURDAY)
             assert(scheduleFromDb2 == null)
         }
     }
