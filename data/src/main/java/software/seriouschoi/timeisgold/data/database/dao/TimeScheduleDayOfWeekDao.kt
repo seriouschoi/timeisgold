@@ -20,6 +20,6 @@ internal abstract class TimeScheduleDayOfWeekDao {
     abstract fun delete(dayOfWeekEntity: TimeScheduleDayOfWeekEntity)
 
     @Query("DELETE FROM TimeScheduleDayOfWeekEntity WHERE timeScheduleId = :timeScheduleId")
-    abstract fun deleteAll(timeScheduleId: Long)
+    abstract fun delete(timeScheduleId: Long)
 
 }

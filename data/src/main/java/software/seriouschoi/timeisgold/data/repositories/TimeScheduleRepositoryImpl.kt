@@ -2,7 +2,6 @@ package software.seriouschoi.timeisgold.data.repositories
 
 import androidx.room.withTransaction
 import software.seriouschoi.timeisgold.data.database.AppDatabase
-import software.seriouschoi.timeisgold.data.database.relations.TimeScheduleDayOfWeekRelation
 import software.seriouschoi.timeisgold.data.mapper.toDomain
 import software.seriouschoi.timeisgold.data.mapper.toEntity
 import software.seriouschoi.timeisgold.domain.data.time_schedule.TimeScheduleData
@@ -62,6 +61,7 @@ internal class TimeScheduleRepositoryImpl @Inject constructor(
         }
     }
 
+
     override suspend fun getTimeScheduleByUuid(timeScheduleUuid: String): TimeScheduleDetailData? {
         return appDatabase.withTransaction {
             appDatabase.TimeScheduleRelationDao().get(timeScheduleUuid)?.toDomain()
@@ -80,7 +80,7 @@ internal class TimeScheduleRepositoryImpl @Inject constructor(
             val timeScheduleId = timeScheduleRelation.timeSchedule.id
                 ?: throw IllegalStateException("time schedule id is null")
 
-            appDatabase.TimeScheduleDayOfWeekDao().deleteAll(timeScheduleId)
+            appDatabase.TimeScheduleDayOfWeekDao().delete(timeScheduleId)
             //새로운 요일들.
             scheduleDayOfWeekList.forEach {
                 appDatabase.TimeScheduleDayOfWeekDao().add(

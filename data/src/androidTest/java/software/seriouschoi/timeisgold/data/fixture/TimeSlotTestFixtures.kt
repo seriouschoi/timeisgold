@@ -8,41 +8,23 @@ import software.seriouschoi.timeisgold.domain.data.timeslot.TimeSlotMemoData
 import java.time.DayOfWeek
 import java.time.LocalTime
 import java.util.UUID
-import kotlin.random.Random
 
-object TimeSlotTestFixtures {
+internal object TimeSlotTestFixtures {
     fun createDetailDataList(): List<TimeSlotDetailData> {
         return (0..10).map { i ->
-            val uuid = UUID.randomUUID()
-            val memoUuid = UUID.randomUUID()
-            val createTime = System.currentTimeMillis() - (i * 1000 * 60)
-            val timeSlotData = TimeSlotData(
-                uuid = uuid.toString(),
-                title = "test-$uuid",
-                startTime = LocalTime.now(),
-                endTime = LocalTime.now(),
-                createTime = createTime
-            )
-            val timeSlotMemoData = TimeSlotMemoData(
-                uuid = memoUuid.toString(),
-                memo = "test-$memoUuid",
-                createTime = createTime
-            )
-            return@map TimeSlotDetailData(
-                timeSlotData = timeSlotData,
-                timeSlotMemoData = timeSlotMemoData
-            )
+            return@map createDetailTimeSlot()
         }
     }
 
     fun createDetailTimeSlot(): TimeSlotDetailData {
         val uuid = UUID.randomUUID()
         val memoUuid = UUID.randomUUID()
+        val now = LocalTime.now()
         val timeSlotData = TimeSlotData(
             uuid = uuid.toString(),
             title = "test_$uuid",
-            startTime = LocalTime.now(),
-            endTime = LocalTime.now(),
+            startTime = now.minusMinutes(10),
+            endTime = now,
             createTime = System.currentTimeMillis()
         )
         val timeSlotMemoData = TimeSlotMemoData(
@@ -73,6 +55,28 @@ object TimeSlotTestFixtures {
         return TimeScheduleDayOfWeekData(
             dayOfWeek = dayOfWeek,
             uuid = UUID.randomUUID().toString()
+        )
+    }
+
+    fun getTestScheduleDayOfWeeks1(): List<DayOfWeek> {
+        return listOf(
+            DayOfWeek.MONDAY,
+            DayOfWeek.WEDNESDAY,
+            DayOfWeek.FRIDAY
+        )
+    }
+
+    fun getTestScheduleDayOfWeeks2(): List<DayOfWeek> {
+        return listOf(
+            DayOfWeek.TUESDAY,
+            DayOfWeek.THURSDAY,
+        )
+    }
+
+    fun getTestScheduleEmptyDayOfWeeks(): List<DayOfWeek> {
+        return listOf(
+            DayOfWeek.SATURDAY,
+            DayOfWeek.SUNDAY
         )
     }
 
