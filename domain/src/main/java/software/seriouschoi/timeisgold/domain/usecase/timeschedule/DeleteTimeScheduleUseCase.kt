@@ -1,4 +1,4 @@
-package software.seriouschoi.timeisgold.domain.usecase.time_scheduler
+package software.seriouschoi.timeisgold.domain.usecase.timeschedule
 
 import software.seriouschoi.timeisgold.domain.repositories.TimeScheduleRepository
 

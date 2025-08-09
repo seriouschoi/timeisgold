@@ -16,8 +16,6 @@ class TimeSlotPolicy {
         if (isDuplicateTime) {
             throw TIGException.TimeSlotConflict(timeSlotDataForAdd)
         }
-
-
     }
 
 }

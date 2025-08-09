@@ -9,4 +9,8 @@ java {
 }
 
 dependencies {
+    testImplementation(libs.junit)
+    testImplementation(libs.coroutine.test)
+    testImplementation(libs.mockito.core)
+    testImplementation(libs.mockito.kotlin)
 }
