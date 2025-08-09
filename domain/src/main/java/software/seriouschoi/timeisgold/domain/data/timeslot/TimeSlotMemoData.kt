@@ -1,4 +1,4 @@
-package software.seriouschoi.timeisgold.domain.data
+package software.seriouschoi.timeisgold.domain.data.timeslot
 
 data class TimeSlotMemoData(
     val memo: String,

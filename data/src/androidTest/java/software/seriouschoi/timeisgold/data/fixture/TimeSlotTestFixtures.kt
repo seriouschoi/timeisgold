@@ -1,10 +1,14 @@
 package software.seriouschoi.timeisgold.data.fixture
 
-import software.seriouschoi.timeisgold.domain.data.TimeSlotData
-import software.seriouschoi.timeisgold.domain.data.TimeSlotDetailData
-import software.seriouschoi.timeisgold.domain.data.TimeSlotMemoData
+import software.seriouschoi.timeisgold.domain.data.time_schedule.TimeScheduleData
+import software.seriouschoi.timeisgold.domain.data.time_schedule.TimeScheduleDayOfWeekData
+import software.seriouschoi.timeisgold.domain.data.timeslot.TimeSlotData
+import software.seriouschoi.timeisgold.domain.data.timeslot.TimeSlotDetailData
+import software.seriouschoi.timeisgold.domain.data.timeslot.TimeSlotMemoData
+import java.time.DayOfWeek
 import java.time.LocalTime
 import java.util.UUID
+import kotlin.random.Random
 
 object TimeSlotTestFixtures {
     fun createDetailDataList(): List<TimeSlotDetailData> {
@@ -50,6 +54,25 @@ object TimeSlotTestFixtures {
         return TimeSlotDetailData(
             timeSlotData = timeSlotData,
             timeSlotMemoData = timeSlotMemoData
+        )
+    }
+
+    fun createTimeSchedule(dayOfWeekList: List<DayOfWeek>): TimeScheduleData {
+        val uuid = UUID.randomUUID()
+        return TimeScheduleData(
+            uuid = uuid.toString(),
+            createTime = System.currentTimeMillis(),
+            timeScheduleName = "test_schedule_$uuid",
+            dayOfWeekList = dayOfWeekList.map {
+                createTimeScheduleDayOfWeek(it)
+            }
+        )
+    }
+
+    private fun createTimeScheduleDayOfWeek(dayOfWeek: DayOfWeek): TimeScheduleDayOfWeekData {
+        return TimeScheduleDayOfWeekData(
+            dayOfWeek = dayOfWeek,
+            uuid = UUID.randomUUID().toString()
         )
     }
 

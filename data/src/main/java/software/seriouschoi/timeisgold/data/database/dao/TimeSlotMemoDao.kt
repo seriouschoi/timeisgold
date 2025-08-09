@@ -20,6 +20,6 @@ internal abstract class TimeSlotMemoDao {
     @Delete
     abstract fun delete(memo: TimeSlotMemoEntity)
 
-    @Query("SELECT id FROM TimeSlotMemoEntity WHERE uuid = :uuid")
-    abstract fun getId(uuid: String) : Long?
+    @Query("SELECT * FROM TimeSlotMemoEntity WHERE uuid = :uuid")
+    abstract fun get(uuid: String) : TimeSlotMemoEntity?
 }

@@ -1,4 +1,4 @@
-package software.seriouschoi.timeisgold.domain.data
+package software.seriouschoi.timeisgold.domain.data.timeslot
 
 import java.time.LocalTime
 

@@ -4,6 +4,7 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import java.time.DayOfWeek
 
 
 @Entity(
@@ -12,17 +13,16 @@ import androidx.room.PrimaryKey
     ],
     foreignKeys = [
         ForeignKey(
-            entity = TimeSlotEntity::class,
+            entity = TimeScheduleEntity::class,
             parentColumns = ["id"],
-            childColumns = ["timeSlotId"],
+            childColumns = ["timeScheduleId"],
             onDelete = ForeignKey.CASCADE
         )
     ]
 )
-internal data class TimeSlotMemoEntity(
+internal data class TimeScheduleDayOfWeekEntity(
     @PrimaryKey(autoGenerate = true) val id: Long? = null,
-    val memo: String,
+    val dayOfWeek: DayOfWeek,
     val uuid: String,
-    val createTime: Long,
-    val timeSlotId: Long
+    val timeScheduleId: Long
 )

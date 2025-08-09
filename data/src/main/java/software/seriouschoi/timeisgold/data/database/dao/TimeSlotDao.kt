@@ -14,16 +14,11 @@ internal abstract class TimeSlotDao {
     abstract fun insert(timeSlots: TimeSlotEntity): Long
 
     @Update
-    abstract fun update( timeSlots: TimeSlotEntity)
+    abstract fun update(timeSlots: TimeSlotEntity)
 
     @Delete
     abstract fun delete(entity: TimeSlotEntity)
 
-    @Query("SELECT * FROM TimeSlotEntity")
-    abstract fun getAll(): List<TimeSlotEntity>
-
-    @Query("SELECT id FROM TimeSlotEntity WHERE uuid = :uuid")
-    abstract fun getId(uuid: String) : Long?
-
-
+    @Query("SELECT * FROM TimeSlotEntity WHERE uuid = :timeslotUuid")
+    abstract fun get(timeslotUuid: String): TimeSlotEntity?
 }
