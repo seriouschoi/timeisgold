@@ -1,5 +1,5 @@
 [versions]
-agp = "8.6.1"
+agp = "8.12.0"
 kotlin = "2.0.21"
 coreKtx = "1.16.0"
 junit = "4.13.2"
@@ -15,7 +15,9 @@ mockitoKotlin = "5.3.1"
 room = "2.7.2"
 timber = "5.0.1"
 coroutine = "1.10.2"
-composeBom = "2025.05.00"
+composeBom = "2025.07.00"
+activity = "1.10.1"
+androidx-activity-compose = "1.10.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -41,6 +43,8 @@ compose-material = {group="androidx.compose.material3", name="material3"}
 compose-ui = {group="androidx.compose.ui", name="ui"}
 compose-ui-tooling-preview = {group="androidx.compose.ui", name="ui-tooling-preview"}
 compose-ui-tooling = {group="androidx.compose.ui", name="ui-tooling"}
+androidx-activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
+androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activity-compose" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
