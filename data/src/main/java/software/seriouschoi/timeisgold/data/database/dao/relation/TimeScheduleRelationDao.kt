@@ -10,15 +10,17 @@ import java.time.DayOfWeek
 @Dao
 internal abstract class TimeScheduleRelationDao {
     @Transaction
-    @Query("SELECT * FROM TimeScheduleEntity WHERE uuid = :uuid")
+    @Query("SELECT * FROM TimeScheduleSchema WHERE uuid = :uuid")
     abstract fun get(uuid: String): TimeScheduleRelation?
 
     @Transaction
-    @Query("""
+    @Query(
+        """
         SELECT * 
-        FROM TimeScheduleDayOfWeekEntity 
+        FROM TimeScheduleDayOfWeekSchema 
         WHERE dayOfWeek = :week
-    """)
+    """
+    )
     abstract fun getByDayOfWeek(week: DayOfWeek): List<TimeScheduleDayOfWeekRelation>
 
 }

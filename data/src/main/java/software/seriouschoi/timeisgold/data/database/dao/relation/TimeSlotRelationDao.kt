@@ -8,6 +8,6 @@ import software.seriouschoi.timeisgold.data.database.relations.TimeSlotRelation
 @Dao
 internal abstract class TimeSlotRelationDao {
     @Transaction
-    @Query("SELECT * FROM TimeSlotEntity WHERE uuid = :timeSlotUuid")
+    @Query("SELECT * FROM TimeSlotSchema WHERE uuid = :timeSlotUuid")
     abstract fun getRelation(timeSlotUuid: String): TimeSlotRelation?
 }

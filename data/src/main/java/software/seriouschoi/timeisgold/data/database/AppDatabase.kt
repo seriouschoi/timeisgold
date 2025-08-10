@@ -10,19 +10,19 @@ import software.seriouschoi.timeisgold.data.database.dao.TimeSlotMemoDao
 import software.seriouschoi.timeisgold.data.database.dao.relation.TimeScheduleRelationDao
 import software.seriouschoi.timeisgold.data.database.dao.relation.TimeScheduleWithDayOfWeeksDao
 import software.seriouschoi.timeisgold.data.database.dao.relation.TimeSlotRelationDao
-import software.seriouschoi.timeisgold.data.database.entities.TimeScheduleDayOfWeekEntity
-import software.seriouschoi.timeisgold.data.database.entities.TimeScheduleEntity
-import software.seriouschoi.timeisgold.data.database.entities.TimeSlotEntity
-import software.seriouschoi.timeisgold.data.database.entities.TimeSlotMemoEntity
-import software.seriouschoi.timeisgold.data.database.type_converter.DayOfWeekConverter
-import software.seriouschoi.timeisgold.data.database.type_converter.LocalTimeConverter
+import software.seriouschoi.timeisgold.data.database.schema.TimeScheduleDayOfWeekSchema
+import software.seriouschoi.timeisgold.data.database.schema.TimeScheduleSchema
+import software.seriouschoi.timeisgold.data.database.schema.TimeSlotSchema
+import software.seriouschoi.timeisgold.data.database.schema.TimeSlotMemoSchema
+import software.seriouschoi.timeisgold.data.database.typeconverter.DayOfWeekConverter
+import software.seriouschoi.timeisgold.data.database.typeconverter.LocalTimeConverter
 
 @Database(
     entities = [
-        TimeSlotEntity::class,
-        TimeSlotMemoEntity::class,
-        TimeScheduleEntity::class,
-        TimeScheduleDayOfWeekEntity::class
+        TimeSlotSchema::class,
+        TimeSlotMemoSchema::class,
+        TimeScheduleSchema::class,
+        TimeScheduleDayOfWeekSchema::class
     ],
     version = 1,
     exportSchema = true

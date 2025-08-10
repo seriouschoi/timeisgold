@@ -13,6 +13,15 @@ import java.util.UUID
  * jhchoi@neofect.com
  */
 internal object TimeScheduleDataFixture {
+    fun createTimeScheduleDetail(
+        dayOfWeekList: List<DayOfWeek>,
+    ): TimeScheduleDetailData {
+        return TimeScheduleDetailData(
+            timeScheduleData = createTimeSchedule(dayOfWeekList),
+            timeSlotList = createTimeSlotList()
+        )
+    }
+
     fun createTimeSchedule(dayOfWeekList: List<DayOfWeek>): TimeScheduleData {
         val uuid = UUID.randomUUID().toString()
         return TimeScheduleData(
@@ -28,25 +37,17 @@ internal object TimeScheduleDataFixture {
         )
     }
 
-    fun createTimeScheduleDetail(
-        dayOfWeekList: List<DayOfWeek>,
-    ): TimeScheduleDetailData {
-        return TimeScheduleDetailData(
-            timeScheduleData = createTimeSchedule(dayOfWeekList),
-            timeSlotList = createTimeSlotList()
-        )
-    }
-
-    fun createTimeSlotList(): List<TimeSlotData> {
+    private fun createTimeSlotList(): List<TimeSlotData> {
         val baseTime = LocalTime.of(10, 0, 0)
 
         return (0..10).map { i ->
             val startTime = baseTime.plusHours(i.toLong())
             val endTime = startTime.plusHours(1)
 
+            val uuid = UUID.randomUUID().toString()
             TimeSlotData(
-                uuid = UUID.randomUUID().toString(),
-                title = "test_$i",
+                uuid = uuid,
+                title = "test_$uuid",
                 startTime = startTime,
                 endTime = endTime,
                 createTime = System.currentTimeMillis()

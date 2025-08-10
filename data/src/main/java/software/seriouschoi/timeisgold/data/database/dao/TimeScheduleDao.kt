@@ -6,20 +6,20 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
-import software.seriouschoi.timeisgold.data.database.entities.TimeScheduleEntity
+import software.seriouschoi.timeisgold.data.database.schema.TimeScheduleSchema
 
 @Dao
 internal abstract class TimeScheduleDao {
 
     @Insert(onConflict = OnConflictStrategy.ABORT)
-    abstract fun add(entity: TimeScheduleEntity): Long
+    abstract fun add(entity: TimeScheduleSchema): Long
 
-    @Query("SELECT * FROM TimeScheduleEntity WHERE uuid = :uuid")
-    abstract fun get(uuid: String): TimeScheduleEntity?
+    @Query("SELECT * FROM TimeScheduleSchema WHERE uuid = :uuid")
+    abstract fun get(uuid: String): TimeScheduleSchema?
 
     @Update
-    abstract fun update(timeScheduleEntity: TimeScheduleEntity)
+    abstract fun update(timeScheduleSchema: TimeScheduleSchema)
 
     @Delete
-    abstract fun delete(timeScheduleEntity: TimeScheduleEntity)
+    abstract fun delete(timeScheduleSchema: TimeScheduleSchema)
 }

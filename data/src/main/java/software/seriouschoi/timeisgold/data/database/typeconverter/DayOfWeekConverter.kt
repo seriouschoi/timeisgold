@@ -1,4 +1,4 @@
-package software.seriouschoi.timeisgold.data.database.type_converter
+package software.seriouschoi.timeisgold.data.database.typeconverter
 
 import androidx.room.TypeConverter
 import java.time.DayOfWeek

@@ -1,4 +1,4 @@
-package software.seriouschoi.timeisgold.data.database.entities
+package software.seriouschoi.timeisgold.data.database.schema
 
 import androidx.room.Entity
 import androidx.room.Index
@@ -9,7 +9,7 @@ import androidx.room.PrimaryKey
         Index(value = ["uuid"], unique = true)
     ]
 )
-internal data class TimeScheduleEntity(
+internal data class TimeScheduleSchema(
     @PrimaryKey(autoGenerate = true) val id: Long? = null,
     val uuid: String,
     val title: String,

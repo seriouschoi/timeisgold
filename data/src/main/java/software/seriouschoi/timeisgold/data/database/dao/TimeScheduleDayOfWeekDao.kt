@@ -5,21 +5,21 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import software.seriouschoi.timeisgold.data.database.entities.TimeScheduleDayOfWeekEntity
+import software.seriouschoi.timeisgold.data.database.schema.TimeScheduleDayOfWeekSchema
 
 @Dao
 internal abstract class TimeScheduleDayOfWeekDao {
 
-    @Query("SELECT * FROM TimeScheduleDayOfWeekEntity WHERE uuid = :uuid")
-    abstract suspend fun get(uuid: String): TimeScheduleDayOfWeekEntity?
+    @Query("SELECT * FROM TimeScheduleDayOfWeekSchema WHERE uuid = :uuid")
+    abstract suspend fun get(uuid: String): TimeScheduleDayOfWeekSchema?
 
     @Insert(onConflict = OnConflictStrategy.ABORT)
-    abstract fun add(dayOfWeek: TimeScheduleDayOfWeekEntity): Long
+    abstract fun add(dayOfWeek: TimeScheduleDayOfWeekSchema): Long
 
     @Delete
-    abstract fun delete(dayOfWeekEntity: TimeScheduleDayOfWeekEntity)
+    abstract fun delete(dayOfWeekEntity: TimeScheduleDayOfWeekSchema)
 
-    @Query("DELETE FROM TimeScheduleDayOfWeekEntity WHERE timeScheduleId = :timeScheduleId")
+    @Query("DELETE FROM TimeScheduleDayOfWeekSchema WHERE timeScheduleId = :timeScheduleId")
     abstract fun delete(timeScheduleId: Long)
 
 }

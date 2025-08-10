@@ -2,9 +2,9 @@ package software.seriouschoi.timeisgold.data.repositories
 
 import androidx.room.withTransaction
 import software.seriouschoi.timeisgold.data.database.AppDatabase
-import software.seriouschoi.timeisgold.data.database.entities.TimeSlotMemoEntity
+import software.seriouschoi.timeisgold.data.database.schema.TimeSlotMemoSchema
 import software.seriouschoi.timeisgold.data.mapper.toDomain
-import software.seriouschoi.timeisgold.data.mapper.toEntity
+import software.seriouschoi.timeisgold.data.mapper.toSchema
 import software.seriouschoi.timeisgold.domain.data.timeslot.TimeSlotData
 import software.seriouschoi.timeisgold.domain.data.timeslot.TimeSlotDetailData
 import software.seriouschoi.timeisgold.domain.data.timeslot.TimeSlotMemoData
@@ -21,13 +21,13 @@ internal class TimeSlotRepositoryImpl @Inject constructor(
                 timeSchedule?.id ?: throw IllegalStateException("time schedule is null")
 
             val timeSlotId = timeSlotData.timeSlotData.let {
-                it.toEntity(timeScheduleId)
+                it.toSchema(timeScheduleId)
             }.let {
                 database.TimeSlotDao().insert(it)
             }.takeIf { it > 0 } ?: throw IllegalStateException("time slot insert failed.")
 
             if (timeSlotData.timeSlotMemoData != null) {
-                timeSlotData.timeSlotMemoData?.toEntity(timeSlotId = timeSlotId)?.let {
+                timeSlotData.timeSlotMemoData?.toSchema(timeSlotId = timeSlotId)?.let {
                     database.TimeSlotMemoDao().insert(it)
                 }?.takeIf { it > 0 } ?: throw IllegalStateException("time slot insert failed.")
             }
@@ -74,7 +74,7 @@ internal class TimeSlotRepositoryImpl @Inject constructor(
         database.withTransaction {
             val entity = database.TimeSlotMemoDao().get(memoData.uuid)
             val newEntity = memoData.let {
-                TimeSlotMemoEntity(
+                TimeSlotMemoSchema(
                     memo = it.memo,
                     uuid = it.uuid,
                     createTime = it.createTime,
@@ -97,7 +97,7 @@ internal class TimeSlotRepositoryImpl @Inject constructor(
             val timeSlotEntity = database.TimeSlotDao().get(timeSlotData.uuid)
                 ?: throw IllegalStateException("time slot is null")
 
-            timeSlotData.toEntity(
+            timeSlotData.toSchema(
                 timeScheduleId = timeSlotEntity.timeScheduleId,
                 timeSlotId = timeSlotEntity.id
             ).let {

@@ -6,6 +6,6 @@ import software.seriouschoi.timeisgold.data.database.relations.TimeScheduleWithD
 
 @Dao
 internal abstract class TimeScheduleWithDayOfWeeksDao {
-    @Query("SELECT * FROM TimeScheduleEntity")
+    @Query("SELECT * FROM TimeScheduleSchema")
     abstract fun getAll(): List<TimeScheduleWithDayOfWeeks>
 }

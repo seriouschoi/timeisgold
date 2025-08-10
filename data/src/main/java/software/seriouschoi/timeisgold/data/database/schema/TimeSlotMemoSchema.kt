@@ -1,10 +1,10 @@
-package software.seriouschoi.timeisgold.data.database.entities
+package software.seriouschoi.timeisgold.data.database.schema
 
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
-import java.time.LocalTime
+
 
 @Entity(
     indices = [
@@ -12,19 +12,17 @@ import java.time.LocalTime
     ],
     foreignKeys = [
         ForeignKey(
-            entity = TimeScheduleEntity::class,
+            entity = TimeSlotSchema::class,
             parentColumns = ["id"],
-            childColumns = ["timeScheduleId"],
+            childColumns = ["timeSlotId"],
             onDelete = ForeignKey.CASCADE
-        ),
+        )
     ]
 )
-internal data class TimeSlotEntity(
+internal data class TimeSlotMemoSchema(
     @PrimaryKey(autoGenerate = true) val id: Long? = null,
-    val startTime: LocalTime,
-    val endTime: LocalTime,
-    val title: String,
+    val memo: String,
     val uuid: String,
     val createTime: Long,
-    val timeScheduleId: Long
+    val timeSlotId: Long
 )
