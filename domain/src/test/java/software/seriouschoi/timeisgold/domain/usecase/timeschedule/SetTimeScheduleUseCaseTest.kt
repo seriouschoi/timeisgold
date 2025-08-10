@@ -14,24 +14,20 @@ import software.seriouschoi.timeisgold.domain.policy.TimeSchedulePolicy
 import software.seriouschoi.timeisgold.domain.repositories.TimeScheduleRepository
 import java.time.DayOfWeek
 
-/**
- * Created by jhchoi on 2025. 8. 8.
- * jhchoi@neofect.com
- */
 @RunWith(MockitoJUnitRunner::class)
-internal class AddTimeScheduleUseCaseTest {
+internal class SetTimeScheduleUseCaseTest {
     private lateinit var testFixture: TimeScheduleDataFixture
 
     @Mock
     lateinit var timeScheduleRepo: TimeScheduleRepository
 
-    private lateinit var useCase: AddTimeScheduleUseCase
+    private lateinit var useCase: SetTimeScheduleUseCase
 
     @Before
     fun setup() {
         MockitoAnnotations.openMocks(this)
         testFixture = TimeScheduleDataFixture
-        useCase = AddTimeScheduleUseCase(timeScheduleRepo, TimeSchedulePolicy())
+        useCase = SetTimeScheduleUseCase(timeScheduleRepo, TimeSchedulePolicy())
 
         runTest {
             whenever(timeScheduleRepo.getAllTimeSchedules()).thenReturn(
@@ -44,7 +40,7 @@ internal class AddTimeScheduleUseCaseTest {
     }
 
     @Test(expected = TIGException.ScheduleConflict::class)
-    fun `addTimeSchedule when duplicate dayOfWeek should throw exception`() {
+    fun `setTimeSchedule when duplicate dayOfWeek should throw exception`() {
         runTest {
             val scheduleInMondayWednesday = testFixture.createTimeSchedule(
                 listOf(DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY)
@@ -54,7 +50,7 @@ internal class AddTimeScheduleUseCaseTest {
     }
 
     @Test
-    fun `addTimeSchedule when not duplicate dayOfWeek should not throw exception`() {
+    fun `setTimeSchedule when not duplicate dayOfWeek should not throw exception`() {
         runTest {
             val scheduleInMondayWednesday = testFixture.createTimeSchedule(
                 listOf(DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY)
@@ -62,6 +58,4 @@ internal class AddTimeScheduleUseCaseTest {
             useCase.invoke(scheduleInMondayWednesday)
         }
     }
-
-
 }

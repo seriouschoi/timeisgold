@@ -4,9 +4,9 @@ import androidx.room.withTransaction
 import software.seriouschoi.timeisgold.data.database.AppDatabase
 import software.seriouschoi.timeisgold.data.mapper.toDomain
 import software.seriouschoi.timeisgold.data.mapper.toEntity
-import software.seriouschoi.timeisgold.domain.data.time_schedule.TimeScheduleData
-import software.seriouschoi.timeisgold.domain.data.time_schedule.TimeScheduleDayOfWeekData
-import software.seriouschoi.timeisgold.domain.data.time_schedule.TimeScheduleDetailData
+import software.seriouschoi.timeisgold.domain.data.timeschedule.TimeScheduleData
+import software.seriouschoi.timeisgold.domain.data.timeschedule.TimeScheduleDayOfWeekData
+import software.seriouschoi.timeisgold.domain.data.timeschedule.TimeScheduleDetailData
 import software.seriouschoi.timeisgold.domain.repositories.TimeScheduleRepository
 import java.time.DayOfWeek
 import javax.inject.Inject
@@ -62,7 +62,7 @@ internal class TimeScheduleRepositoryImpl @Inject constructor(
     }
 
 
-    override suspend fun getTimeScheduleByUuid(timeScheduleUuid: String): TimeScheduleDetailData? {
+    override suspend fun getTimeScheduleDetailByUuid(timeScheduleUuid: String): TimeScheduleDetailData? {
         return appDatabase.withTransaction {
             appDatabase.TimeScheduleRelationDao().get(timeScheduleUuid)?.toDomain()
         }

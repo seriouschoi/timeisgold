@@ -7,9 +7,9 @@ import software.seriouschoi.timeisgold.data.database.entities.TimeSlotMemoEntity
 import software.seriouschoi.timeisgold.data.database.relations.TimeScheduleRelation
 import software.seriouschoi.timeisgold.data.database.relations.TimeScheduleWithDayOfWeeks
 import software.seriouschoi.timeisgold.data.database.relations.TimeSlotRelation
-import software.seriouschoi.timeisgold.domain.data.time_schedule.TimeScheduleData
-import software.seriouschoi.timeisgold.domain.data.time_schedule.TimeScheduleDayOfWeekData
-import software.seriouschoi.timeisgold.domain.data.time_schedule.TimeScheduleDetailData
+import software.seriouschoi.timeisgold.domain.data.timeschedule.TimeScheduleData
+import software.seriouschoi.timeisgold.domain.data.timeschedule.TimeScheduleDayOfWeekData
+import software.seriouschoi.timeisgold.domain.data.timeschedule.TimeScheduleDetailData
 import software.seriouschoi.timeisgold.domain.data.timeslot.TimeSlotData
 import software.seriouschoi.timeisgold.domain.data.timeslot.TimeSlotDetailData
 import software.seriouschoi.timeisgold.domain.data.timeslot.TimeSlotMemoData

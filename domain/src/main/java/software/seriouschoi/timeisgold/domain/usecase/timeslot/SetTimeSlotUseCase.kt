@@ -11,8 +11,8 @@ class SetTimeSlotUseCase(
     private val timeslotPolicy: TimeSlotPolicy
 ) {
 
-    suspend fun setTimeSlot(timeScheduleUuid: String, timeSlotData: TimeSlotDetailData) {
-        val timeScheduleDetail = timeScheduleRepository.getTimeScheduleByUuid(timeScheduleUuid)
+    suspend operator fun invoke(timeScheduleUuid: String, timeSlotData: TimeSlotDetailData) {
+        val timeScheduleDetail = timeScheduleRepository.getTimeScheduleDetailByUuid(timeScheduleUuid)
             ?: throw IllegalStateException("time schedule is null")
 
         timeslotPolicy.checkCanAdd(timeScheduleDetail.timeSlotList, timeSlotData.timeSlotData)

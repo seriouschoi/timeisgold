@@ -1,6 +1,6 @@
 package software.seriouschoi.timeisgold.domain.usecase.timeschedule
 
-import software.seriouschoi.timeisgold.domain.data.time_schedule.TimeScheduleData
+import software.seriouschoi.timeisgold.domain.data.timeschedule.TimeScheduleData
 import software.seriouschoi.timeisgold.domain.policy.TimeSchedulePolicy
 import software.seriouschoi.timeisgold.domain.repositories.TimeScheduleRepository
 

@@ -49,7 +49,7 @@ internal class GetTimeSlotTest : BaseRoomTest() {
                 it.uuid
             }
 
-            val addTimeSlotAfterSchedule = timeScheduleRepo.getTimeScheduleByUuid(schedule.timeScheduleData.uuid)
+            val addTimeSlotAfterSchedule = timeScheduleRepo.getTimeScheduleDetailByUuid(schedule.timeScheduleData.uuid)
                 ?: throw IllegalStateException("test data is null")
 
             //가져온 데이터에 새로 추가된 데이터가 있는가?

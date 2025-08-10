@@ -1,6 +1,6 @@
 package software.seriouschoi.timeisgold.domain.policy
 
-import software.seriouschoi.timeisgold.domain.data.time_schedule.TimeScheduleData
+import software.seriouschoi.timeisgold.domain.data.timeschedule.TimeScheduleData
 import software.seriouschoi.timeisgold.domain.exception.TIGException
 
 /**

@@ -6,7 +6,7 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import software.seriouschoi.timeisgold.data.BaseRoomTest
-import software.seriouschoi.timeisgold.domain.data.time_schedule.TimeScheduleDayOfWeekData
+import software.seriouschoi.timeisgold.domain.data.timeschedule.TimeScheduleDayOfWeekData
 import java.util.UUID
 
 /**
@@ -55,7 +55,7 @@ internal class SetTimeScheduleTest : BaseRoomTest() {
             timeScheduleRepo.setTimeSchedule(scheduleForChange)
 
             //jhchoi 2025. 8. 7. 스케줄 변경이 잘 되는가?
-            val changedSchedule = timeScheduleRepo.getTimeScheduleByUuid(scheduleFromDb.uuid)
+            val changedSchedule = timeScheduleRepo.getTimeScheduleDetailByUuid(scheduleFromDb.uuid)
             assert(scheduleFromDb != changedSchedule?.timeScheduleData)
             assert(scheduleForChange == changedSchedule?.timeScheduleData)
         }

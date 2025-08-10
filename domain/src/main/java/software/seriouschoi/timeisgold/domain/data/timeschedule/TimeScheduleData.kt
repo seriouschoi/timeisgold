@@ -1,4 +1,4 @@
-package software.seriouschoi.timeisgold.domain.data.time_schedule
+package software.seriouschoi.timeisgold.domain.data.timeschedule
 
 data class TimeScheduleData(
     val timeScheduleName: String,

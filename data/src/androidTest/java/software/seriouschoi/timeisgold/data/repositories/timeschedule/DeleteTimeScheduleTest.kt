@@ -46,7 +46,7 @@ internal class DeleteTimeScheduleTest : BaseRoomTest() {
 
             timeScheduleRepo.deleteTimeSchedule(schedule.timeScheduleData.uuid)
 
-            val compareData = timeScheduleRepo.getTimeScheduleByUuid(schedule.timeScheduleData.uuid)
+            val compareData = timeScheduleRepo.getTimeScheduleDetailByUuid(schedule.timeScheduleData.uuid)
 
             assert(compareData == null)
             schedule.timeSlotList.forEach { timeSlot ->
@@ -73,7 +73,7 @@ internal class DeleteTimeScheduleTest : BaseRoomTest() {
             timeScheduleRepo.deleteTimeSchedule(scheduleForDelete.timeScheduleData.uuid)
 
             val compareData1 =
-                timeScheduleRepo.getTimeScheduleByUuid(schedule1.timeScheduleData.uuid)
+                timeScheduleRepo.getTimeScheduleDetailByUuid(schedule1.timeScheduleData.uuid)
             assert(compareData1 == schedule1)
         }
     }

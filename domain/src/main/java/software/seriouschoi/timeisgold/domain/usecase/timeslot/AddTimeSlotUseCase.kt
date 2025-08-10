@@ -12,7 +12,7 @@ class AddTimeSlotUseCase(
     private val timeslotPolicy: TimeSlotPolicy
 ) {
     suspend operator fun invoke(timeScheduleUuid: String, timeSlotData: TimeSlotDetailData) {
-        val timeScheduleDetail = timeScheduleRepository.getTimeScheduleByUuid(timeScheduleUuid)
+        val timeScheduleDetail = timeScheduleRepository.getTimeScheduleDetailByUuid(timeScheduleUuid)
             ?: throw TIGException.TimeScheduleNotFound(timeScheduleUuid)
 
         timeslotPolicy.checkCanAdd(timeScheduleDetail.timeSlotList, timeSlotData.timeSlotData)

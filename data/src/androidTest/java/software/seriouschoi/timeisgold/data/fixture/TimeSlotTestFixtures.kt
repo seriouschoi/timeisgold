@@ -1,7 +1,7 @@
 package software.seriouschoi.timeisgold.data.fixture
 
-import software.seriouschoi.timeisgold.domain.data.time_schedule.TimeScheduleData
-import software.seriouschoi.timeisgold.domain.data.time_schedule.TimeScheduleDayOfWeekData
+import software.seriouschoi.timeisgold.domain.data.timeschedule.TimeScheduleData
+import software.seriouschoi.timeisgold.domain.data.timeschedule.TimeScheduleDayOfWeekData
 import software.seriouschoi.timeisgold.domain.data.timeslot.TimeSlotData
 import software.seriouschoi.timeisgold.domain.data.timeslot.TimeSlotDetailData
 import software.seriouschoi.timeisgold.domain.data.timeslot.TimeSlotMemoData
@@ -70,13 +70,6 @@ internal object TimeSlotTestFixtures {
         return listOf(
             DayOfWeek.TUESDAY,
             DayOfWeek.THURSDAY,
-        )
-    }
-
-    fun getTestScheduleEmptyDayOfWeeks(): List<DayOfWeek> {
-        return listOf(
-            DayOfWeek.SATURDAY,
-            DayOfWeek.SUNDAY
         )
     }
 
