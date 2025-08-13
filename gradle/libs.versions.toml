@@ -1,6 +1,6 @@
 [versions]
 agp = "8.12.0"
-kotlin = "2.0.21"
+kotlin = "2.2.0"
 coreKtx = "1.16.0"
 junit = "4.13.2"
 junitVersion = "1.3.0"
@@ -8,10 +8,10 @@ espressoCore = "3.7.0"
 appcompat = "1.7.1"
 material = "1.12.0"
 jetbrainsKotlinJvm = "1.9.0"
-hilt = "2.56.2"
+hilt = "2.57"
 ksp = "2.0.21-1.0.27"
 mockitoCore = "5.18.0"
-mockitoKotlin = "5.3.1"
+mockitoKotlin = "6.0.0"
 room = "2.7.2"
 timber = "5.0.1"
 coroutine = "1.10.2"
@@ -49,8 +49,10 @@ androidx-activity-compose = { module = "androidx.activity:activity-compose", ver
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 jetbrains-kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "jetbrainsKotlinJvm" }
 android-library = { id = "com.android.library", version.ref = "agp" }
 hilt-gradle = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+
 
