@@ -1,7 +1,7 @@
 package software.seriouschoi.timeisgold.data.fixture
 
-import software.seriouschoi.timeisgold.domain.data.timeschedule.TimeScheduleData
-import software.seriouschoi.timeisgold.domain.data.timeschedule.TimeScheduleDayOfWeekData
+import software.seriouschoi.timeisgold.domain.data.timeroutine.TimeRoutineData
+import software.seriouschoi.timeisgold.domain.data.timeroutine.TimeRoutineDayOfWeekData
 import software.seriouschoi.timeisgold.domain.data.timeslot.TimeSlotData
 import software.seriouschoi.timeisgold.domain.data.timeslot.TimeSlotDetailData
 import software.seriouschoi.timeisgold.domain.data.timeslot.TimeSlotMemoData
@@ -39,26 +39,26 @@ internal object TimeSlotTestFixtures {
         )
     }
 
-    fun createTimeSchedule(dayOfWeekList: List<DayOfWeek>): TimeScheduleData {
+    fun createTimeRoutine(dayOfWeekList: List<DayOfWeek>): TimeRoutineData {
         val uuid = UUID.randomUUID()
-        return TimeScheduleData(
+        return TimeRoutineData(
             uuid = uuid.toString(),
             createTime = System.currentTimeMillis(),
-            timeScheduleName = "test_schedule_$uuid",
+            title = "test_routine_$uuid",
             dayOfWeekList = dayOfWeekList.map {
-                createTimeScheduleDayOfWeek(it)
+                createTimeRoutineDayOfWeek(it)
             }
         )
     }
 
-    private fun createTimeScheduleDayOfWeek(dayOfWeek: DayOfWeek): TimeScheduleDayOfWeekData {
-        return TimeScheduleDayOfWeekData(
+    private fun createTimeRoutineDayOfWeek(dayOfWeek: DayOfWeek): TimeRoutineDayOfWeekData {
+        return TimeRoutineDayOfWeekData(
             dayOfWeek = dayOfWeek,
             uuid = UUID.randomUUID().toString()
         )
     }
 
-    fun getTestScheduleDayOfWeeks1(): List<DayOfWeek> {
+    fun getTestRoutineDayOfWeeks1(): List<DayOfWeek> {
         return listOf(
             DayOfWeek.MONDAY,
             DayOfWeek.WEDNESDAY,
@@ -66,7 +66,7 @@ internal object TimeSlotTestFixtures {
         )
     }
 
-    fun getTestScheduleDayOfWeeks2(): List<DayOfWeek> {
+    fun getTestRoutineDayOfWeeks2(): List<DayOfWeek> {
         return listOf(
             DayOfWeek.TUESDAY,
             DayOfWeek.THURSDAY,

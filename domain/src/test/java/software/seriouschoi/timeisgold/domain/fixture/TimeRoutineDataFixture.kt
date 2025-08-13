@@ -1,8 +1,8 @@
 package software.seriouschoi.timeisgold.domain.fixture
 
-import software.seriouschoi.timeisgold.domain.data.timeschedule.TimeScheduleData
-import software.seriouschoi.timeisgold.domain.data.timeschedule.TimeScheduleDayOfWeekData
-import software.seriouschoi.timeisgold.domain.data.timeschedule.TimeScheduleDetailData
+import software.seriouschoi.timeisgold.domain.data.timeroutine.TimeRoutineData
+import software.seriouschoi.timeisgold.domain.data.timeroutine.TimeRoutineDayOfWeekData
+import software.seriouschoi.timeisgold.domain.data.timeroutine.TimeRoutineDetailData
 import software.seriouschoi.timeisgold.domain.data.timeslot.TimeSlotData
 import java.time.DayOfWeek
 import java.time.LocalTime
@@ -12,24 +12,24 @@ import java.util.UUID
  * Created by jhchoi on 2025. 8. 8.
  * jhchoi@neofect.com
  */
-internal object TimeScheduleDataFixture {
-    fun createTimeScheduleDetail(
+internal object TimeRoutineDataFixture {
+    fun createTimeRoutineDetail(
         dayOfWeekList: List<DayOfWeek>,
-    ): TimeScheduleDetailData {
-        return TimeScheduleDetailData(
-            timeScheduleData = createTimeSchedule(dayOfWeekList),
+    ): TimeRoutineDetailData {
+        return TimeRoutineDetailData(
+            timeRoutineData = createTimeRoutine(dayOfWeekList),
             timeSlotList = createTimeSlotList()
         )
     }
 
-    fun createTimeSchedule(dayOfWeekList: List<DayOfWeek>): TimeScheduleData {
+    fun createTimeRoutine(dayOfWeekList: List<DayOfWeek>): TimeRoutineData {
         val uuid = UUID.randomUUID().toString()
-        return TimeScheduleData(
-            timeScheduleName = "test_$uuid",
+        return TimeRoutineData(
+            title = "test_$uuid",
             uuid = uuid,
             createTime = System.currentTimeMillis(),
             dayOfWeekList = dayOfWeekList.map {
-                TimeScheduleDayOfWeekData(
+                TimeRoutineDayOfWeekData(
                     dayOfWeek = it,
                     uuid = UUID.randomUUID().toString()
                 )

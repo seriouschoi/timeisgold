@@ -1,49 +1,49 @@
 package software.seriouschoi.timeisgold.data.mapper
 
-import software.seriouschoi.timeisgold.data.database.schema.TimeScheduleDayOfWeekSchema
-import software.seriouschoi.timeisgold.data.database.schema.TimeScheduleSchema
+import software.seriouschoi.timeisgold.data.database.schema.TimeRoutineDayOfWeekSchema
+import software.seriouschoi.timeisgold.data.database.schema.TimeRoutineSchema
 import software.seriouschoi.timeisgold.data.database.schema.TimeSlotSchema
 import software.seriouschoi.timeisgold.data.database.schema.TimeSlotMemoSchema
-import software.seriouschoi.timeisgold.data.database.relations.TimeScheduleRelation
-import software.seriouschoi.timeisgold.data.database.relations.TimeScheduleWithDayOfWeeks
+import software.seriouschoi.timeisgold.data.database.relations.TimeRoutineRelation
+import software.seriouschoi.timeisgold.data.database.relations.TimeRoutineWithDayOfWeeks
 import software.seriouschoi.timeisgold.data.database.relations.TimeSlotRelation
-import software.seriouschoi.timeisgold.domain.data.timeschedule.TimeScheduleData
-import software.seriouschoi.timeisgold.domain.data.timeschedule.TimeScheduleDayOfWeekData
-import software.seriouschoi.timeisgold.domain.data.timeschedule.TimeScheduleDetailData
+import software.seriouschoi.timeisgold.domain.data.timeroutine.TimeRoutineData
+import software.seriouschoi.timeisgold.domain.data.timeroutine.TimeRoutineDayOfWeekData
+import software.seriouschoi.timeisgold.domain.data.timeroutine.TimeRoutineDetailData
 import software.seriouschoi.timeisgold.domain.data.timeslot.TimeSlotData
 import software.seriouschoi.timeisgold.domain.data.timeslot.TimeSlotDetailData
 import software.seriouschoi.timeisgold.domain.data.timeslot.TimeSlotMemoData
 
-internal fun TimeScheduleData.toSchema(id: Long? = null): TimeScheduleSchema {
-    return TimeScheduleSchema(
+internal fun TimeRoutineData.toSchema(id: Long? = null): TimeRoutineSchema {
+    return TimeRoutineSchema(
         id = id,
         uuid = this.uuid,
-        title = this.timeScheduleName,
+        title = this.title,
         createTime = this.createTime
     )
 }
 
-internal fun TimeScheduleDayOfWeekData.toSchema(
-    timeScheduleId: Long,
+internal fun TimeRoutineDayOfWeekData.toSchema(
+    timeRoutineId: Long,
     id: Long? = null
-): TimeScheduleDayOfWeekSchema {
-    return TimeScheduleDayOfWeekSchema(
+): TimeRoutineDayOfWeekSchema {
+    return TimeRoutineDayOfWeekSchema(
         id = id,
         dayOfWeek = this.dayOfWeek,
         uuid = this.uuid,
-        timeScheduleId = timeScheduleId
+        timeRoutineId = timeRoutineId
     )
 }
 
-internal fun TimeScheduleDayOfWeekSchema.toDomain(): TimeScheduleDayOfWeekData {
-    return TimeScheduleDayOfWeekData(
+internal fun TimeRoutineDayOfWeekSchema.toDomain(): TimeRoutineDayOfWeekData {
+    return TimeRoutineDayOfWeekData(
         dayOfWeek = this.dayOfWeek,
         uuid = this.uuid
     )
 }
 
-internal fun TimeScheduleRelation.toDomain(): TimeScheduleDetailData {
-    val schedule = this.timeSchedule
+internal fun TimeRoutineRelation.toDomain(): TimeRoutineDetailData {
+    val routine = this.timeRoutine
     val dayOfWeek = this.dayOfWeeks.map {
         it.toDomain()
     }
@@ -51,11 +51,11 @@ internal fun TimeScheduleRelation.toDomain(): TimeScheduleDetailData {
         it.toDomain()
     }
 
-    return TimeScheduleDetailData(
-        timeScheduleData = TimeScheduleData(
-            uuid = schedule.uuid,
-            timeScheduleName = schedule.title,
-            createTime = schedule.createTime,
+    return TimeRoutineDetailData(
+        timeRoutineData = TimeRoutineData(
+            uuid = routine.uuid,
+            title = routine.title,
+            createTime = routine.createTime,
             dayOfWeekList = dayOfWeek
         ),
         timeSlotList = timeSlot
@@ -72,7 +72,7 @@ internal fun TimeSlotSchema.toDomain(): TimeSlotData {
     )
 }
 
-internal fun TimeSlotData.toSchema(timeScheduleId: Long, timeSlotId: Long? = null): TimeSlotSchema {
+internal fun TimeSlotData.toSchema(timeRoutineId: Long, timeSlotId: Long? = null): TimeSlotSchema {
     return TimeSlotSchema(
         uuid = this.uuid,
         startTime = this.startTime,
@@ -80,7 +80,7 @@ internal fun TimeSlotData.toSchema(timeScheduleId: Long, timeSlotId: Long? = nul
         title = this.title,
         createTime = this.createTime,
         id = timeSlotId,
-        timeScheduleId = timeScheduleId
+        timeRoutineId = timeRoutineId
     )
 }
 
@@ -112,13 +112,13 @@ internal fun TimeSlotRelation.toDomain(): TimeSlotDetailData {
     )
 }
 
-internal fun TimeScheduleWithDayOfWeeks.toDomain(): TimeScheduleData {
-    return TimeScheduleData(
-        uuid = this.timeSchedule.uuid,
-        timeScheduleName = this.timeSchedule.title,
-        createTime = this.timeSchedule.createTime,
+internal fun TimeRoutineWithDayOfWeeks.toDomain(): TimeRoutineData {
+    return TimeRoutineData(
+        uuid = this.timeRoutine.uuid,
+        title = this.timeRoutine.title,
+        createTime = this.timeRoutine.createTime,
         dayOfWeekList = this.dayOfWeeks.map {
-            TimeScheduleDayOfWeekData(
+            TimeRoutineDayOfWeekData(
                 dayOfWeek = it.dayOfWeek,
                 uuid = it.uuid
             )

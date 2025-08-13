@@ -14,14 +14,14 @@ import javax.inject.Inject
 internal class TimeSlotRepositoryImpl @Inject constructor(
     private val database: AppDatabase,
 ) : TimeSlotRepository {
-    override suspend fun addTimeSlot(timeSlotData: TimeSlotDetailData, timeScheduleUuid: String) {
+    override suspend fun addTimeSlot(timeSlotData: TimeSlotDetailData, timeRoutineUuid: String) {
         database.withTransaction {
-            val timeSchedule = database.TimeScheduleDao().get(timeScheduleUuid)
-            val timeScheduleId =
-                timeSchedule?.id ?: throw IllegalStateException("time schedule is null")
+            val timeRoutine = database.TimeRoutineDao().get(timeRoutineUuid)
+            val timeRoutineId =
+                timeRoutine?.id ?: throw IllegalStateException("time routine is null")
 
             val timeSlotId = timeSlotData.timeSlotData.let {
-                it.toSchema(timeScheduleId)
+                it.toSchema(timeRoutineId)
             }.let {
                 database.TimeSlotDao().insert(it)
             }.takeIf { it > 0 } ?: throw IllegalStateException("time slot insert failed.")
@@ -98,7 +98,7 @@ internal class TimeSlotRepositoryImpl @Inject constructor(
                 ?: throw IllegalStateException("time slot is null")
 
             timeSlotData.toSchema(
-                timeScheduleId = timeSlotEntity.timeScheduleId,
+                timeRoutineId = timeSlotEntity.timeRoutineId,
                 timeSlotId = timeSlotEntity.id
             ).let {
                 database.TimeSlotDao().update(it)

@@ -13,14 +13,14 @@ internal class AddTimeSlotTest : BaseRoomTest() {
     @Before
     fun setup() {
         runTest {
-            val dayOfWeeks = timeSlotTestFixtures.getTestScheduleDayOfWeeks1()
-            val timeSchedule = timeSlotTestFixtures.createTimeSchedule(dayOfWeeks)
-            timeScheduleRepo.addTimeSchedule(timeSchedule)
+            val dayOfWeeks = timeSlotTestFixtures.getTestRoutineDayOfWeeks1()
+            val timeRoutine = timeSlotTestFixtures.createTimeRoutine(dayOfWeeks)
+            timeRoutineRepo.addTimeRoutine(timeRoutine)
 
             timeSlotTestFixtures.createDetailDataList().forEach {
                 timeSlotRepo.addTimeSlot(
                     timeSlotData = it,
-                    timeScheduleUuid = timeSchedule.uuid
+                    timeRoutineUuid = timeRoutine.uuid
                 )
             }
         }
@@ -29,14 +29,14 @@ internal class AddTimeSlotTest : BaseRoomTest() {
     @Test
     fun addTimeSlot_should_PersistEntityCorrectly() {
         runTest {
-            val testDayOfWeek = timeSlotTestFixtures.getTestScheduleDayOfWeeks1().first()
-            val schedule = timeScheduleRepo.getTimeScheduleDetail(testDayOfWeek)
-                ?: throw IllegalStateException("time schedule is null")
+            val testDayOfWeek = timeSlotTestFixtures.getTestRoutineDayOfWeeks1().first()
+            val routine = timeRoutineRepo.getTimeRoutineDetail(testDayOfWeek)
+                ?: throw IllegalStateException("time routine is null")
 
             val testTimeSlotDetail = timeSlotTestFixtures.createDetailDataList().first()
             timeSlotRepo.addTimeSlot(
                 timeSlotData = testTimeSlotDetail,
-                timeScheduleUuid = schedule.timeScheduleData.uuid
+                timeRoutineUuid = routine.timeRoutineData.uuid
             )
 
             val compareData =
@@ -50,16 +50,16 @@ internal class AddTimeSlotTest : BaseRoomTest() {
     @Test
     fun addTimeSlot_withoutMemo_should_PersistEntityCorrectly() {
         runTest {
-            val testDayOfWeek = timeSlotTestFixtures.getTestScheduleDayOfWeeks1().first()
-            val schedule = timeScheduleRepo.getTimeScheduleDetail(testDayOfWeek)
-                ?: throw IllegalStateException("time schedule is null")
+            val testDayOfWeek = timeSlotTestFixtures.getTestRoutineDayOfWeeks1().first()
+            val routine = timeRoutineRepo.getTimeRoutineDetail(testDayOfWeek)
+                ?: throw IllegalStateException("time routine is null")
 
             val testData = timeSlotTestFixtures.createDetailTimeSlot().copy(
                 timeSlotMemoData = null
             )
             timeSlotRepo.addTimeSlot(
                 timeSlotData = testData,
-                timeScheduleUuid = schedule.timeScheduleData.uuid
+                timeRoutineUuid = routine.timeRoutineData.uuid
             )
 
             val compareData = timeSlotRepo.getTimeSlotDetail(testData.timeSlotData.uuid)
@@ -72,12 +72,12 @@ internal class AddTimeSlotTest : BaseRoomTest() {
     @Test(expected = SQLiteConstraintException::class)
     fun addTimeSlot_duplicateUuid_shouldThrowException() {
         runTest {
-            val testDayOfWeek = timeSlotTestFixtures.getTestScheduleDayOfWeeks1().first()
-            val schedule = timeScheduleRepo.getTimeScheduleDetail(testDayOfWeek)
-                ?: throw IllegalStateException("time schedule is null")
+            val testDayOfWeek = timeSlotTestFixtures.getTestRoutineDayOfWeeks1().first()
+            val routine = timeRoutineRepo.getTimeRoutineDetail(testDayOfWeek)
+                ?: throw IllegalStateException("time routine is null")
 
             val testData = timeSlotTestFixtures.createDetailTimeSlot()
-            timeSlotRepo.addTimeSlot(testData, schedule.timeScheduleData.uuid)
+            timeSlotRepo.addTimeSlot(testData, routine.timeRoutineData.uuid)
 
             //같은 uuid 의 다른 타임 슬롯 생성.
             val newTestData = timeSlotTestFixtures.createDetailTimeSlot()
@@ -87,7 +87,7 @@ internal class AddTimeSlotTest : BaseRoomTest() {
             val testData2 = newTestData.copy(timeSlotData = newTestTimeSlot)
             timeSlotRepo.addTimeSlot(
                 timeSlotData = testData2,
-                timeScheduleUuid = schedule.timeScheduleData.uuid
+                timeRoutineUuid = routine.timeRoutineData.uuid
             )
         }
     }
@@ -95,16 +95,16 @@ internal class AddTimeSlotTest : BaseRoomTest() {
     @Test(expected = SQLiteConstraintException::class)
     fun addTimeSlot_duplicateMemoUuid_shouldThrowException() {
         runTest {
-            val testDayOfWeek = timeSlotTestFixtures.getTestScheduleDayOfWeeks1().first()
-            val schedule = timeScheduleRepo.getTimeScheduleDetail(testDayOfWeek)
-                ?: throw IllegalStateException("time schedule is null")
+            val testDayOfWeek = timeSlotTestFixtures.getTestRoutineDayOfWeeks1().first()
+            val routine = timeRoutineRepo.getTimeRoutineDetail(testDayOfWeek)
+                ?: throw IllegalStateException("time routine is null")
 
             val testData1Source = timeSlotTestFixtures.createDetailTimeSlot()
             val testData1Memo =
                 testData1Source.timeSlotMemoData ?: throw IllegalStateException("test data is null")
             timeSlotRepo.addTimeSlot(
                 timeSlotData = testData1Source,
-                timeScheduleUuid = schedule.timeScheduleData.uuid
+                timeRoutineUuid = routine.timeRoutineData.uuid
             )
 
             val testData2Source = timeSlotTestFixtures.createDetailTimeSlot()
@@ -116,7 +116,7 @@ internal class AddTimeSlotTest : BaseRoomTest() {
                 timeSlotData = testData2Source.copy(
                     timeSlotMemoData = testData2Memo
                 ),
-                timeScheduleUuid = schedule.timeScheduleData.uuid
+                timeRoutineUuid = routine.timeRoutineData.uuid
             )
         }
     }

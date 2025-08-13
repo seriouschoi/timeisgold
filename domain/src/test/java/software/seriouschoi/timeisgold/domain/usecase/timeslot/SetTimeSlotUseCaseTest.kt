@@ -11,9 +11,9 @@ import org.mockito.kotlin.whenever
 import software.seriouschoi.timeisgold.domain.data.timeslot.TimeSlotData
 import software.seriouschoi.timeisgold.domain.data.timeslot.TimeSlotDetailData
 import software.seriouschoi.timeisgold.domain.exception.TIGException
-import software.seriouschoi.timeisgold.domain.fixture.TimeScheduleDataFixture
+import software.seriouschoi.timeisgold.domain.fixture.TimeRoutineDataFixture
 import software.seriouschoi.timeisgold.domain.policy.TimeSlotPolicy
-import software.seriouschoi.timeisgold.domain.repositories.TimeScheduleRepository
+import software.seriouschoi.timeisgold.domain.repositories.TimeRoutineRepository
 import software.seriouschoi.timeisgold.domain.repositories.TimeSlotRepository
 import java.time.DayOfWeek
 import java.util.UUID
@@ -21,10 +21,10 @@ import java.util.UUID
 
 @RunWith(MockitoJUnitRunner::class)
 class SetTimeSlotUseCaseTest {
-    private lateinit var testFixture: TimeScheduleDataFixture
+    private lateinit var testFixture: TimeRoutineDataFixture
 
     @Mock
-    lateinit var timeScheduleRepo: TimeScheduleRepository
+    lateinit var timeRoutineRepo: TimeRoutineRepository
 
     @Mock
     lateinit var timeSlotRepo: TimeSlotRepository
@@ -34,9 +34,9 @@ class SetTimeSlotUseCaseTest {
     @Before
     fun setup() {
         MockitoAnnotations.openMocks(this)
-        testFixture = TimeScheduleDataFixture
+        testFixture = TimeRoutineDataFixture
         useCase = SetTimeSlotUseCase(
-            timeScheduleRepository = timeScheduleRepo,
+            timeRoutineRepository = timeRoutineRepo,
             timeslotRepository = timeSlotRepo,
             timeslotPolicy = TimeSlotPolicy()
         )
@@ -45,14 +45,14 @@ class SetTimeSlotUseCaseTest {
     @Test(expected = TIGException.TimeSlotConflict::class)
     fun `setTimeSlot when same time should throw exception`() {
         runTest {
-            val scheduleUuid = UUID.randomUUID().toString()
-            whenever(timeScheduleRepo.getTimeScheduleDetailByUuid(scheduleUuid)).thenReturn(
-                testFixture.createTimeScheduleDetail(listOf(DayOfWeek.MONDAY))
+            val routineUuid = UUID.randomUUID().toString()
+            whenever(timeRoutineRepo.getTimeRoutineDetailByUuid(routineUuid)).thenReturn(
+                testFixture.createTimeRoutineDetail(listOf(DayOfWeek.MONDAY))
             )
 
-            val schedule = timeScheduleRepo.getTimeScheduleDetailByUuid(scheduleUuid)
-                ?: throw IllegalStateException("time schedule not found")
-            val timeslotFromData = schedule.timeSlotList.first()
+            val routine = timeRoutineRepo.getTimeRoutineDetailByUuid(routineUuid)
+                ?: throw IllegalStateException("time routine not found")
+            val timeslotFromData = routine.timeSlotList.first()
 
             val timeSlotForAdd = TimeSlotData(
                 uuid = UUID.randomUUID().toString(),
@@ -66,21 +66,21 @@ class SetTimeSlotUseCaseTest {
                 timeSlotMemoData = null
             )
 
-            useCase(scheduleUuid, timeSlotDetailForAdd)
+            useCase(routineUuid, timeSlotDetailForAdd)
         }
     }
 
     @Test(expected = TIGException.TimeSlotConflict::class)
     fun `setTimeSlot when overlap time should throw exception`() {
         runTest {
-            val scheduleUuid = UUID.randomUUID().toString()
-            whenever(timeScheduleRepo.getTimeScheduleDetailByUuid(scheduleUuid)).thenReturn(
-                testFixture.createTimeScheduleDetail(listOf(DayOfWeek.MONDAY))
+            val routineUuid = UUID.randomUUID().toString()
+            whenever(timeRoutineRepo.getTimeRoutineDetailByUuid(routineUuid)).thenReturn(
+                testFixture.createTimeRoutineDetail(listOf(DayOfWeek.MONDAY))
             )
 
-            val schedule = timeScheduleRepo.getTimeScheduleDetailByUuid(scheduleUuid)
-                ?: throw IllegalStateException("time schedule not found")
-            val timeslotFromData = schedule.timeSlotList.last()
+            val routine = timeRoutineRepo.getTimeRoutineDetailByUuid(routineUuid)
+                ?: throw IllegalStateException("time routine not found")
+            val timeslotFromData = routine.timeSlotList.last()
 
             val timeSlotForAdd = TimeSlotData(
                 uuid = UUID.randomUUID().toString(),
@@ -94,7 +94,7 @@ class SetTimeSlotUseCaseTest {
                 timeSlotMemoData = null
             )
 
-            useCase(scheduleUuid, timeSlotDetailForAdd)
+            useCase(routineUuid, timeSlotDetailForAdd)
         }
     }
 }

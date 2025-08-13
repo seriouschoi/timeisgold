@@ -9,7 +9,7 @@ import androidx.room.PrimaryKey
         Index(value = ["uuid"], unique = true)
     ]
 )
-internal data class TimeScheduleSchema(
+internal data class TimeRoutineSchema(
     @PrimaryKey(autoGenerate = true) val id: Long? = null,
     val uuid: String,
     val title: String,

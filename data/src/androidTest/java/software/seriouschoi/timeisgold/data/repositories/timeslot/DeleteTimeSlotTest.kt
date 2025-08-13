@@ -14,14 +14,14 @@ internal class DeleteTimeSlotTest : BaseRoomTest() {
     @Before
     fun setup() {
         runTest {
-            val dayOfWeeks = timeSlotTestFixtures.getTestScheduleDayOfWeeks1()
-            val timeSchedule = timeSlotTestFixtures.createTimeSchedule(dayOfWeeks)
-            timeScheduleRepo.addTimeSchedule(timeSchedule)
+            val dayOfWeeks = timeSlotTestFixtures.getTestRoutineDayOfWeeks1()
+            val timeRoutine = timeSlotTestFixtures.createTimeRoutine(dayOfWeeks)
+            timeRoutineRepo.addTimeRoutine(timeRoutine)
 
             timeSlotTestFixtures.createDetailDataList().forEach {
                 timeSlotRepo.addTimeSlot(
                     timeSlotData = it,
-                    timeScheduleUuid = timeSchedule.uuid
+                    timeRoutineUuid = timeRoutine.uuid
                 )
             }
         }
@@ -29,11 +29,11 @@ internal class DeleteTimeSlotTest : BaseRoomTest() {
     @Test
     fun deleteTimeSlot_should_DeletedTimeSlotAndMemo() {
         runTest {
-            val dayOfWeek = timeSlotTestFixtures.getTestScheduleDayOfWeeks1().first()
-            val schedule = timeScheduleRepo.getTimeScheduleDetail(dayOfWeek)
-                ?: throw IllegalStateException("time schedule is null")
+            val dayOfWeek = timeSlotTestFixtures.getTestRoutineDayOfWeeks1().first()
+            val routine = timeRoutineRepo.getTimeRoutineDetail(dayOfWeek)
+                ?: throw IllegalStateException("time routine is null")
 
-            val timeSlotDetailList = schedule.timeSlotList.map {
+            val timeSlotDetailList = routine.timeSlotList.map {
                 timeSlotRepo.getTimeSlotDetail(it.uuid)
             }
 

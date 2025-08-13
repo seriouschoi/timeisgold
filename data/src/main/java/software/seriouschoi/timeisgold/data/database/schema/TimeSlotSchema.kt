@@ -12,9 +12,9 @@ import java.time.LocalTime
     ],
     foreignKeys = [
         ForeignKey(
-            entity = TimeScheduleSchema::class,
+            entity = TimeRoutineSchema::class,
             parentColumns = ["id"],
-            childColumns = ["timeScheduleId"],
+            childColumns = ["timeRoutineId"],
             onDelete = ForeignKey.CASCADE
         ),
     ]
@@ -26,5 +26,5 @@ internal data class TimeSlotSchema(
     val title: String,
     val uuid: String,
     val createTime: Long,
-    val timeScheduleId: Long
+    val timeRoutineId: Long
 )

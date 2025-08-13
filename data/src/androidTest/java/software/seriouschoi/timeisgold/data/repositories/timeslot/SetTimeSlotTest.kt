@@ -17,14 +17,14 @@ internal class SetTimeSlotTest : BaseRoomTest() {
     @Before
     fun setup() {
         runTest {
-            val dayOfWeeks = timeSlotTestFixtures.getTestScheduleDayOfWeeks1()
-            val timeSchedule = timeSlotTestFixtures.createTimeSchedule(dayOfWeeks)
-            timeScheduleRepo.addTimeSchedule(timeSchedule)
+            val dayOfWeeks = timeSlotTestFixtures.getTestRoutineDayOfWeeks1()
+            val timeRoutine = timeSlotTestFixtures.createTimeRoutine(dayOfWeeks)
+            timeRoutineRepo.addTimeRoutine(timeRoutine)
 
             timeSlotTestFixtures.createDetailDataList().forEach {
                 timeSlotRepo.addTimeSlot(
                     timeSlotData = it,
-                    timeScheduleUuid = timeSchedule.uuid
+                    timeRoutineUuid = timeRoutine.uuid
                 )
             }
         }
@@ -33,11 +33,11 @@ internal class SetTimeSlotTest : BaseRoomTest() {
     @Test
     fun setTimeSlot_should_PersistEntityCorrectly() {
         runTest {
-            val dayOfWeek = timeSlotTestFixtures.getTestScheduleDayOfWeeks1().first()
-            val schedule = timeScheduleRepo.getTimeScheduleDetail(dayOfWeek)
-                ?: throw IllegalStateException("time schedule is null")
+            val dayOfWeek = timeSlotTestFixtures.getTestRoutineDayOfWeeks1().first()
+            val routine = timeRoutineRepo.getTimeRoutineDetail(dayOfWeek)
+                ?: throw IllegalStateException("time routine is null")
 
-            val allTimeSlotList = schedule.timeSlotList.map {
+            val allTimeSlotList = routine.timeSlotList.map {
                 timeSlotRepo.getTimeSlotDetail(it.uuid)
             }
             val testData =
@@ -60,16 +60,16 @@ internal class SetTimeSlotTest : BaseRoomTest() {
     @Test
     fun setTimeSlot_withoutMemo_should_PersistEntityCorrectly() {
         runTest {
-            val dayOfWeek = timeSlotTestFixtures.getTestScheduleDayOfWeeks1().first()
-            val schedule = timeScheduleRepo.getTimeScheduleDetail(dayOfWeek)
-                ?: throw IllegalStateException("time schedule is null")
+            val dayOfWeek = timeSlotTestFixtures.getTestRoutineDayOfWeeks1().first()
+            val routine = timeRoutineRepo.getTimeRoutineDetail(dayOfWeek)
+                ?: throw IllegalStateException("time routine is null")
 
             val testData = timeSlotTestFixtures.createDetailTimeSlot().copy(
                 timeSlotMemoData = null
             )
             timeSlotRepo.addTimeSlot(
                 timeSlotData = testData,
-                timeScheduleUuid = schedule.timeScheduleData.uuid
+                timeRoutineUuid = routine.timeRoutineData.uuid
             )
 
             val changedTimeSlot = testData.timeSlotData.copy(
@@ -88,11 +88,11 @@ internal class SetTimeSlotTest : BaseRoomTest() {
     @Test
     fun setTimeSlot_deleteMemo_should_PersistEntityCorrectly() {
         runTest {
-            val dayOfWeek = timeSlotTestFixtures.getTestScheduleDayOfWeeks1().first()
-            val schedule = timeScheduleRepo.getTimeScheduleDetail(dayOfWeek)
-                ?: throw IllegalStateException("time schedule is null")
+            val dayOfWeek = timeSlotTestFixtures.getTestRoutineDayOfWeeks1().first()
+            val routine = timeRoutineRepo.getTimeRoutineDetail(dayOfWeek)
+                ?: throw IllegalStateException("time routine is null")
 
-            val allTimeSlotList = schedule.timeSlotList.map {
+            val allTimeSlotList = routine.timeSlotList.map {
                 timeSlotRepo.getTimeSlotDetail(it.uuid)
             }
             //데이터 변경.(메모 삭제)

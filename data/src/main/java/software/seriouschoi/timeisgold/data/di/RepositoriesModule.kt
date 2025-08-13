@@ -5,9 +5,9 @@ import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import jakarta.inject.Singleton
-import software.seriouschoi.timeisgold.data.repositories.TimeScheduleRepositoryImpl
+import software.seriouschoi.timeisgold.data.repositories.TimeRoutineRepositoryImpl
 import software.seriouschoi.timeisgold.data.repositories.TimeSlotRepositoryImpl
-import software.seriouschoi.timeisgold.domain.repositories.TimeScheduleRepository
+import software.seriouschoi.timeisgold.domain.repositories.TimeRoutineRepository
 import software.seriouschoi.timeisgold.domain.repositories.TimeSlotRepository
 
 
@@ -22,8 +22,8 @@ internal abstract class RepositoriesModule {
 
     @Binds
     @Singleton
-    abstract fun bindTimeScheduleRepository(
-        impl: TimeScheduleRepositoryImpl
-    ): TimeScheduleRepository
+    abstract fun bindTimeRoutineRepository(
+        impl: TimeRoutineRepositoryImpl
+    ): TimeRoutineRepository
 
 }

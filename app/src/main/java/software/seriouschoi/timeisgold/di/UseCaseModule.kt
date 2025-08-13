@@ -5,7 +5,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import software.seriouschoi.timeisgold.domain.policy.TimeSlotPolicy
-import software.seriouschoi.timeisgold.domain.repositories.TimeScheduleRepository
+import software.seriouschoi.timeisgold.domain.repositories.TimeRoutineRepository
 import software.seriouschoi.timeisgold.domain.repositories.TimeSlotRepository
 import software.seriouschoi.timeisgold.domain.usecase.timeslot.SetTimeSlotUseCase
 
@@ -15,12 +15,12 @@ abstract class UseCaseModule {
     @Provides
     fun provideSetTimeSlotUseCase(
         timeRepository: TimeSlotRepository,
-        timeScheduleRepository: TimeScheduleRepository,
+        timeRoutineRepository: TimeRoutineRepository,
         timeSlotPolicy: TimeSlotPolicy
     ): SetTimeSlotUseCase {
         return SetTimeSlotUseCase(
             timeslotRepository = timeRepository,
-            timeScheduleRepository = timeScheduleRepository,
+            timeRoutineRepository = timeRoutineRepository,
             timeslotPolicy = timeSlotPolicy
         )
     }
