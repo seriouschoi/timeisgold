@@ -5,8 +5,9 @@ import software.seriouschoi.timeisgold.domain.exception.TIGException
 import software.seriouschoi.timeisgold.domain.policy.TimeSlotPolicy
 import software.seriouschoi.timeisgold.domain.repositories.TimeRoutineRepository
 import software.seriouschoi.timeisgold.domain.repositories.TimeSlotRepository
+import javax.inject.Inject
 
-class AddTimeSlotUseCase(
+class AddTimeSlotUseCase @Inject constructor(
     private val timeslotRepository: TimeSlotRepository,
     private val timeRoutineRepository: TimeRoutineRepository,
     private val timeslotPolicy: TimeSlotPolicy

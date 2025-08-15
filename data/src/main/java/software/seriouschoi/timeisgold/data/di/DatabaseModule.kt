@@ -12,7 +12,7 @@ import software.seriouschoi.timeisgold.data.database.AppDatabase
 
 @Module
 @InstallIn(SingletonComponent::class)
-internal abstract class DatabaseModule {
+internal object DatabaseModule {
 
     @Provides
     @Singleton

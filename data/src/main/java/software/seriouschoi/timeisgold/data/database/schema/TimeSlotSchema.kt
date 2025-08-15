@@ -8,7 +8,8 @@ import java.time.LocalTime
 
 @Entity(
     indices = [
-        Index(value = ["uuid"], unique = true)
+        Index(value = ["uuid"], unique = true),
+        Index(value = ["timeRoutineId"])
     ],
     foreignKeys = [
         ForeignKey(

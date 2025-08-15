@@ -4,8 +4,9 @@ import software.seriouschoi.timeisgold.domain.data.timeslot.TimeSlotDetailData
 import software.seriouschoi.timeisgold.domain.policy.TimeSlotPolicy
 import software.seriouschoi.timeisgold.domain.repositories.TimeRoutineRepository
 import software.seriouschoi.timeisgold.domain.repositories.TimeSlotRepository
+import javax.inject.Inject
 
-class SetTimeSlotUseCase(
+class SetTimeSlotUseCase @Inject constructor(
     private val timeslotRepository: TimeSlotRepository,
     private val timeRoutineRepository: TimeRoutineRepository,
     private val timeslotPolicy: TimeSlotPolicy
