@@ -13,8 +13,8 @@ import software.seriouschoi.timeisgold.domain.data.timeslot.TimeSlotDetailData
 import software.seriouschoi.timeisgold.domain.exception.TIGException
 import software.seriouschoi.timeisgold.domain.fixture.TimeRoutineDataFixture
 import software.seriouschoi.timeisgold.domain.policy.TimeSlotPolicy
-import software.seriouschoi.timeisgold.domain.repositories.TimeRoutineRepository
-import software.seriouschoi.timeisgold.domain.repositories.TimeSlotRepository
+import software.seriouschoi.timeisgold.domain.port.TimeRoutineRepositoryPort
+import software.seriouschoi.timeisgold.domain.port.TimeSlotRepositoryPort
 import java.time.DayOfWeek
 import java.util.UUID
 
@@ -24,10 +24,10 @@ class SetTimeSlotUseCaseTest {
     private lateinit var testFixture: TimeRoutineDataFixture
 
     @Mock
-    lateinit var timeRoutineRepo: TimeRoutineRepository
+    lateinit var timeRoutineRepo: TimeRoutineRepositoryPort
 
     @Mock
-    lateinit var timeSlotRepo: TimeSlotRepository
+    lateinit var timeSlotRepo: TimeSlotRepositoryPort
 
     private lateinit var useCase: SetTimeSlotUseCase
 
@@ -36,8 +36,8 @@ class SetTimeSlotUseCaseTest {
         MockitoAnnotations.openMocks(this)
         testFixture = TimeRoutineDataFixture
         useCase = SetTimeSlotUseCase(
-            timeRoutineRepository = timeRoutineRepo,
-            timeslotRepository = timeSlotRepo,
+            timeRoutineRepositoryPort = timeRoutineRepo,
+            timeslotRepositoryPort = timeSlotRepo,
             timeslotPolicy = TimeSlotPolicy()
         )
     }

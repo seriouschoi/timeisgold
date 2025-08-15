@@ -1,28 +1,27 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
-    alias(libs.plugins.android.application)
+    alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.hilt.gradle)
     alias(libs.plugins.ksp)
-    alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.hilt.gradle)
 }
 
 android {
-    namespace = "software.seriouschoi.timeisgold"
+    namespace = "software.seriouschoi.timeisgold.data"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "software.seriouschoi.timeisgold"
         minSdk = 26
-        targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles("consumer-rules.pro")
     }
 
     buildTypes {
+        debug {
+            enableAndroidTestCoverage = true
+        }
         release {
             isMinifyEnabled = false
             proguardFiles(
@@ -35,9 +34,6 @@ android {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
-    buildFeatures {
-        compose = true
-    }
 }
 
 kotlin {
@@ -46,27 +42,35 @@ kotlin {
     }
 }
 
-dependencies {
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
+}
 
+
+dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
-    implementation(libs.androidx.activity)
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.compiler)
+    implementation(project(":domain"))
+    implementation(libs.coroutine)
+
     testImplementation(libs.junit)
+
+    testImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 
-    implementation(libs.hilt.android)
-    ksp(libs.hilt.compiler)
+    testImplementation(libs.coroutine.test)
+    androidTestImplementation(libs.coroutine.test)
 
-    implementation(project(":presentation"))
-    implementation(project(":domain"))
-    implementation(project(":adapter-repository-db-room"))
+    testImplementation(libs.kotlin.test)
+    androidTestImplementation(libs.kotlin.test)
 
-    val composeBom = platform(libs.compose.bom)
-    implementation(composeBom)
-    androidTestImplementation(composeBom)
 
-    implementation(libs.compose.ui)
-    implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.room.runtime)
+    ksp(libs.androidx.room.compiler)
+
+    implementation(libs.timber)
 }

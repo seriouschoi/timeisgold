@@ -11,7 +11,7 @@ import org.mockito.kotlin.whenever
 import software.seriouschoi.timeisgold.domain.exception.TIGException
 import software.seriouschoi.timeisgold.domain.fixture.TimeRoutineDataFixture
 import software.seriouschoi.timeisgold.domain.policy.TimeRoutinePolicy
-import software.seriouschoi.timeisgold.domain.repositories.TimeRoutineRepository
+import software.seriouschoi.timeisgold.domain.port.TimeRoutineRepositoryPort
 import java.time.DayOfWeek
 
 /**
@@ -23,7 +23,7 @@ internal class AddTimeRoutineUseCaseTest {
     private lateinit var testFixture: TimeRoutineDataFixture
 
     @Mock
-    lateinit var timeRoutineRepo: TimeRoutineRepository
+    lateinit var timeRoutineRepo: TimeRoutineRepositoryPort
 
     private lateinit var useCase: AddTimeRoutineUseCase
 
