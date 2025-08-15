@@ -6,16 +6,16 @@ import org.junit.After
 import org.junit.Before
 import software.seriouschoi.timeisgold.data.database.AppDatabase
 import software.seriouschoi.timeisgold.data.fixture.TimeSlotTestFixtures
-import software.seriouschoi.timeisgold.data.repositories.TimeRoutineRepositoryImpl
-import software.seriouschoi.timeisgold.data.repositories.TimeSlotRepositoryImpl
-import software.seriouschoi.timeisgold.domain.repositories.TimeRoutineRepository
+import software.seriouschoi.timeisgold.data.repositories.TimeRoutineRepositoryAdapter
+import software.seriouschoi.timeisgold.data.repositories.TimeSlotRepositoryAdapter
+import software.seriouschoi.timeisgold.domain.port.TimeRoutineRepositoryPort
 import timber.log.Timber
 
 internal abstract class BaseRoomTest {
     private lateinit var db: AppDatabase
 
-    protected lateinit var timeSlotRepo: TimeSlotRepositoryImpl
-    protected lateinit var timeRoutineRepo: TimeRoutineRepository
+    protected lateinit var timeSlotRepo: TimeSlotRepositoryAdapter
+    protected lateinit var timeRoutineRepo: TimeRoutineRepositoryPort
     protected val timeSlotTestFixtures = TimeSlotTestFixtures
 
     @Before
@@ -29,8 +29,8 @@ internal abstract class BaseRoomTest {
             AppDatabase::class.java
         ).allowMainThreadQueries().build()
 
-        timeSlotRepo = TimeSlotRepositoryImpl(db)
-        timeRoutineRepo = TimeRoutineRepositoryImpl(db)
+        timeSlotRepo = TimeSlotRepositoryAdapter(db)
+        timeRoutineRepo = TimeRoutineRepositoryAdapter(db)
     }
 
     @After

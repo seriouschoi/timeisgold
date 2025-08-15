@@ -1,8 +1,8 @@
-package software.seriouschoi.timeisgold.domain.repositories
+package software.seriouschoi.timeisgold.domain.port
 
 import software.seriouschoi.timeisgold.domain.data.timeslot.TimeSlotDetailData
 
-interface TimeSlotRepository {
+interface TimeSlotRepositoryPort {
     suspend fun addTimeSlot(timeSlotData: TimeSlotDetailData, timeRoutineUuid: String)
     suspend fun getTimeSlotDetail(timeslotUuid: String): TimeSlotDetailData?
     suspend fun setTimeSlot(timeSlotData: TimeSlotDetailData)

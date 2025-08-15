@@ -8,12 +8,12 @@ import software.seriouschoi.timeisgold.data.mapper.toSchema
 import software.seriouschoi.timeisgold.domain.data.timeslot.TimeSlotData
 import software.seriouschoi.timeisgold.domain.data.timeslot.TimeSlotDetailData
 import software.seriouschoi.timeisgold.domain.data.timeslot.TimeSlotMemoData
-import software.seriouschoi.timeisgold.domain.repositories.TimeSlotRepository
+import software.seriouschoi.timeisgold.domain.port.TimeSlotRepositoryPort
 import javax.inject.Inject
 
-internal class TimeSlotRepositoryImpl @Inject constructor(
+internal class TimeSlotRepositoryAdapter @Inject constructor(
     private val database: AppDatabase,
-) : TimeSlotRepository {
+) : TimeSlotRepositoryPort {
     override suspend fun addTimeSlot(timeSlotData: TimeSlotDetailData, timeRoutineUuid: String) {
         database.withTransaction {
             val timeRoutine = database.TimeRoutineDao().get(timeRoutineUuid)

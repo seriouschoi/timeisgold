@@ -2,18 +2,18 @@ package software.seriouschoi.timeisgold.domain.usecase.timeroutine
 
 import software.seriouschoi.timeisgold.domain.data.timeroutine.TimeRoutineData
 import software.seriouschoi.timeisgold.domain.policy.TimeRoutinePolicy
-import software.seriouschoi.timeisgold.domain.repositories.TimeRoutineRepository
+import software.seriouschoi.timeisgold.domain.port.TimeRoutineRepositoryPort
 import javax.inject.Inject
 
 class SetTimeRoutineUseCase @Inject constructor(
-    private val timeRoutineRepository: TimeRoutineRepository,
+    private val timeRoutineRepositoryPort: TimeRoutineRepositoryPort,
     private val timeRoutinePolicy: TimeRoutinePolicy
 ) {
     suspend operator fun invoke(timeRoutine: TimeRoutineData) {
-        val routineListForPolicy = timeRoutineRepository.getAllTimeRoutines()
+        val routineListForPolicy = timeRoutineRepositoryPort.getAllTimeRoutines()
         timeRoutinePolicy.checkCanAdd(
             routineListForPolicy, timeRoutine
         )
-        timeRoutineRepository.setTimeRoutine(timeRoutine)
+        timeRoutineRepositoryPort.setTimeRoutine(timeRoutine)
     }
 }

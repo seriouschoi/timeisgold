@@ -7,13 +7,13 @@ import software.seriouschoi.timeisgold.data.mapper.toSchema
 import software.seriouschoi.timeisgold.domain.data.timeroutine.TimeRoutineData
 import software.seriouschoi.timeisgold.domain.data.timeroutine.TimeRoutineDayOfWeekData
 import software.seriouschoi.timeisgold.domain.data.timeroutine.TimeRoutineDetailData
-import software.seriouschoi.timeisgold.domain.repositories.TimeRoutineRepository
+import software.seriouschoi.timeisgold.domain.port.TimeRoutineRepositoryPort
 import java.time.DayOfWeek
 import javax.inject.Inject
 
-internal class TimeRoutineRepositoryImpl @Inject constructor(
+internal class TimeRoutineRepositoryAdapter @Inject constructor(
     private val appDatabase: AppDatabase
-) : TimeRoutineRepository {
+) : TimeRoutineRepositoryPort {
     override suspend fun addTimeRoutine(timeRoutine: TimeRoutineData) {
         appDatabase.withTransaction {
             appDatabase.TimeRoutineDao().add(

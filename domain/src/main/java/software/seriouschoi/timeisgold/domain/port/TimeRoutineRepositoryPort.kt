@@ -1,10 +1,10 @@
-package software.seriouschoi.timeisgold.domain.repositories
+package software.seriouschoi.timeisgold.domain.port
 
 import software.seriouschoi.timeisgold.domain.data.timeroutine.TimeRoutineData
 import software.seriouschoi.timeisgold.domain.data.timeroutine.TimeRoutineDetailData
 import java.time.DayOfWeek
 
-interface TimeRoutineRepository {
+interface TimeRoutineRepositoryPort {
     suspend fun addTimeRoutine(timeRoutine: TimeRoutineData)
     suspend fun getTimeRoutineDetail(week: DayOfWeek): TimeRoutineDetailData?
     suspend fun getTimeRoutineDetailByUuid(timeRoutineUuid: String): TimeRoutineDetailData?

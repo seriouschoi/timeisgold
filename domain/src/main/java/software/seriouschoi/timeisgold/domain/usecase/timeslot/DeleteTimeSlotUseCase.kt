@@ -1,12 +1,12 @@
 package software.seriouschoi.timeisgold.domain.usecase.timeslot
 
-import software.seriouschoi.timeisgold.domain.repositories.TimeSlotRepository
+import software.seriouschoi.timeisgold.domain.port.TimeSlotRepositoryPort
 import javax.inject.Inject
 
 class DeleteTimeSlotUseCase @Inject constructor(
-    private val timeSlotRepository: TimeSlotRepository
+    private val timeSlotRepositoryPort: TimeSlotRepositoryPort
 ) {
     suspend operator fun invoke(timeSlotUuid: String) {
-        timeSlotRepository.deleteTimeSlot(timeSlotUuid)
+        timeSlotRepositoryPort.deleteTimeSlot(timeSlotUuid)
     }
 }
