@@ -62,6 +62,7 @@ dependencies {
     implementation(project(":presentation"))
     implementation(project(":domain"))
     implementation(project(":adapter-repository-db-room"))
+    implementation(project(":core:logger"))
 
     val composeBom = platform(libs.compose.bom)
     implementation(composeBom)
