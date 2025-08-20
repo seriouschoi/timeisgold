@@ -7,12 +7,11 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import kotlinx.serialization.Serializable
-import software.seriouschoi.timeisgold.presentation.navigation.PresentationDest
 
 @Serializable
 internal data class SetTimeRoutinePresentationDest(
     val timeRoutineId: String?
-) : PresentationDest
+)
 
 internal fun NavGraphBuilder.setTimeRoutine() {
     composable<SetTimeRoutinePresentationDest> {

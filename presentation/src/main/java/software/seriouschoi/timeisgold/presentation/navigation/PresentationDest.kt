@@ -1,3 +1,0 @@
-package software.seriouschoi.timeisgold.presentation.navigation
-
-interface PresentationDest

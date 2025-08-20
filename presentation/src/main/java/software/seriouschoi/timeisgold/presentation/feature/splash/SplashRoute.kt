@@ -7,10 +7,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import kotlinx.serialization.Serializable
-import software.seriouschoi.timeisgold.presentation.navigation.PresentationDest
 
 @Serializable
-internal object SplashPresentationDest : PresentationDest
+internal object SplashPresentationDest
 
 @Composable
 internal fun SplashRoute(vm: SplashViewModel = hiltViewModel()) {

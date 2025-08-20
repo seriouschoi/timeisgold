@@ -2,7 +2,6 @@ package software.seriouschoi.timeisgold.navigation
 
 import androidx.navigation.NavHostController
 import androidx.navigation.NavOptionsBuilder
-import software.seriouschoi.timeisgold.presentation.navigation.PresentationDest
 import software.seriouschoi.timeisgold.presentation.navigation.DestNavigatorPort
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -18,11 +17,11 @@ class DestNavigatorPortAdapter @Inject constructor(
     }
 
     override fun navigate(
-        to: PresentationDest,
+        presentationDest: Any,
         opts: NavOptionsBuilder.() -> Unit
     ) {
         val navController = provider?.invoke()
-        navController?.navigate(to) {
+        navController?.navigate(presentationDest) {
             opts(this)
         }
     }
