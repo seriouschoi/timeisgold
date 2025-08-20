@@ -5,6 +5,4 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
 @HiltViewModel
-class SetTimeRoutineViewModel @Inject constructor() : ViewModel(){
-
-}
+internal class SetTimeRoutineViewModel @Inject constructor() : ViewModel()

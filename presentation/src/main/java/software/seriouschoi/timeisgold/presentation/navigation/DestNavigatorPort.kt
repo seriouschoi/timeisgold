@@ -8,7 +8,9 @@ interface DestNavigatorPort {
 
     //추상화된 화면 이동.
     fun navigate(
-        dest: Dest,
+        presentationDest: PresentationDest,
         opts: NavOptionsBuilder.() -> Unit = {}
     )
+
+    fun back()
 }

@@ -6,7 +6,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
-import software.seriouschoi.timeisgold.presentation.navigation.Dest
+import software.seriouschoi.timeisgold.presentation.navigation.PresentationDest
+import software.seriouschoi.timeisgold.presentation.navigation.PresentationRoot
 import software.seriouschoi.timeisgold.presentation.navigation.destSection
 
 @Composable
@@ -24,8 +25,8 @@ fun AppNavHost(
 
     NavHost(
         navController = navController,
-        startDestination = Dest.Splash
+        startDestination = PresentationRoot
     ) {
-        destSection(navController)
+        destSection()
     }
 }
