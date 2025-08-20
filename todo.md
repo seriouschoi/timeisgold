@@ -6,6 +6,9 @@
 
 ## Presentation Module.
 - [ ] 화면 작업. 
-- [ ] compose navi 구조 정의.
-  - [x] compose navi route mapper 정의.
-  - [ ] 차라리 타입드 네비게이션을 쓰는걸 고려해보기.
+- [x] compose navi 구조 정의.
+
+## Architecture
+- [ ] navigator를 :core 서브 모듈로 구현.
+- [ ] :presentation을 :feature 서브 모듈들로 쪼개야함.
+- [ ] :app모듈은 조립을 한다고 생각하면 편함. 의존성도 조립하고 ux의 오케스트레이션도 하고..

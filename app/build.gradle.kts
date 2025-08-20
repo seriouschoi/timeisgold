@@ -61,8 +61,8 @@ dependencies {
     implementation(libs.androidx.hilt.navigation.compose)
 
     implementation(project(":presentation"))
-    implementation(project(":domain"))
-    implementation(project(":adapter-repository-db-room"))
+    implementation(project(":core:domain"))
+    implementation(project(":core:data-room-adapter"))
     implementation(project(":core:logger"))
 
     val composeBom = platform(libs.compose.bom)

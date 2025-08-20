@@ -53,7 +53,7 @@ dependencies {
     implementation(libs.material)
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
-    implementation(project(":domain"))
+    implementation(project(":core:domain"))
     implementation(libs.coroutine)
 
     testImplementation(libs.junit)

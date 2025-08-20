@@ -69,5 +69,5 @@ dependencies {
     ksp(libs.hilt.compiler)
     implementation(libs.androidx.hilt.navigation.compose)
 
-    implementation(project(":domain"))
+    implementation(project(":core:domain"))
 }

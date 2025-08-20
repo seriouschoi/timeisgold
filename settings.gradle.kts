@@ -21,7 +21,7 @@ dependencyResolutionManagement {
 
 rootProject.name = "timeisgold"
 include(":app")
-include(":domain")
-include(":adapter-repository-db-room")
+include(":core:domain")
+include(":core:data-room-adapter")
 include(":presentation")
 include(":core:logger")

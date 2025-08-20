@@ -15,7 +15,7 @@ import software.seriouschoi.timeisgold.presentation.feature.timeroutine.set.setT
 @Serializable
 data object PresentationRoot
 
-fun NavGraphBuilder.destSection() {
+fun NavGraphBuilder.presentationSection() {
     navigation<PresentationRoot>(
         startDestination = HomePresentationDest,
     ) {

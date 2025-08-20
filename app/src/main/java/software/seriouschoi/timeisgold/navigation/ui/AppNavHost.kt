@@ -7,7 +7,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import software.seriouschoi.timeisgold.presentation.navigation.PresentationRoot
-import software.seriouschoi.timeisgold.presentation.navigation.destSection
+import software.seriouschoi.timeisgold.presentation.navigation.presentationSection
 
 @Composable
 fun AppNavHost(
@@ -26,6 +26,6 @@ fun AppNavHost(
         navController = navController,
         startDestination = PresentationRoot
     ) {
-        destSection()
+        presentationSection()
     }
 }
