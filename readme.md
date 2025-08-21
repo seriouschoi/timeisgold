@@ -11,10 +11,9 @@
 - 루틴 알림에서 빠르게 수행여부를 눌러서, 수행률 트래킹.
 
 ### 아키텍쳐
-- `:app` - DI구성
-- `:prensentaion` - UI
-- `:domain` - 유즈케이스, 도메인 모델 정의
-- `:data` - room기반 로컬 DB구현.
+- :app - DI구성, NavHost
+- :core - 공용 인프라. 도메인, data, logger등.
+- :feature - 기능
 
 
 ### 프로젝트 구현 흐름.

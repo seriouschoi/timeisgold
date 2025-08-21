@@ -3,14 +3,12 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.kotlin.compose)
-    alias(libs.plugins.hilt.gradle)
     alias(libs.plugins.ksp)
-    alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.hilt.gradle)
 }
 
 android {
-    namespace = "software.seriouschoi.timeisgold.presentation"
+    namespace = "software.seriouschoi.timeisgold.data"
     compileSdk = 36
 
     defaultConfig {
@@ -21,6 +19,9 @@ android {
     }
 
     buildTypes {
+        debug {
+            enableAndroidTestCoverage = true
+        }
         release {
             isMinifyEnabled = false
             proguardFiles(
@@ -33,9 +34,6 @@ android {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
-    buildFeatures {
-        compose = true
-    }
 }
 
 kotlin {
@@ -44,31 +42,35 @@ kotlin {
     }
 }
 
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
+}
+
+
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.compiler)
+    implementation(project(":core:domain"))
+    implementation(libs.coroutine)
+
     testImplementation(libs.junit)
+
+    testImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 
-    val composeBom = platform(libs.compose.bom)
-    implementation(composeBom)
-    androidTestImplementation(composeBom)
+    testImplementation(libs.coroutine.test)
+    androidTestImplementation(libs.coroutine.test)
 
-    implementation(libs.compose.material)
-    implementation(libs.compose.ui)
-    implementation(libs.compose.ui.tooling.preview)
-    debugImplementation(libs.compose.ui.tooling)
-    implementation(libs.navigation.compose)
+    testImplementation(libs.kotlin.test)
+    androidTestImplementation(libs.kotlin.test)
 
-    androidTestImplementation(libs.androidx.ui.test.junit4)
-    debugImplementation(libs.androidx.ui.test.manifest)
 
-    implementation(libs.hilt.android)
-    ksp(libs.hilt.compiler)
-    implementation(libs.androidx.hilt.navigation.compose)
+    implementation(libs.androidx.room.runtime)
+    ksp(libs.androidx.room.compiler)
 
-    implementation(project(":core:domain"))
-    implementation(project(":core:navigator-api"))
+    implementation(libs.timber)
 }

@@ -58,11 +58,14 @@ dependencies {
 
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
+    implementation(libs.androidx.hilt.navigation.compose)
 
     implementation(project(":presentation"))
-    implementation(project(":domain"))
-    implementation(project(":adapter-repository-db-room"))
+    implementation(project(":core:domain"))
+    implementation(project(":core:data-room-adapter"))
     implementation(project(":core:logger"))
+    implementation(project(":core:navigator-api"))
+    implementation(project(":core:navigator-adapter"))
 
     val composeBom = platform(libs.compose.bom)
     implementation(composeBom)
@@ -70,4 +73,6 @@ dependencies {
 
     implementation(libs.compose.ui)
     implementation(libs.androidx.activity.compose)
+    implementation(libs.compose.material)
+    implementation(libs.navigation.compose)
 }

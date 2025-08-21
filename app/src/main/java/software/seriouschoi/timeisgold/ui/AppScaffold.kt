@@ -1,0 +1,36 @@
+package software.seriouschoi.timeisgold.ui
+
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+
+@Composable
+fun AppScaffold(
+    topbar: @Composable () -> Unit = {},
+    bottomBar: @Composable () -> Unit = {},
+    content: @Composable (PaddingValues) -> Unit
+) {
+    Scaffold(
+        contentWindowInsets = WindowInsets.Companion.safeDrawing,
+        topBar = {
+            topbar()
+        },
+        bottomBar = {
+            bottomBar()
+        }
+    ) { innerPadding ->
+        Box(
+            Modifier.Companion
+                .fillMaxSize()
+                .padding(innerPadding)
+        ) {
+            content(innerPadding)
+        }
+    }
+}
