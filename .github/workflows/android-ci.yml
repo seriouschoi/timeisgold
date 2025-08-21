@@ -22,7 +22,10 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      - uses: ./.github/workflows/setup/setup-steps.yml
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup
 
       - name: Build debug APK
         run: ./gradlew clean assembleDebug

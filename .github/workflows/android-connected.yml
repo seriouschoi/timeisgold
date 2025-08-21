@@ -10,7 +10,10 @@ jobs:
     runs-on: macos-latest
     timeout-minutes: 60
     steps:
-      - uses: ./.github/workflows/setup/setup-steps.yml
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup
 
       - run: ./gradlew assembleDebug assembleAndroidTest --stacktrace
       - uses: reactivecircus/android-emulator-runner@v2
