@@ -70,4 +70,5 @@ dependencies {
     implementation(libs.androidx.hilt.navigation.compose)
 
     implementation(project(":core:domain"))
+    implementation(project(":core:navigator-api"))
 }

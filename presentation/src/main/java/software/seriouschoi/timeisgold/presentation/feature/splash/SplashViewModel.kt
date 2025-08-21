@@ -5,8 +5,8 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import software.seriouschoi.navigator.DestNavigatorPort
 import software.seriouschoi.timeisgold.presentation.feature.home.HomePresentationDest
-import software.seriouschoi.timeisgold.presentation.navigation.DestNavigatorPort
 import javax.inject.Inject
 
 @HiltViewModel

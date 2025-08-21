@@ -16,7 +16,7 @@ internal object DatabaseModule {
 
     @Provides
     @Singleton
-    fun bindAppDataBase(@ApplicationContext context: Context): AppDatabase {
+    fun provideAppDataBase(@ApplicationContext context: Context): AppDatabase {
         return Room.databaseBuilder(
             context,
             AppDatabase::class.java,

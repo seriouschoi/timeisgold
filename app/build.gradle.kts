@@ -64,6 +64,8 @@ dependencies {
     implementation(project(":core:domain"))
     implementation(project(":core:data-room-adapter"))
     implementation(project(":core:logger"))
+    implementation(project(":core:navigator-api"))
+    implementation(project(":core:navigator-adapter"))
 
     val composeBom = platform(libs.compose.bom)
     implementation(composeBom)

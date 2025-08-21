@@ -1,8 +1,7 @@
-package software.seriouschoi.timeisgold.navigation
+package software.seriouschoi.navigator
 
 import androidx.navigation.NavHostController
 import androidx.navigation.NavOptionsBuilder
-import software.seriouschoi.timeisgold.presentation.navigation.DestNavigatorPort
 import javax.inject.Inject
 import javax.inject.Singleton
 

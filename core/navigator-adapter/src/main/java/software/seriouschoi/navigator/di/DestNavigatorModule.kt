@@ -1,11 +1,11 @@
-package software.seriouschoi.timeisgold.di
+package software.seriouschoi.navigator.di
 
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import software.seriouschoi.timeisgold.navigation.DestNavigatorPortAdapter
-import software.seriouschoi.timeisgold.presentation.navigation.DestNavigatorPort
+import software.seriouschoi.navigator.DestNavigatorPort
+import software.seriouschoi.navigator.DestNavigatorPortAdapter
 
 @Suppress("unused")
 @Module

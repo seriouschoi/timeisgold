@@ -2,8 +2,8 @@ package software.seriouschoi.timeisgold.presentation.feature.home
 
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
+import software.seriouschoi.navigator.DestNavigatorPort
 import software.seriouschoi.timeisgold.presentation.feature.timeroutine.set.SetTimeRoutinePresentationDest
-import software.seriouschoi.timeisgold.presentation.navigation.DestNavigatorPort
 import javax.inject.Inject
 
 @HiltViewModel
