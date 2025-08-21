@@ -15,17 +15,36 @@ jobs:
 
       - uses: ./.github/actions/setup
 
-      - run: ./gradlew assembleDebug assembleAndroidTest --stacktrace
-      - uses: reactivecircus/android-emulator-runner@v2
+        # 혹시 남아 있을 수 있는 ADB/에뮬레이터 프로세스 정리
+      - name: Pre-clean emulator/adb
+        shell: bash
+        run: |
+          pkill -f "qemu-system" || true
+          pkill -f "emulator" || true
+          adb kill-server || true
+
+      - name: Build app & test APK
+        run: ./gradlew assembleDebug assembleAndroidTest --stacktrace
+
+      - name: Launch emulator & run connected tests
+        uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 30
           target: google_apis
           arch: x86_64
           profile: pixel_6
           force-avd-creation: true
-          emulator-options: -no-snapshot -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
+          emulator-options: >-
+            -no-snapshot -no-window -gpu swiftshader_indirect 
+            -noaudio -no-boot-anim
           disable-animations: true
-          script: ./gradlew connectedDebugAndroidTest --stacktrace
+          # 부팅 대기시간을 넉넉히 (기본보다 ↑)
+          emulator-boot-timeout: 900000
+          script: |
+            adb wait-for-device
+            adb shell 'while [[ -z $(getprop sys.boot_completed) ]]; do sleep 1; done; input keyevent 82'
+            ./gradlew connectedDebugAndroidTest --stacktrace
+
       - name: Upload connected test reports
         if: always()
         uses: actions/upload-artifact@v4
