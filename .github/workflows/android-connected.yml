@@ -7,13 +7,24 @@ on:
   workflow_dispatch: {}
 jobs:
   connected:
-    runs-on: macos-latest
+    runs-on: macos-14
     timeout-minutes: 60
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - uses: ./.github/actions/setup
+
+        # AVD/ADB 캐시 (초기 부팅/설치 시간 크게 단축)
+      - name: Cache Android AVD
+        id: avd-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.android/avd
+            ~/.android/adb
+          key: avd-${{ runner.os }}-api33-arm64-googleapis-v1
+
 
         # 혹시 남아 있을 수 있는 ADB/에뮬레이터 프로세스 정리
       - name: Pre-clean emulator/adb
@@ -23,27 +34,25 @@ jobs:
           pkill -f "emulator" || true
           adb kill-server || true
 
-      - name: Build app & test APK
-        run: ./gradlew assembleDebug assembleAndroidTest --stacktrace
-
+      # 에뮬레이터 실행 + 테스트 (부팅대기는 액션이 책임)
       - name: Launch emulator & run connected tests
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 30
+          api-level: 33
           target: google_apis
-          arch: x86_64
+          arch: arm64-v8a
           profile: pixel_6
           force-avd-creation: true
           emulator-options: >-
-            -no-snapshot -no-window -gpu swiftshader_indirect 
-            -noaudio -no-boot-anim
+            -no-snapshot -no-window -gpu host
+            -noaudio -no-boot-anim -wipe-data
+            -camera-back none -camera-front none
           disable-animations: true
-          # 부팅 대기시간을 넉넉히 (기본보다 ↑)
-          emulator-boot-timeout: 900000
+          # 기본 부팅대기(10분)로 충분. 필요시 600000 정도까지.
+          emulator-boot-timeout: 600000
           script: |
-            adb wait-for-device
-            adb shell 'while [[ -z $(getprop sys.boot_completed) ]]; do sleep 1; done; input keyevent 82'
-            ./gradlew connectedDebugAndroidTest --stacktrace
+            ./gradlew --stacktrace connectedDebugAndroidTest
+      
 
       - name: Upload connected test reports
         if: always()
