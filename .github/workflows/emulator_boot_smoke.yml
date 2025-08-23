@@ -13,7 +13,7 @@ jobs:
       - name: Start emulator only (no gradle)
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 34
+          api-level: 33
           target: google_apis
           arch: arm64-v8a
           force-avd-creation: true
