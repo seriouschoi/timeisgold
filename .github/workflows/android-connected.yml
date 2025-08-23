@@ -16,14 +16,14 @@ jobs:
       - uses: ./.github/actions/setup
 
         # AVD/ADB 캐시 (초기 부팅/설치 시간 크게 단축)
-      - name: Cache Android AVD
-        id: avd-cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.android/avd
-            ~/.android/adb
-          key: avd-${{ runner.os }}-api33-arm64-googleapis-v1
+#      - name: Cache Android AVD
+#        id: avd-cache
+#        uses: actions/cache@v4
+#        with:
+#          path: |
+#            ~/.android/avd
+#            ~/.android/adb
+#          key: avd-${{ runner.os }}-api33-arm64-googleapis-v1
 
 
         # 혹시 남아 있을 수 있는 ADB/에뮬레이터 프로세스 정리
@@ -34,22 +34,27 @@ jobs:
           pkill -f "emulator" || true
           adb kill-server || true
 
+      - name: Emulator version
+        run: $ANDROID_HOME/emulator/emulator -version || true
+
       # 에뮬레이터 실행 + 테스트 (부팅대기는 액션이 책임)
       - name: Launch emulator & run connected tests
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 33
-          target: google_apis
+          api-level: 34
+          target: aosp_atd
           arch: arm64-v8a
           profile: pixel_6
           force-avd-creation: true
           emulator-options: >-
-            -no-snapshot -no-window -gpu host
+            -no-snapshot -no-window -gpu swiftshader_indirect
             -noaudio -no-boot-anim -wipe-data
             -camera-back none -camera-front none
+            -accel on
           disable-animations: true
           # 기본 부팅대기(10분)로 충분. 필요시 600000 정도까지.
           emulator-boot-timeout: 600000
+          emulator-channel: stable
           script: |
             ./gradlew --stacktrace connectedDebugAndroidTest
       
