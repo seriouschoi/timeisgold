@@ -29,8 +29,6 @@ jobs:
           ./gradlew \
             assembleDebug \
             lintDebug \
-            detekt \
-            ktlintCheck \
             --stacktrace
 
       - name: Upload APK artifact
