@@ -1,34 +1,54 @@
-# This is a basic workflow to help you get started with Actions
-
 name: Android CI
 
-# Controls when the workflow will run
 on:
-  # Triggers the workflow on push or pull request events but only for the "master" branch
   push:
-    branches: [ "master" ]
+    branches-ignore: ["stash/**"]
+    paths-ignore: [ '**.md', 'docs/**' ]
   pull_request:
     branches: [ "master" ]
+    paths-ignore: [ '**.md', 'docs/**' ]
+  workflow_dispatch: {}
 
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
-  build:
-    # The type of runner that the job will run on
+  unit:
     runs-on: ubuntu-latest
-
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - uses: ./.github/actions/setup
 
-      - name: Build debug APK
-        run: ./gradlew clean assembleDebug
+      - name: Unit Test
+        run: ./gradlew testDebugUnitTest --stacktrace
+
+      - name: Upload unit test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-report
+          path: |
+            **/build/reports/tests/testDebugUnitTest/**
+            **/build/test-results/testDebugUnitTest/**
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup
+
+      # 스모크 + 정적체크 (빠르게 실패하도록)
+      - name: Assemble & static checks
+        run: |
+          ./gradlew \
+            assembleDebug \
+            lintDebug \
+            --stacktrace
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
