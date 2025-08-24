@@ -9,6 +9,3 @@
 
 ## Architecture
 - [ ] :presentation을 :feature 서브 모듈들로 쪼개야함.
-
-## CI
-- [ ] github action. tbd.
