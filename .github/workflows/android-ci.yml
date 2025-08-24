@@ -2,10 +2,11 @@ name: Android CI
 
 on:
   push:
-    branches-ignore: ["spike/**"]
-    paths-ignore: [ '**.md', 'docs/**' ]   # ← .github/** 는 제외하지 않는 걸 권장
+    branches-ignore: ["stash/**"]
+    paths-ignore: [ '**.md', 'docs/**' ]
   pull_request:
     branches: [ "master" ]
+    paths-ignore: [ '**.md', 'docs/**' ]
   workflow_dispatch: {}
 
 concurrency:
@@ -13,6 +14,25 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup
+
+      - name: Unit Test
+        run: ./gradlew testDebugUnitTest --stacktrace
+
+      - name: Upload unit test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-report
+          path: |
+            **/build/reports/tests/testDebugUnitTest/**
+            **/build/test-results/testDebugUnitTest/**
   build:
     runs-on: ubuntu-latest
 
@@ -20,8 +40,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup (JDK/Gradle cache)
-        uses: ./.github/actions/setup
+      - uses: ./.github/actions/setup
 
       # 스모크 + 정적체크 (빠르게 실패하도록)
       - name: Assemble & static checks
