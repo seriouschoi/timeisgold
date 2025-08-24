@@ -1,11 +1,8 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
-    alias(libs.plugins.android.library)
-    alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.kotlin.compose)
-    alias(libs.plugins.hilt.gradle)
-    alias(libs.plugins.ksp)
+    //TODO: presentation 모듈 설정.
+    alias(libs.plugins.timeisgold.android.library)
     alias(libs.plugins.kotlin.serialization)
 }
 
