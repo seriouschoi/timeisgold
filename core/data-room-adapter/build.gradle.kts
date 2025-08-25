@@ -4,7 +4,6 @@ plugins {
     alias(libs.plugins.timeisgold.android.library)
     alias(libs.plugins.timeisgold.android.hilt)
     alias(libs.plugins.timeisgold.coroutine)
-
 }
 
 android {

@@ -39,6 +39,7 @@ class AndroidComposeConventionPlugin : Plugin<Project> {
                 implementation(target.libs, "hilt.android")
                 ksp(target.libs, "hilt.compiler")
                 implementation(target.libs, "androidx.hilt.navigation.compose")
+                implementation(target.libs, "androidx.navigation.runtime.ktx")
             }
         }
     }
