@@ -7,10 +7,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import kotlinx.serialization.Serializable
+import software.seriouschoi.navigator.NavigatorDest
 
 
 @Serializable
-internal data object HomePresentationDest
+internal data object HomePresentationDest : NavigatorDest
 
 internal fun NavGraphBuilder.home() {
     composable<HomePresentationDest> {
