@@ -10,7 +10,7 @@ import software.seriouschoi.timeisgold.presentation.feature.timeroutine.set.setT
 
 /**
  * Created by jhchoi on 2025. 8. 19.
- * jhchoi@neofect.com
+ * jhchoi
  */
 @Serializable
 data object PresentationRoot

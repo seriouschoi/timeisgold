@@ -16,7 +16,7 @@ import java.time.DayOfWeek
 
 /**
  * Created by jhchoi on 2025. 8. 8.
- * jhchoi@neofect.com
+ * jhchoi
  */
 @RunWith(MockitoJUnitRunner::class)
 internal class AddTimeRoutineUseCaseTest {

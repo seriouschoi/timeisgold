@@ -7,7 +7,7 @@ import software.seriouschoi.timeisgold.data.BaseRoomTest
 
 /**
  * Created by jhchoi on 2025. 8. 7.
- * jhchoi@neofect.com
+ * jhchoi
  */
 internal class DeleteTimeSlotTest : BaseRoomTest() {
 

@@ -5,7 +5,7 @@ import software.seriouschoi.timeisgold.navigation.ui.AppNavHost
 
 /**
  * Created by jhchoi on 2025. 8. 20.
- * jhchoi@neofect.com
+ * jhchoi
  */
 @Composable
 fun TigApp(

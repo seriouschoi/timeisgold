@@ -7,7 +7,7 @@ import software.seriouschoi.timeisgold.data.database.schema.TimeRoutineSchema
 
 /**
  * Created by jhchoi on 2025. 8. 7.
- * jhchoi@neofect.com
+ * jhchoi
  */
 internal data class TimeRoutineDayOfWeekRelation (
     @Embedded val dayOfWeekEntity: TimeRoutineDayOfWeekSchema,

@@ -10,7 +10,7 @@ import java.util.UUID
 
 /**
  * Created by jhchoi on 2025. 8. 8.
- * jhchoi@neofect.com
+ * jhchoi
  */
 internal object TimeRoutineDataFixture {
     fun createTimeRoutineDetail(
