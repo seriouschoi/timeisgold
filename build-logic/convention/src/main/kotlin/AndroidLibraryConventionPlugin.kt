@@ -1,17 +1,23 @@
 import com.android.build.api.dsl.LibraryExtension
+import com.android.build.gradle.BaseExtension
 import org.gradle.api.JavaVersion
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.apply
 import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.dependencies
+import org.gradle.kotlin.dsl.withType
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.dsl.KotlinAndroidProjectExtension
+import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import software.seriouschoi.timeisgold.androidTestImplementation
 import software.seriouschoi.timeisgold.debugImplementation
 import software.seriouschoi.timeisgold.implementation
 import software.seriouschoi.timeisgold.ksp
 import software.seriouschoi.timeisgold.libs
 import software.seriouschoi.timeisgold.setJvmTarget
+import software.seriouschoi.timeisgold.setJvmToolchain
 import software.seriouschoi.timeisgold.testImplementation
 
 class AndroidLibraryConventionPlugin : Plugin<Project> {
@@ -57,7 +63,8 @@ class AndroidLibraryConventionPlugin : Plugin<Project> {
                 }
             }
 
-            this.setJvmTarget(JvmTarget.JVM_11)
+            setJvmToolchain(11)
+            setJvmTarget(JvmTarget.JVM_11)
 
             dependencies {
                 implementation(target.libs, "androidx.core.ktx")

@@ -19,6 +19,7 @@ package software.seriouschoi.timeisgold
 import org.gradle.api.Project
 import org.gradle.api.artifacts.VersionCatalog
 import org.gradle.api.artifacts.VersionCatalogsExtension
+import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.getByType
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinAndroidProjectExtension
@@ -29,10 +30,26 @@ val Project.libs: VersionCatalog
 
 internal fun Project.setJvmTarget(target: JvmTarget) {
     when (this) {
-        is KotlinAndroidProjectExtension -> compilerOptions
-        is KotlinJvmProjectExtension -> compilerOptions
-        else -> null
+        is KotlinAndroidProjectExtension -> {
+            compilerOptions
+        }
+        is KotlinJvmProjectExtension -> {
+            compilerOptions
+        }
+        else -> {
+            logger.warn("Unsupported project type: ${this.javaClass.simpleName}")
+            null
+        }
     }?.apply {
         jvmTarget.set(target)
+    }
+}
+
+internal fun Project.setJvmToolchain(jdkVersion: Int) {
+    extensions.configure<KotlinJvmProjectExtension> {
+        jvmToolchain(jdkVersion)
+    }
+    extensions.configure<KotlinAndroidProjectExtension> {
+        jvmToolchain(jdkVersion)
     }
 }
