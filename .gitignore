@@ -16,5 +16,4 @@ local.properties
 .idea/
 data/schemas/
 *.salive
-build-logic/build/reports/configuration-cache/**
-build-logic/convention/build/**
+build/

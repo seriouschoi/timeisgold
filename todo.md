@@ -5,7 +5,10 @@
 
 - [ ] 화면 작업. 
   - [ ] :presentation을 :feature 서브 모듈들로 쪼개야함.
-  - [ ] feature/timeroutinetabbar 모듈 정의 및 개발
+  - [ ] feature/timeroutinetab-bar 모듈 정의 및 개발
+    - [feature/timeroutine-bar/readme.md](feature/timeroutine-bar/readme.md)
+
+
 
 ## TimeSlot Tag.
 - [ ] 타임슬롯에 태그 추가. 추후 리포트제공시 태그 기반으로 수행률 확인.
