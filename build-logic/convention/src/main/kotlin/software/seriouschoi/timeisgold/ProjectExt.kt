@@ -16,6 +16,9 @@
 
 package software.seriouschoi.timeisgold
 
+import com.android.build.api.dsl.ApplicationExtension
+import com.android.build.api.dsl.CommonExtension
+import com.android.build.gradle.LibraryExtension
 import org.gradle.api.Project
 import org.gradle.api.artifacts.VersionCatalog
 import org.gradle.api.artifacts.VersionCatalogsExtension
@@ -35,7 +38,7 @@ internal fun Project.pluginAlias(pluginAlias: String) {
 
 internal fun Project.setJvmTarget(target: JvmTarget) {
     when (this) {
-        is KotlinAndroidProjectExtension -> {
+        is KotlinAndroidProjectExtension, -> {
             compilerOptions
         }
 
@@ -49,6 +52,29 @@ internal fun Project.setJvmTarget(target: JvmTarget) {
         }
     }?.apply {
         jvmTarget.set(target)
+    }
+}
+
+private fun Project.getCommonAndroidExtension():CommonExtension<*, *, *, *, *, *>? {
+    return when (this) {
+        is LibraryExtension -> {
+            extensions.getByType<LibraryExtension>()
+        }
+
+        is ApplicationExtension -> {
+            extensions.getByType<ApplicationExtension>()
+        }
+
+        else -> null
+    }
+}
+
+internal fun Project.setCompose(enable: Boolean) {
+    val extension = getCommonAndroidExtension()
+    extension?.apply {
+        buildFeatures {
+            compose = enable
+        }
     }
 }
 

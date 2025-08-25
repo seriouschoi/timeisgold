@@ -4,6 +4,7 @@ import org.gradle.api.Project
 import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.dependencies
 import software.seriouschoi.timeisgold.androidTestImplementation
+import software.seriouschoi.timeisgold.const.TigConstAndroidSdk
 import software.seriouschoi.timeisgold.const.TigConstJava
 import software.seriouschoi.timeisgold.implementation
 import software.seriouschoi.timeisgold.libs
@@ -17,16 +18,16 @@ class AndroidLibraryConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) {
         with(target) {
             pluginAlias("android.library")
+
             pluginAlias("kotlin.android")
-            pluginAlias("hilt.gradle")
             pluginAlias("ksp")
             pluginAlias("kotlin.serialization")
 
             extensions.configure<LibraryExtension> {
-                compileSdk = 36
+                compileSdk = TigConstAndroidSdk.COMPILE_SDK
 
                 defaultConfig {
-                    minSdk = 26
+                    minSdk = TigConstAndroidSdk.MIN_SDK
                     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
                     consumerProguardFiles("consumer-rules.pro")
                 }

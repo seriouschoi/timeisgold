@@ -10,3 +10,8 @@ internal object TigConstJava {
     val JvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11
     val JavaVersion = org.gradle.api.JavaVersion.VERSION_11
 }
+
+internal object TigConstAndroidSdk {
+    const val COMPILE_SDK = 36
+    const val MIN_SDK = 26
+}

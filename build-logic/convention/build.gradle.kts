@@ -25,10 +25,11 @@ dependencies {
     implementation(libs.android.tools.common)
     implementation(libs.compose.gradlePlugin)
 
-
     implementation(libs.kotlin.gradlePlugin)
     implementation(libs.ksp.gradlePlugin)
     implementation(libs.truth)
+
+    //for kotlin.serialization
     implementation(libs.kotlin.serialization.plugin.artifact)
 }
 
