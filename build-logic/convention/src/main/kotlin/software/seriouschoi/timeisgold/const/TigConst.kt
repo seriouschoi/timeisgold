@@ -6,9 +6,9 @@ package software.seriouschoi.timeisgold.const
  * jhchoi
  */
 internal object TigConstJava {
-    const val JVM_TOOL_CHAIN = 11
-    val JvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11
-    val JavaVersion = org.gradle.api.JavaVersion.VERSION_11
+    const val JVM_TOOL_CHAIN = 17
+    val JvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
+    val JavaVersion = org.gradle.api.JavaVersion.VERSION_17
 }
 
 internal object TigConstAndroidSdk {
