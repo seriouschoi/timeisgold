@@ -6,6 +6,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
+import software.seriouschoi.timeisgold.feature.timeroutine.bar.TimeRoutineBarNavRoot
+import software.seriouschoi.timeisgold.feature.timeroutine.bar.timeRoutineBarSection
 import software.seriouschoi.timeisgold.presentation.navigation.PresentationRoot
 import software.seriouschoi.timeisgold.presentation.navigation.presentationSection
 
@@ -24,8 +26,9 @@ fun AppNavHost(
 
     NavHost(
         navController = navController,
-        startDestination = PresentationRoot
+        startDestination = TimeRoutineBarNavRoot
     ) {
         presentationSection()
+        timeRoutineBarSection()
     }
 }
