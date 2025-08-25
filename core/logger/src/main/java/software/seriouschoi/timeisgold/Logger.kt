@@ -4,7 +4,6 @@ import android.util.Log
 
 /**
  * Created by jhchoi on 2025. 8. 18.
- * jhchoi@neofect.com
  */
 
 

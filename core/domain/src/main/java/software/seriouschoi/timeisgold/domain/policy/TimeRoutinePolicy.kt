@@ -5,7 +5,7 @@ import software.seriouschoi.timeisgold.domain.exception.TIGException
 
 /**
  * Created by jhchoi on 2025. 8. 8.
- * jhchoi@neofect.com
+ * jhchoi
  */
 class TimeRoutinePolicy {
     fun checkCanAdd(

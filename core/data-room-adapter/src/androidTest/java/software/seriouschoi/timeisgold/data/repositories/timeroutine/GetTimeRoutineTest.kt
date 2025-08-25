@@ -9,7 +9,7 @@ import kotlin.test.Test
 
 /**
  * Created by jhchoi on 2025. 8. 8.
- * jhchoi@neofect.com
+ * jhchoi
  */
 @RunWith(AndroidJUnit4::class)
 internal class GetTimeRoutineTest : BaseRoomTest() {

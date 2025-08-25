@@ -10,7 +10,7 @@ import java.time.LocalTime
 
 /**
  * Created by jhchoi on 2025. 8. 7.
- * jhchoi@neofect.com
+ * jhchoi
  */
 @RunWith(AndroidJUnit4::class)
 internal class SetTimeSlotTest : BaseRoomTest() {
