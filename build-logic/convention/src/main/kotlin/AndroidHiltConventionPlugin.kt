@@ -5,6 +5,7 @@ import org.gradle.kotlin.dsl.dependencies
 import software.seriouschoi.timeisgold.implementation
 import software.seriouschoi.timeisgold.ksp
 import software.seriouschoi.timeisgold.libs
+import software.seriouschoi.timeisgold.pluginAlias
 
 /**
  * Created by jhchoi on 2025. 8. 25.
@@ -14,7 +15,7 @@ import software.seriouschoi.timeisgold.libs
 class AndroidHiltConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) {
         with(target) {
-            apply(plugin = "com.google.dagger.hilt.android")
+            pluginAlias("hilt.gradle")
 
             dependencies {
                 implementation(target.libs, "hilt.android")

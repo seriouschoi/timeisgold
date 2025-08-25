@@ -7,6 +7,7 @@ import org.gradle.kotlin.dsl.dependencies
 import software.seriouschoi.timeisgold.const.TigConstJava
 import software.seriouschoi.timeisgold.implementation
 import software.seriouschoi.timeisgold.libs
+import software.seriouschoi.timeisgold.pluginAlias
 import software.seriouschoi.timeisgold.setJvmTarget
 import software.seriouschoi.timeisgold.setJvmToolchain
 import software.seriouschoi.timeisgold.testImplementation
@@ -17,9 +18,7 @@ class KotlinLibraryConventionPlugin : Plugin<Project> {
         with(target) {
 
             apply(plugin = "java-library")
-
-            //jetbrains-kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "jetbrainsKotlinJvm" }
-            apply(plugin = "org.jetbrains.kotlin.jvm")
+            pluginAlias("jetbrains.kotlin.jvm")
 
             extensions.configure<JavaPluginExtension> {
                 sourceCompatibility = TigConstJava.JavaVersion

@@ -9,6 +9,7 @@ import software.seriouschoi.timeisgold.debugImplementation
 import software.seriouschoi.timeisgold.implementation
 import software.seriouschoi.timeisgold.ksp
 import software.seriouschoi.timeisgold.libs
+import software.seriouschoi.timeisgold.pluginAlias
 
 /**
  * Created by jhchoi on 2025. 8. 25.
@@ -18,7 +19,7 @@ import software.seriouschoi.timeisgold.libs
 class AndroidComposeConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) {
         with(target) {
-            apply(plugin = "org.jetbrains.kotlin.plugin.compose")
+            pluginAlias("kotlin.compose")
 
             extensions.configure<LibraryExtension> {
                 buildFeatures {

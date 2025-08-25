@@ -41,6 +41,10 @@ tasks {
 
 gradlePlugin {
     plugins {
+        register("androidApplication") {
+            id = libs.plugins.timeisgold.android.application.get().pluginId
+            implementationClass = "AndroidApplicationConventionPlugin"
+        }
         register("androidLibrary") {
             id = libs.plugins.timeisgold.android.library.get().pluginId
             implementationClass = "AndroidLibraryConventionPlugin"

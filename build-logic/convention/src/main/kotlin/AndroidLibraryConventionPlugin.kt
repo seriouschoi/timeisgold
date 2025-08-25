@@ -1,16 +1,13 @@
 import com.android.build.api.dsl.LibraryExtension
-import org.gradle.api.JavaVersion
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.kotlin.dsl.apply
 import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.dependencies
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import software.seriouschoi.timeisgold.androidTestImplementation
 import software.seriouschoi.timeisgold.const.TigConstJava
-import software.seriouschoi.timeisgold.debugImplementation
 import software.seriouschoi.timeisgold.implementation
 import software.seriouschoi.timeisgold.libs
+import software.seriouschoi.timeisgold.pluginAlias
 import software.seriouschoi.timeisgold.setJvmTarget
 import software.seriouschoi.timeisgold.setJvmToolchain
 import software.seriouschoi.timeisgold.testImplementation
@@ -19,18 +16,11 @@ import software.seriouschoi.timeisgold.testImplementation
 class AndroidLibraryConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) {
         with(target) {
-            //android-library = { id = "com.android.library", version.ref = "agp" }
-            apply(plugin = "com.android.library")
-            //kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
-            apply(plugin = "org.jetbrains.kotlin.android")
-
-
-            //hilt-gradle = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
-            apply(plugin = "com.google.dagger.hilt.android")
-            //ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
-            apply(plugin = "com.google.devtools.ksp")
-            //kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
-            apply(plugin = "org.jetbrains.kotlin.plugin.serialization")
+            pluginAlias("android.library")
+            pluginAlias("kotlin.android")
+            pluginAlias("hilt.gradle")
+            pluginAlias("ksp")
+            pluginAlias("kotlin.serialization")
 
             extensions.configure<LibraryExtension> {
                 compileSdk = 36

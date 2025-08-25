@@ -19,23 +19,30 @@ package software.seriouschoi.timeisgold
 import org.gradle.api.Project
 import org.gradle.api.artifacts.VersionCatalog
 import org.gradle.api.artifacts.VersionCatalogsExtension
-import org.gradle.kotlin.dsl.configure
+import org.gradle.kotlin.dsl.apply
 import org.gradle.kotlin.dsl.getByType
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinAndroidProjectExtension
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
 
-val Project.libs: VersionCatalog
+internal val Project.libs: VersionCatalog
     get(): VersionCatalog = extensions.getByType<VersionCatalogsExtension>().named("libs")
+
+internal fun Project.pluginAlias(pluginAlias: String) {
+    val plugin = libs.findPlugin(pluginAlias).get().get().pluginId
+    apply(plugin = plugin)
+}
 
 internal fun Project.setJvmTarget(target: JvmTarget) {
     when (this) {
         is KotlinAndroidProjectExtension -> {
             compilerOptions
         }
+
         is KotlinJvmProjectExtension -> {
             compilerOptions
         }
+
         else -> {
             logger.warn("Unsupported project type: ${this.javaClass.simpleName}")
             null
