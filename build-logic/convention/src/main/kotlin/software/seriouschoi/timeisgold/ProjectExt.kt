@@ -46,10 +46,15 @@ internal fun Project.setJvmTarget(target: JvmTarget) {
 }
 
 internal fun Project.setJvmToolchain(jdkVersion: Int) {
-    extensions.configure<KotlinJvmProjectExtension> {
-        jvmToolchain(jdkVersion)
-    }
-    extensions.configure<KotlinAndroidProjectExtension> {
-        jvmToolchain(jdkVersion)
+    // 먼저 KotlinAndroidProjectExtension을 찾아봅니다.
+    val androidExtension = project.extensions.findByType(KotlinAndroidProjectExtension::class.java)
+    if (androidExtension != null) {
+        // Android 프로젝트인 경우
+        androidExtension.jvmToolchain(jdkVersion)
+    } else {
+        // Android 프로젝트가 아닌 경우, KotlinJvmProjectExtension을 찾아봅니다.
+        project.extensions.findByType(KotlinJvmProjectExtension::class.java)?.apply {
+            jvmToolchain(jdkVersion)
+        }
     }
 }
