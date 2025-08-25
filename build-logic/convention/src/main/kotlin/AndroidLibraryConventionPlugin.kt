@@ -7,6 +7,7 @@ import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.dependencies
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import software.seriouschoi.timeisgold.androidTestImplementation
+import software.seriouschoi.timeisgold.const.TigConstJava
 import software.seriouschoi.timeisgold.debugImplementation
 import software.seriouschoi.timeisgold.implementation
 import software.seriouschoi.timeisgold.libs
@@ -40,8 +41,8 @@ class AndroidLibraryConventionPlugin : Plugin<Project> {
                     consumerProguardFiles("consumer-rules.pro")
                 }
                 compileOptions {
-                    sourceCompatibility = JavaVersion.VERSION_11
-                    targetCompatibility = JavaVersion.VERSION_11
+                    sourceCompatibility = TigConstJava.JavaVersion
+                    targetCompatibility = TigConstJava.JavaVersion
                 }
 
 
@@ -59,8 +60,8 @@ class AndroidLibraryConventionPlugin : Plugin<Project> {
                 }
             }
 
-            setJvmToolchain(11)
-            setJvmTarget(JvmTarget.JVM_11)
+            setJvmToolchain(TigConstJava.JVM_TOOL_CHAIN)
+            setJvmTarget(TigConstJava.JvmTarget)
 
             dependencies {
                 implementation(target.libs, "androidx.core.ktx")
