@@ -6,6 +6,7 @@ import org.gradle.kotlin.dsl.apply
 import org.gradle.kotlin.dsl.configure
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import software.seriouschoi.timeisgold.setJvmTarget
+import software.seriouschoi.timeisgold.setJvmToolchain
 
 /**
  * Created by jhchoi on 2025. 8. 25.
@@ -13,9 +14,10 @@ import software.seriouschoi.timeisgold.setJvmTarget
  */
 class KotlinLibraryConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) {
-        //jetbrains-kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "jetbrainsKotlinJvm" }
         with(target) {
+
 //            apply(plugin = "java-library")
+
             //jetbrains-kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "jetbrainsKotlinJvm" }
             apply(plugin = "org.jetbrains.kotlin.jvm")
 
@@ -28,7 +30,8 @@ class KotlinLibraryConventionPlugin : Plugin<Project> {
                 targetCompatibility = JavaVersion.VERSION_11
             }
 
-            this.setJvmTarget(JvmTarget.JVM_11)
+            setJvmToolchain(11)
+            setJvmTarget(JvmTarget.JVM_11)
         }
     }
 }
