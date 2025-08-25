@@ -12,6 +12,9 @@ group = "software.seriouschoi.timeisgold.buildlogic"
 java {
     sourceCompatibility = JavaVersion.VERSION_11
     targetCompatibility = JavaVersion.VERSION_11
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(11))
+    }
 }
 
 kotlin {
@@ -29,6 +32,7 @@ dependencies {
     implementation(libs.kotlin.gradlePlugin)
     implementation(libs.ksp.gradlePlugin)
     implementation(libs.truth)
+    implementation(libs.kotlin.serialization.plugin.artifact)
 }
 
 tasks {
@@ -44,9 +48,9 @@ gradlePlugin {
             id = libs.plugins.timeisgold.android.library.get().pluginId
             implementationClass = "AndroidLibraryConventionPlugin"
         }
-        register("androidCompose") {
-            id = libs.plugins.timeisgold.android.compose.get().pluginId
-            implementationClass = "AndroidLibraryComposeConventionPlugin"
+        register("kotlinLibrary") {
+            id = libs.plugins.timeisgold.kotlin.library.get().pluginId
+            implementationClass = "KotlinLibraryConventionPlugin"
         }
     }
 }

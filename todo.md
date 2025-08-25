@@ -5,8 +5,9 @@
   - https://www.slideshare.net/slideshow/gradle-kotlin/261178195
     - gradle custom plugin을 만드는 개념.
     - 프로젝트 내부에 커스텀 플러그인을 넣어서 공통 빌드 정보를 관리할 수 있다.
-    - 
-
+[x] presentation모듈의 build.gradle.kts의 공통 빌드 정보를 컨벤션 플러그인으로 이관.
+[x] 하나의 컨벤션 플러그인에 모여있는 빌드 정보를 쪼개서 나머지 모듈도 적용. 
+    
 
 [ ] feature/timeroutinetabbar 모듈 정의 및 개발
 

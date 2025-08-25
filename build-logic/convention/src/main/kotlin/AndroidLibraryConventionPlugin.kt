@@ -1,8 +1,20 @@
+import com.android.build.api.dsl.LibraryExtension
+import org.gradle.api.JavaVersion
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.apply
+import org.gradle.kotlin.dsl.configure
+import org.gradle.kotlin.dsl.dependencies
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import software.seriouschoi.timeisgold.androidTestImplementation
+import software.seriouschoi.timeisgold.debugImplementation
+import software.seriouschoi.timeisgold.implementation
+import software.seriouschoi.timeisgold.ksp
+import software.seriouschoi.timeisgold.libs
+import software.seriouschoi.timeisgold.setJvmTarget
+import software.seriouschoi.timeisgold.testImplementation
 
-class AndroidLibraryConventionPlugin: Plugin<Project> {
+class AndroidLibraryConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) {
         with(target) {
             //android-library = { id = "com.android.library", version.ref = "agp" }
@@ -16,7 +28,67 @@ class AndroidLibraryConventionPlugin: Plugin<Project> {
             //ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
             apply(plugin = "com.google.devtools.ksp")
             //kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
-//            apply(plugin = "org.jetbrains.kotlin.plugin.serialization")
+            apply(plugin = "org.jetbrains.kotlin.plugin.serialization")
+
+            extensions.configure<LibraryExtension> {
+                compileSdk = 36
+
+                defaultConfig {
+                    minSdk = 26
+                    testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+                    consumerProguardFiles("consumer-rules.pro")
+                }
+                compileOptions {
+                    sourceCompatibility = JavaVersion.VERSION_11
+                    targetCompatibility = JavaVersion.VERSION_11
+                }
+                buildFeatures {
+                    compose = true
+                }
+
+                buildTypes {
+                    release {
+                        isMinifyEnabled = false
+                        proguardFiles(
+                            getDefaultProguardFile("proguard-android-optimize.txt"),
+                            "proguard-rules.pro"
+                        )
+                    }
+                }
+            }
+
+            this.setJvmTarget(JvmTarget.JVM_11)
+
+            dependencies {
+                implementation(target.libs, "androidx.core.ktx")
+                implementation(target.libs, "androidx.appcompat")
+                implementation(target.libs, "material")
+                testImplementation(target.libs, "junit")
+                androidTestImplementation(target.libs, "androidx.junit")
+                androidTestImplementation(target.libs, "androidx.espresso.core")
+
+                val bom = libs.findLibrary("compose.bom").get()
+                implementation(target.libs, bom)
+                androidTestImplementation(target.libs, bom)
+
+                implementation(target.libs, "compose.material")
+                implementation(target.libs, "compose.ui")
+                implementation(target.libs, "compose.ui.tooling.preview")
+                debugImplementation(target.libs, "compose.ui.tooling")
+                implementation(target.libs, "navigation.compose")
+
+
+                implementation(target.libs, "hilt.android")
+                ksp(target.libs, "hilt.compiler")
+                implementation(target.libs, "androidx.hilt.navigation.compose")
+
+                androidTestImplementation(target.libs, "androidx.ui.test.junit4")
+                debugImplementation(target.libs, "androidx.ui.test.manifest")
+
+
+            }
         }
     }
+
+
 }
