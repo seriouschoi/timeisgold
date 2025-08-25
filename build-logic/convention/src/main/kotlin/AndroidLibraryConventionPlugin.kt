@@ -29,25 +29,10 @@ class AndroidLibraryConventionPlugin : Plugin<Project> {
                 defaultConfig {
                     minSdk = TigConstAndroidSdk.MIN_SDK
                     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-                    consumerProguardFiles("consumer-rules.pro")
                 }
                 compileOptions {
                     sourceCompatibility = TigConstJava.JavaVersion
                     targetCompatibility = TigConstJava.JavaVersion
-                }
-
-
-                buildTypes {
-                    debug {
-                        enableAndroidTestCoverage = true
-                    }
-                    release {
-                        isMinifyEnabled = false
-                        proguardFiles(
-                            getDefaultProguardFile("proguard-android-optimize.txt"),
-                            "proguard-rules.pro"
-                        )
-                    }
                 }
             }
 
