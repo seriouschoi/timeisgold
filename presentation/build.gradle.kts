@@ -1,6 +1,8 @@
 // presentation/build.gradle.kts
 plugins {
     alias(libs.plugins.timeisgold.android.library)
+    alias(libs.plugins.timeisgold.android.compose)
+    alias(libs.plugins.timeisgold.android.hilt)
 }
 
 android {

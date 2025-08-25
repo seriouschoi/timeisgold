@@ -49,5 +49,15 @@ gradlePlugin {
             id = libs.plugins.timeisgold.kotlin.library.get().pluginId
             implementationClass = "KotlinLibraryConventionPlugin"
         }
+        register("androidCompose") {
+            //timeisgold-android-compose
+            id = libs.plugins.timeisgold.android.compose.get().pluginId
+            implementationClass = "AndroidComposeConventionPlugin"
+        }
+        register("androidHilt") {
+            //timeisgold-android-compose
+            id = libs.plugins.timeisgold.android.hilt.get().pluginId
+            implementationClass = "AndroidHiltConventionPlugin"
+        }
     }
 }

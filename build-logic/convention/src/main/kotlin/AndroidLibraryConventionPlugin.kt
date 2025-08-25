@@ -9,12 +9,12 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import software.seriouschoi.timeisgold.androidTestImplementation
 import software.seriouschoi.timeisgold.debugImplementation
 import software.seriouschoi.timeisgold.implementation
-import software.seriouschoi.timeisgold.ksp
 import software.seriouschoi.timeisgold.libs
 import software.seriouschoi.timeisgold.setJvmTarget
 import software.seriouschoi.timeisgold.setJvmToolchain
 import software.seriouschoi.timeisgold.testImplementation
 
+@Suppress("unused")
 class AndroidLibraryConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) {
         with(target) {
@@ -22,8 +22,8 @@ class AndroidLibraryConventionPlugin : Plugin<Project> {
             apply(plugin = "com.android.library")
             //kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
             apply(plugin = "org.jetbrains.kotlin.android")
-            //kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
-            apply(plugin = "org.jetbrains.kotlin.plugin.compose")
+
+
             //hilt-gradle = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
             apply(plugin = "com.google.dagger.hilt.android")
             //ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
@@ -43,11 +43,12 @@ class AndroidLibraryConventionPlugin : Plugin<Project> {
                     sourceCompatibility = JavaVersion.VERSION_11
                     targetCompatibility = JavaVersion.VERSION_11
                 }
-                buildFeatures {
-                    compose = true
-                }
+
 
                 buildTypes {
+                    debug {
+                        enableAndroidTestCoverage = true
+                    }
                     release {
                         isMinifyEnabled = false
                         proguardFiles(
@@ -68,21 +69,6 @@ class AndroidLibraryConventionPlugin : Plugin<Project> {
                 testImplementation(target.libs, "junit")
                 androidTestImplementation(target.libs, "androidx.junit")
                 androidTestImplementation(target.libs, "androidx.espresso.core")
-
-                val bom = libs.findLibrary("compose.bom").get()
-                implementation(target.libs, bom)
-                androidTestImplementation(target.libs, bom)
-
-                implementation(target.libs, "compose.material")
-                implementation(target.libs, "compose.ui")
-                implementation(target.libs, "compose.ui.tooling.preview")
-                debugImplementation(target.libs, "compose.ui.tooling")
-                implementation(target.libs, "navigation.compose")
-
-
-                implementation(target.libs, "hilt.android")
-                ksp(target.libs, "hilt.compiler")
-                implementation(target.libs, "androidx.hilt.navigation.compose")
 
                 androidTestImplementation(target.libs, "androidx.ui.test.junit4")
                 debugImplementation(target.libs, "androidx.ui.test.manifest")

@@ -12,6 +12,7 @@ import software.seriouschoi.timeisgold.setJvmTarget
 import software.seriouschoi.timeisgold.setJvmToolchain
 import software.seriouschoi.timeisgold.testImplementation
 
+@Suppress("unused")
 class KotlinLibraryConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) {
         with(target) {
