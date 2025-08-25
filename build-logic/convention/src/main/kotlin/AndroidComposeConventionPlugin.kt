@@ -27,15 +27,18 @@ class AndroidComposeConventionPlugin : Plugin<Project> {
             }
 
             dependencies {
+                val bom = libs.findLibrary("compose.bom").get()
+                implementation(target.libs, bom)
+                androidTestImplementation(target.libs, bom)
+
                 implementation(target.libs, "compose.material")
                 implementation(target.libs, "compose.ui")
                 implementation(target.libs, "compose.ui.tooling.preview")
                 debugImplementation(target.libs, "compose.ui.tooling")
                 implementation(target.libs, "navigation.compose")
 
-                val bom = libs.findLibrary("compose.bom").get()
-                implementation(target.libs, bom)
-                androidTestImplementation(target.libs, bom)
+                androidTestImplementation(target.libs, "compose.ui.test.junit4")
+                debugImplementation(target.libs, "compose.ui.test.manifest")
 
                 implementation(target.libs, "hilt.android")
                 ksp(target.libs, "hilt.compiler")

@@ -66,14 +66,10 @@ class AndroidLibraryConventionPlugin : Plugin<Project> {
                 implementation(target.libs, "androidx.core.ktx")
                 implementation(target.libs, "androidx.appcompat")
                 implementation(target.libs, "material")
+
                 testImplementation(target.libs, "junit")
                 androidTestImplementation(target.libs, "androidx.junit")
                 androidTestImplementation(target.libs, "androidx.espresso.core")
-
-                androidTestImplementation(target.libs, "androidx.ui.test.junit4")
-                debugImplementation(target.libs, "androidx.ui.test.manifest")
-
-
             }
         }
     }

@@ -59,5 +59,10 @@ gradlePlugin {
             id = libs.plugins.timeisgold.android.hilt.get().pluginId
             implementationClass = "AndroidHiltConventionPlugin"
         }
+        register("androidCoroutine") {
+            //timeisgold-android-compose
+            id = libs.plugins.timeisgold.coroutine.get().pluginId
+            implementationClass = "CoroutineConventionPlugin"
+        }
     }
 }
