@@ -4,19 +4,19 @@ import org.gradle.api.Project
 import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.kotlin.dsl.apply
 import org.gradle.kotlin.dsl.configure
+import org.gradle.kotlin.dsl.dependencies
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import software.seriouschoi.timeisgold.implementation
+import software.seriouschoi.timeisgold.libs
 import software.seriouschoi.timeisgold.setJvmTarget
 import software.seriouschoi.timeisgold.setJvmToolchain
+import software.seriouschoi.timeisgold.testImplementation
 
-/**
- * Created by jhchoi on 2025. 8. 25.
- * jhchoi@neofect.com
- */
 class KotlinLibraryConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) {
         with(target) {
 
-//            apply(plugin = "java-library")
+            apply(plugin = "java-library")
 
             //jetbrains-kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "jetbrainsKotlinJvm" }
             apply(plugin = "org.jetbrains.kotlin.jvm")
@@ -32,6 +32,15 @@ class KotlinLibraryConventionPlugin : Plugin<Project> {
 
             setJvmToolchain(11)
             setJvmTarget(JvmTarget.JVM_11)
+
+            dependencies {
+                testImplementation(target.libs, "junit")
+                testImplementation(target.libs, "coroutine.test")
+                testImplementation(target.libs, "mockito.core")
+                testImplementation(target.libs, "mockito.kotlin")
+
+                implementation(target.libs, "javax.inject")
+            }
         }
     }
 }
