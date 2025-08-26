@@ -11,8 +11,20 @@ import java.time.DayOfWeek
 @Dao
 internal abstract class TimeRoutineRelationDao {
     @Transaction
-    @Query("SELECT * FROM TimeRoutineSchema WHERE uuid = :uuid")
-    abstract fun get(uuid: String): Flow<TimeRoutineRelation?>
+    @Query("""
+        SELECT * 
+        FROM TimeRoutineSchema 
+        WHERE uuid = :uuid
+    """)
+    abstract fun get(uuid: String): TimeRoutineRelation?
+
+    @Transaction
+    @Query("""
+        SELECT * 
+        FROM TimeRoutineSchema 
+        WHERE uuid = :uuid
+    """)
+    abstract fun getFlow(uuid: String): Flow<TimeRoutineRelation?>
 
     @Transaction
     @Query(
@@ -23,5 +35,4 @@ internal abstract class TimeRoutineRelationDao {
     """
     )
     abstract fun getByDayOfWeek(week: DayOfWeek): List<TimeRoutineDayOfWeekRelation>
-
 }

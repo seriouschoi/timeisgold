@@ -27,20 +27,19 @@ internal class TimeRoutineViewModel @Inject constructor(
         // TODO: jhchoi 2025. 8. 26. 이렇게 가져오지 말고 flow로 바로 가져올 방법을 찾아봐야..
         viewModelScope.launch {
             val timeRoutineDetailData = getTimeRoutineUseChar(dayOfWeek)
-
-            val timeRoutineData = timeRoutineDetailData?.timeRoutineData
-
-            timeRoutineDetailData?.timeSlotList?.map {
-                TimeSlotItemUiState(
-                    title = it.title,
-                    startTime = it.startTime,
-                    endTime = it.endTime
-                )
-            }
-
-            _uiState.value = TimeRoutineUiState.Routine(
-                title = timeRoutineData?.title ?: ""
-            )
+//            val timeRoutineData = timeRoutineDetailData?.timeRoutineData
+//
+//            timeRoutineDetailData?.timeSlotList?.map {
+//                TimeSlotItemUiState(
+//                    title = it.title,
+//                    startTime = it.startTime,
+//                    endTime = it.endTime
+//                )
+//            }
+//
+//            _uiState.value = TimeRoutineUiState.Routine(
+//                title = timeRoutineData?.title ?: ""
+//            )
         }
     }
 }

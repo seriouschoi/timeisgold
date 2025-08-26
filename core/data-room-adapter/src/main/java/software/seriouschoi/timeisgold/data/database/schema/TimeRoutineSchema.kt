@@ -6,7 +6,8 @@ import androidx.room.PrimaryKey
 
 @Entity(
     indices = [
-        Index(value = ["uuid"], unique = true)
+        Index(value = ["uuid"], unique = true),
+        Index(value = ["createTime"], orders = arrayOf(Index.Order.DESC))
     ]
 )
 internal data class TimeRoutineSchema(

@@ -10,7 +10,7 @@ import java.time.DayOfWeek
 @Entity(
     indices = [
         Index(value = ["uuid"], unique = true),
-        Index(value = ["timeRoutineId"])
+        Index(value = ["timeRoutineId", "dayOfWeek"]),
     ],
     foreignKeys = [
         ForeignKey(

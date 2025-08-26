@@ -10,6 +10,6 @@ class GetTimeRoutineUseCase @Inject constructor(
     private val timeRoutineRepositoryPort: TimeRoutineRepositoryPort
 ) {
     suspend operator fun invoke(week: DayOfWeek) : Flow<TimeRoutineDetailData?> {
-        return timeRoutineRepositoryPort.getTimeRoutineDetail(week)
+        return timeRoutineRepositoryPort.getTimeRoutineDetailFlow(week)
     }
 }

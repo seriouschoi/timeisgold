@@ -7,7 +7,8 @@ import java.time.DayOfWeek
 
 interface TimeRoutineRepositoryPort {
     suspend fun addTimeRoutine(timeRoutine: TimeRoutineData)
-    fun getTimeRoutineDetail(week: DayOfWeek): Flow<TimeRoutineDetailData?>
+    fun getTimeRoutineDetailFlow(week: DayOfWeek): Flow<TimeRoutineDetailData?>
+    suspend fun getTimeRoutineDetail(week: DayOfWeek): TimeRoutineDetailData?
     suspend fun getTimeRoutineDetailByUuid(timeRoutineUuid: String): TimeRoutineDetailData?
     suspend fun getAllTimeRoutines(): List<TimeRoutineData>
     suspend fun setTimeRoutine(timeRoutine: TimeRoutineData)

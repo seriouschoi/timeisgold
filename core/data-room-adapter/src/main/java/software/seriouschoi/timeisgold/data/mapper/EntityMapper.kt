@@ -46,9 +46,13 @@ internal fun TimeRoutineRelation.toDomain(): TimeRoutineDetailData {
     val routine = this.timeRoutine
     val dayOfWeek = this.dayOfWeeks.map {
         it.toDomain()
+    }.sortedBy {
+        it.dayOfWeek
     }
     val timeSlot = this.timeSlots.map {
         it.toDomain()
+    }.sortedBy {
+        it.startTime
     }
 
     return TimeRoutineDetailData(

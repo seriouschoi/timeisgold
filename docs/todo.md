@@ -6,7 +6,7 @@
 - [ ] 화면 작업. 
   - [ ] :presentation을 :feature 서브 모듈들로 쪼개야함.
   - [ ] feature/timeroutinetab-bar 모듈 정의 및 개발
-    - [feature/timeroutine-bar/readme.md](feature/timeroutine-bar/readme.md)
+    - [todo](feature/timeroutine-bar/todo.md)
 
 - [ ] 모든 마크다운 문서를 docs 디렉토리 아래 모으기.
 

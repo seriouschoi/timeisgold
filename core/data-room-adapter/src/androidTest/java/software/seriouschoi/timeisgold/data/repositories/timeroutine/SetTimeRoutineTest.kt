@@ -32,7 +32,7 @@ internal class SetTimeRoutineTest : BaseRoomTest() {
     }
 
     @Test
-    fun setTimeRoutine_changeTitleTimeslotDayofweek_shouldCollectChanged() {
+    fun setTimeRoutine_changeTitleTimeslotDayOfWeek_shouldCollectChanged() {
         runTest {
             val dayOfWeekForRoutine = timeSlotTestFixtures.getTestRoutineDayOfWeeks1()
             val routineDetailFromDb =

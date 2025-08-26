@@ -1,6 +1,13 @@
 package software.seriouschoi.timeisgold.data.repositories
 
 import androidx.room.withTransaction
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import software.seriouschoi.timeisgold.data.database.AppDatabase
 import software.seriouschoi.timeisgold.data.mapper.toDomain
 import software.seriouschoi.timeisgold.data.mapper.toSchema
@@ -27,12 +34,26 @@ internal class TimeRoutineRepositoryAdapter @Inject constructor(
         }
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override fun getTimeRoutineDetailFlow(week: DayOfWeek): Flow<TimeRoutineDetailData?> {
+        val routineDao = appDatabase.TimeRoutineDao()
+        val routineRelationDao = appDatabase.TimeRoutineRelationDao()
+        return routineDao.getLatestUuidByDayOfWeekFlow(week)
+            .distinctUntilChanged()
+            .flatMapLatest { uuid ->
+                if (uuid == null) {
+                    flowOf(null)
+                } else {
+                    routineRelationDao.getFlow(uuid).map { it?.toDomain() }
+                }
+            }.distinctUntilChanged()
+    }
+
+    @Deprecated("Use getTimeRoutineDetailFlow")
     override suspend fun getTimeRoutineDetail(week: DayOfWeek): TimeRoutineDetailData? {
         return appDatabase.withTransaction {
             val timeRoutineUuid =
-                appDatabase.TimeRoutineRelationDao().getByDayOfWeek(week).maxByOrNull {
-                    it.timeRoutine.createTime
-                }?.timeRoutine?.uuid ?: return@withTransaction null
+                appDatabase.TimeRoutineDao().getLatestUuidByDayOfWeekFlow(dayOfWeek = week).first() ?: return@withTransaction null
 
             appDatabase.TimeRoutineRelationDao().get(timeRoutineUuid)?.toDomain()
         }
