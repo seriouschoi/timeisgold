@@ -28,11 +28,7 @@ internal class TimeRoutineTabBarViewModel @Inject constructor(
             DayOfWeek.FRIDAY,
             DayOfWeek.SATURDAY,
             DayOfWeek.SUNDAY
-        ).map {
-            TimeRoutineDayOfWeekItemUiState(
-                dayOfWeek = it
-            )
-        }
+        )
 
         _uiState.value = TimeRoutineTabBarUiState(
             dayOfWeekList = dayOfWeekList
@@ -42,10 +38,5 @@ internal class TimeRoutineTabBarViewModel @Inject constructor(
 }
 
 internal data class TimeRoutineTabBarUiState(
-    val dayOfWeekList: List<TimeRoutineDayOfWeekItemUiState> = listOf(),
-    val activeDayOfWeek: DayOfWeek = DayOfWeek.MONDAY
-)
-
-internal data class TimeRoutineDayOfWeekItemUiState(
-    val dayOfWeek: DayOfWeek,
+    val dayOfWeekList: List<DayOfWeek> = listOf(),
 )
