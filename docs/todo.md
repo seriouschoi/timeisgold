@@ -3,6 +3,7 @@
 - [x] presentation모듈의 build.gradle.kts의 공통 빌드 정보를 컨벤션 플러그인으로 이관.
 - [x] 하나의 컨벤션 플러그인에 모여있는 빌드 정보를 쪼개서 나머지 모듈도 적용.
 
+[:doc:core:db](core/data-room-adapter)
 - [ ] db get함수를 전부 flow로 리턴하기.
   - [ ] GetTimeRoutineFlowTest 작성하기.
 - [ ] @Relation -> @DatabaseView
