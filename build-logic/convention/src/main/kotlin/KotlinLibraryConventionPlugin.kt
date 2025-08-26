@@ -35,6 +35,8 @@ class KotlinLibraryConventionPlugin : Plugin<Project> {
                 testImplementation(target.libs, "mockito.kotlin")
 
                 implementation(target.libs, "javax.inject")
+                implementation(target.libs, "coroutine")
+                testImplementation(target.libs, "coroutine.test")
             }
         }
     }

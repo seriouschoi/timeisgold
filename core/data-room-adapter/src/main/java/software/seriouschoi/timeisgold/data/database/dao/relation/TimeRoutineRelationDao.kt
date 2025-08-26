@@ -3,6 +3,7 @@ package software.seriouschoi.timeisgold.data.database.dao.relation
 import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Transaction
+import kotlinx.coroutines.flow.Flow
 import software.seriouschoi.timeisgold.data.database.relations.TimeRoutineRelation
 import software.seriouschoi.timeisgold.data.database.relations.TimeRoutineDayOfWeekRelation
 import java.time.DayOfWeek
@@ -11,7 +12,7 @@ import java.time.DayOfWeek
 internal abstract class TimeRoutineRelationDao {
     @Transaction
     @Query("SELECT * FROM TimeRoutineSchema WHERE uuid = :uuid")
-    abstract fun get(uuid: String): TimeRoutineRelation?
+    abstract fun get(uuid: String): Flow<TimeRoutineRelation?>
 
     @Transaction
     @Query(
