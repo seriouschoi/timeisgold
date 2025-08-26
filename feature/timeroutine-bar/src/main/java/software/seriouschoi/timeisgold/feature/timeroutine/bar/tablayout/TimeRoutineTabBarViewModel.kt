@@ -1,5 +1,6 @@
 package software.seriouschoi.timeisgold.feature.timeroutine.bar.tablayout
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -12,35 +13,39 @@ import javax.inject.Inject
  * jhchoi
  */
 @HiltViewModel
-internal class TimeRoutineTabBarViewModel @Inject constructor() : ViewModel() {
+internal class TimeRoutineTabBarViewModel @Inject constructor(
+    private val saved: SavedStateHandle
+) : ViewModel() {
     private val _uiState = MutableStateFlow(TimeRoutineTabBarUiState())
     val uiState = _uiState.asStateFlow()
 
     init {
-        DayOfWeek.entries.map {
-            // TODO: jhchoi 2025. 8. 26. common-ui 모듈에 UiText라는 클래스를 정의하고,
-            /*
-            common-ui 모듈에 UiText라는 클래스를 정의하고,
-            이걸 구현하는 형태로 만든다. 즉 문자열 리소스를 직접 담지 말고, 추상화한다.
-             */
-            TimeRoutineDayOfWeekItem(
-                dayOfWeek = it,
-                name = it.name
-            )
-        }.let {
-            _uiState.value = _uiState.value.copy(
-                timeRoutineList = it
+        val dayOfWeekList = listOf(
+            DayOfWeek.MONDAY,
+            DayOfWeek.TUESDAY,
+            DayOfWeek.WEDNESDAY,
+            DayOfWeek.THURSDAY,
+            DayOfWeek.FRIDAY,
+            DayOfWeek.SATURDAY,
+            DayOfWeek.SUNDAY
+        ).map {
+            TimeRoutineDayOfWeekItemUiState(
+                dayOfWeek = it
             )
         }
+
+        _uiState.value = TimeRoutineTabBarUiState(
+            dayOfWeekList = dayOfWeekList
+        )
     }
 
 }
 
 internal data class TimeRoutineTabBarUiState(
-    val timeRoutineList: List<TimeRoutineDayOfWeekItem> = listOf()
+    val dayOfWeekList: List<TimeRoutineDayOfWeekItemUiState> = listOf(),
+    val activeDayOfWeek: DayOfWeek = DayOfWeek.MONDAY
 )
 
-internal data class TimeRoutineDayOfWeekItem(
+internal data class TimeRoutineDayOfWeekItemUiState(
     val dayOfWeek: DayOfWeek,
-    val name: String
 )
