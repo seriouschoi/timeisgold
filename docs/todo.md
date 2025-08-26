@@ -5,7 +5,10 @@
 
 - [ ] db get함수를 전부 flow로 리턴하기.
   - [ ] GetTimeRoutineFlowTest 작성하기.
-  - 
+- [ ] @Relation -> @DatabaseView
+  - db 의 relation객체를 datbaseview를 사용해서, 만든는게 더 명료해 보임.
+  - DatabaseView하나를 만듦으로서, 불필요한 쿼리들도 줄일 수 있음.
+
 - [ ] 화면 작업. 
   - [ ] :presentation을 :feature 서브 모듈들로 쪼개야함.
   - [ ] feature/timeroutinetab-bar 모듈 정의 및 개발
