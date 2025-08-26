@@ -8,6 +8,7 @@
   - [ ] feature/timeroutinetab-bar 모듈 정의 및 개발
     - [feature/timeroutine-bar/readme.md](feature/timeroutine-bar/readme.md)
 
+- [ ] 모든 마크다운 문서를 docs 디렉토리 아래 모으기.
 
 
 ## TimeSlot Tag.
