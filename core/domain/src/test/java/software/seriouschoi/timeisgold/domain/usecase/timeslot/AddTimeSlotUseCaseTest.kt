@@ -8,8 +8,8 @@ import org.mockito.Mock
 import org.mockito.MockitoAnnotations
 import org.mockito.junit.MockitoJUnitRunner
 import org.mockito.kotlin.whenever
-import software.seriouschoi.timeisgold.domain.data.timeslot.TimeSlotData
-import software.seriouschoi.timeisgold.domain.data.timeslot.TimeSlotDetailData
+import software.seriouschoi.timeisgold.domain.entities.TimeSlotEntity
+import software.seriouschoi.timeisgold.domain.composition.TimeSlotComposition
 import software.seriouschoi.timeisgold.domain.exception.TIGException
 import software.seriouschoi.timeisgold.domain.fixture.TimeRoutineDataFixture
 import software.seriouschoi.timeisgold.domain.policy.TimeSlotPolicy
@@ -53,14 +53,14 @@ class AddTimeSlotUseCaseTest {
                 ?: throw IllegalStateException("time routine not found")
             val timeslotFromData = routine.timeSlotList.first()
 
-            val timeSlotForAdd = TimeSlotData(
+            val timeSlotForAdd = TimeSlotEntity(
                 uuid = UUID.randomUUID().toString(),
                 title = "test",
                 startTime = timeslotFromData.startTime,
                 endTime = timeslotFromData.endTime,
                 createTime = System.currentTimeMillis(),
             )
-            val timeSlotDetailForAdd = TimeSlotDetailData(
+            val timeSlotDetailForAdd = TimeSlotComposition(
                 timeSlotData = timeSlotForAdd,
                 timeSlotMemoData = null
             )
@@ -81,14 +81,14 @@ class AddTimeSlotUseCaseTest {
                 ?: throw IllegalStateException("time routine not found")
             val timeslotFromData = routine.timeSlotList.last()
 
-            val timeSlotForAdd = TimeSlotData(
+            val timeSlotForAdd = TimeSlotEntity(
                 uuid = UUID.randomUUID().toString(),
                 title = "test",
                 startTime = timeslotFromData.endTime.minusMinutes(10),
                 endTime = timeslotFromData.endTime.plusMinutes(10),
                 createTime = System.currentTimeMillis(),
             )
-            val timeSlotDetailForAdd = TimeSlotDetailData(
+            val timeSlotDetailForAdd = TimeSlotComposition(
                 timeSlotData = timeSlotForAdd,
                 timeSlotMemoData = null
             )

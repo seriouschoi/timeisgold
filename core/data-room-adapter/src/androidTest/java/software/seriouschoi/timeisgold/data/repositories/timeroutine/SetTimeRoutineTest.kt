@@ -6,7 +6,7 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import software.seriouschoi.timeisgold.data.BaseRoomTest
-import software.seriouschoi.timeisgold.domain.data.timeroutine.TimeRoutineDayOfWeekData
+import software.seriouschoi.timeisgold.domain.entities.TimeRoutineDayOfWeekEntity
 import java.util.UUID
 
 /**
@@ -44,7 +44,7 @@ internal class SetTimeRoutineTest : BaseRoomTest() {
             val routineForChange = routineFromDb.copy(
                 title = "test_title_changed",
                 dayOfWeekList = dayOfWeekForNewRoutine.map {
-                    TimeRoutineDayOfWeekData(
+                    TimeRoutineDayOfWeekEntity(
                         dayOfWeek = it,
                         uuid = UUID.randomUUID().toString()
                     )

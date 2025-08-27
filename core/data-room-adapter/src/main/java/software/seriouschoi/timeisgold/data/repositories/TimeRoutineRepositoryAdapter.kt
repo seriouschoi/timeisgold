@@ -5,15 +5,15 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import software.seriouschoi.timeisgold.data.database.AppDatabase
-import software.seriouschoi.timeisgold.data.mapper.toDomain
-import software.seriouschoi.timeisgold.data.mapper.toSchema
-import software.seriouschoi.timeisgold.domain.data.timeroutine.TimeRoutineData
-import software.seriouschoi.timeisgold.domain.data.timeroutine.TimeRoutineDayOfWeekData
-import software.seriouschoi.timeisgold.domain.data.timeroutine.TimeRoutineDetailData
+import software.seriouschoi.timeisgold.data.mapper.toTimeRoutineDayOfWeekSchema
+import software.seriouschoi.timeisgold.data.mapper.toTimeRoutineEntity
+import software.seriouschoi.timeisgold.data.mapper.toTimeRoutineSchemaSchema
+import software.seriouschoi.timeisgold.data.mapper.toTimeSlotEntity
+import software.seriouschoi.timeisgold.domain.composition.TimeRoutineComposition
+import software.seriouschoi.timeisgold.domain.entities.TimeRoutineDayOfWeekEntity
+import software.seriouschoi.timeisgold.domain.entities.TimeRoutineEntity
 import software.seriouschoi.timeisgold.domain.port.TimeRoutineRepositoryPort
 import java.time.DayOfWeek
 import javax.inject.Inject
@@ -21,61 +21,43 @@ import javax.inject.Inject
 internal class TimeRoutineRepositoryAdapter @Inject constructor(
     private val appDatabase: AppDatabase
 ) : TimeRoutineRepositoryPort {
-    override suspend fun addTimeRoutine(timeRoutine: TimeRoutineData) {
+    override suspend fun addTimeRoutine(timeRoutine: TimeRoutineComposition) {
         appDatabase.withTransaction {
             appDatabase.TimeRoutineDao().add(
-                timeRoutine.toSchema()
+                timeRoutine.timeRoutine.toTimeRoutineSchemaSchema(null)
             )
 
             updateDayOfWeekList(
-                routineDayOfWeekList = timeRoutine.dayOfWeekList,
-                timeRoutineUuid = timeRoutine.uuid
+                routineDayOfWeekList = timeRoutine.dayOfWeeks,
+                timeRoutineUuid = timeRoutine.timeRoutine.uuid
             )
         }
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    override fun getTimeRoutineDetailFlow(week: DayOfWeek): Flow<TimeRoutineDetailData?> {
-        val routineDao = appDatabase.TimeRoutineDao()
-        val routineRelationDao = appDatabase.TimeRoutineRelationDao()
-        return routineDao.getLatestUuidByDayOfWeekFlow(week)
-            .distinctUntilChanged()
-            .flatMapLatest { uuid ->
-                if (uuid == null) {
-                    flowOf(null)
-                } else {
-                    routineRelationDao.getFlow(uuid).map { it?.toDomain() }
-                }
-            }.distinctUntilChanged()
+    override fun getTimeRoutine(week: DayOfWeek): Flow<TimeRoutineEntity?> {
+        val dao = appDatabase.TimeRoutineJoinDayOfWeekViewDao()
+        return dao.getLatestByDayOfWeek(week).distinctUntilChanged().map {
+            it?.toTimeRoutineEntity()
+        }.distinctUntilChanged()
     }
 
-    @Deprecated("Use getTimeRoutineDetailFlow")
-    override suspend fun getTimeRoutineDetail(week: DayOfWeek): TimeRoutineDetailData? {
-        return appDatabase.withTransaction {
-            val timeRoutineUuid =
-                appDatabase.TimeRoutineDao().getLatestUuidByDayOfWeekFlow(dayOfWeek = week).first() ?: return@withTransaction null
-
-            appDatabase.TimeRoutineRelationDao().get(timeRoutineUuid)?.toDomain()
-        }
-    }
-
-
-    override suspend fun setTimeRoutine(timeRoutine: TimeRoutineData) {
+    override suspend fun setTimeRoutine(composition: TimeRoutineComposition) {
         appDatabase.withTransaction {
-            val routineId = appDatabase.TimeRoutineDao().get(timeRoutine.uuid)?.id
+            val routineId = appDatabase.TimeRoutineDao().get(composition.timeRoutine.uuid).first()?.id
                 ?: throw IllegalStateException("time routine is null")
             appDatabase.TimeRoutineDao().update(
-                timeRoutine.toSchema(id = routineId)
+                composition.timeRoutine.toTimeRoutineSchemaSchema(id = routineId)
             )
 
-            updateDayOfWeekList(timeRoutine.dayOfWeekList, timeRoutine.uuid)
+            updateDayOfWeekList(composition.dayOfWeeks, composition.timeRoutine.uuid)
         }
     }
 
     override suspend fun deleteTimeRoutine(timeRoutineUuid: String) {
         appDatabase.withTransaction {
             val timeRoutineEntity =
-                appDatabase.TimeRoutineDao().get(timeRoutineUuid) ?: return@withTransaction
+                appDatabase.TimeRoutineDao().get(timeRoutineUuid).first() ?: return@withTransaction
 
             // remove time routine.
             appDatabase.TimeRoutineDao().delete(timeRoutineEntity)
@@ -83,38 +65,47 @@ internal class TimeRoutineRepositoryAdapter @Inject constructor(
     }
 
 
-    override suspend fun getTimeRoutineDetailByUuid(timeRoutineUuid: String): TimeRoutineDetailData? {
+    override suspend fun getTimeRoutineDetailByUuid(timeRoutineUuid: String): TimeRoutineComposition? {
         return appDatabase.withTransaction {
-            appDatabase.TimeRoutineRelationDao().get(timeRoutineUuid)?.toDomain()
+            val routineDto = appDatabase.TimeRoutineDao().get(timeRoutineUuid).first()
+            val routineEntity = routineDto?.toTimeRoutineEntity() ?: return@withTransaction null
+
+            val dayOfWeek = appDatabase.TimeRoutineJoinDayOfWeekViewDao().getDayOfWeeksByTimeRoutine(timeRoutineUuid).first()
+            val dayOfWeekEntities = dayOfWeek.map {
+                TimeRoutineDayOfWeekEntity(
+                    dayOfWeek = it
+                )
+            }
+
+            val timeSlots = appDatabase.TimeRoutineJoinTimeSlotViewDao().getTimeSlotsByTimeRoutine(timeRoutineUuid).first()
+            val timeSlotEntities = timeSlots.map {
+                it.toTimeSlotEntity()
+            }
+            return@withTransaction TimeRoutineComposition(
+                timeRoutine = routineEntity,
+                timeSlots = timeSlotEntities,
+                dayOfWeeks = dayOfWeekEntities
+            )
+
         }
     }
 
     private suspend fun updateDayOfWeekList(
-        routineDayOfWeekList: List<TimeRoutineDayOfWeekData>,
+        routineDayOfWeekList: List<TimeRoutineDayOfWeekEntity>,
         timeRoutineUuid: String
     ) {
         appDatabase.withTransaction {
-            val timeRoutineRelation =
-                appDatabase.TimeRoutineRelationDao().get(timeRoutineUuid)
-                    ?: throw IllegalStateException("time routine relation is null")
+            val timeRoutine = appDatabase.TimeRoutineDao().get(timeRoutineUuid).first() ?: return@withTransaction
+            val timeRoutineId = timeRoutine.id ?: return@withTransaction
 
-            val timeRoutineId = timeRoutineRelation.timeRoutine.id
-                ?: throw IllegalStateException("time routine id is null")
-
+            //삭제 후 업데이트.
             appDatabase.TimeRoutineDayOfWeekDao().delete(timeRoutineId)
-            //새로운 요일들.
             routineDayOfWeekList.forEach {
-                appDatabase.TimeRoutineDayOfWeekDao().add(
-                    it.toSchema(timeRoutineId)
-                )
-            }
-        }
-    }
+                appDatabase.TimeRoutineDayOfWeekDao().delete(it.dayOfWeek)
 
-    override suspend fun getAllTimeRoutines(): List<TimeRoutineData> {
-        return appDatabase.withTransaction {
-            appDatabase.TimeRoutineWithDayOfWeeksDao().getAll().map {
-                it.toDomain()
+                appDatabase.TimeRoutineDayOfWeekDao().add(
+                    it.toTimeRoutineDayOfWeekSchema(timeRoutineId)
+                )
             }
         }
     }

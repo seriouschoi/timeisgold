@@ -1,6 +1,7 @@
 package software.seriouschoi.timeisgold.data.repositories.timeroutine
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -19,8 +20,8 @@ internal class AddTimeRoutineTest : BaseRoomTest() {
             )
             timeRoutineRepo.addTimeRoutine(routine)
 
-            val routineFromDb = timeRoutineRepo.getTimeRoutineDetail(DayOfWeek.SUNDAY)
-            assert(routineFromDb?.timeRoutineData == routine)
+            val routineFromDb = timeRoutineRepo.getTimeRoutine(DayOfWeek.SUNDAY).first()
+            assert(routineFromDb == routine)
         }
     }
 
@@ -38,11 +39,11 @@ internal class AddTimeRoutineTest : BaseRoomTest() {
             )
             timeRoutineRepo.addTimeRoutine(routine2)
 
-            val routineFromDb = timeRoutineRepo.getTimeRoutineDetail(DayOfWeek.TUESDAY)
-            assert(routine1 != routineFromDb?.timeRoutineData)
-            assert(routine2 == routineFromDb?.timeRoutineData)
+            val routineFromDb = timeRoutineRepo.getTimeRoutine(DayOfWeek.TUESDAY).first()
+            assert(routine1 != routineFromDb)
+            assert(routine2 == routineFromDb)
 
-            val routineFromDb2 = timeRoutineRepo.getTimeRoutineDetail(DayOfWeek.SATURDAY)
+            val routineFromDb2 = timeRoutineRepo.getTimeRoutine(DayOfWeek.SATURDAY).first()
             assert(routineFromDb2 == null)
         }
     }
@@ -58,28 +59,38 @@ internal class AddTimeRoutineTest : BaseRoomTest() {
 
             val routine2 = timeSlotTestFixtures.createTimeRoutine(
                 listOf(DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY)
-            ).copy(
-                uuid = routine1.uuid
-            )
+            ).let {
+                val routine = it.timeRoutine.copy(
+                    uuid = routine1.timeRoutine.uuid
+                )
+                it.copy(
+                    timeRoutine = routine
+                )
+            }
             timeRoutineRepo.addTimeRoutine(routine2)
         }
     }
 
-    @Test(expected = Exception::class)
-    fun addTimeRoutine_duplicateDayOfWeekUuid_shouldThrowException() {
+    /**
+     * 같은 요일에 루틴을 추가하면, 갱신 되는가?
+     */
+    @Test
+    fun addTimeRoutine_duplicateDayOfWeek_updateTimeRoutine() {
         runTest {
             val routine1 = timeSlotTestFixtures.createTimeRoutine(
                 listOf(DayOfWeek.SUNDAY, DayOfWeek.MONDAY)
             )
             timeRoutineRepo.addTimeRoutine(routine1)
 
-            val routine2 = timeSlotTestFixtures.createTimeRoutine(
-                listOf(DayOfWeek.SUNDAY, DayOfWeek.MONDAY)
-            ).copy(
-                dayOfWeekList = routine1.dayOfWeekList
-            )
 
+            val routine2 = timeSlotTestFixtures.createTimeRoutine(
+                listOf(DayOfWeek.SUNDAY)
+            )
             timeRoutineRepo.addTimeRoutine(routine2)
+
+            val updatedRoutineEntity = timeRoutineRepo.getTimeRoutine(DayOfWeek.SUNDAY).first()
+            assert(updatedRoutineEntity != routine1.timeRoutine)
+            assert(updatedRoutineEntity == routine2.timeRoutine)
         }
     }
 

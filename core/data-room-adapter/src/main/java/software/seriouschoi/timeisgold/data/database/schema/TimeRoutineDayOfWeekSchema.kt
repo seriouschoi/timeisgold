@@ -9,7 +9,6 @@ import java.time.DayOfWeek
 
 @Entity(
     indices = [
-        Index(value = ["uuid"], unique = true),
         Index(value = ["timeRoutineId", "dayOfWeek"]),
     ],
     foreignKeys = [
@@ -24,6 +23,5 @@ import java.time.DayOfWeek
 internal data class TimeRoutineDayOfWeekSchema(
     @PrimaryKey(autoGenerate = true) val id: Long? = null,
     val dayOfWeek: DayOfWeek,
-    val uuid: String,
     val timeRoutineId: Long
 )

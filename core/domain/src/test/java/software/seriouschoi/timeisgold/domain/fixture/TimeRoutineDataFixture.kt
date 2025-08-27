@@ -1,9 +1,9 @@
 package software.seriouschoi.timeisgold.domain.fixture
 
 import software.seriouschoi.timeisgold.domain.data.timeroutine.TimeRoutineData
-import software.seriouschoi.timeisgold.domain.data.timeroutine.TimeRoutineDayOfWeekData
+import software.seriouschoi.timeisgold.domain.entities.TimeRoutineDayOfWeekEntity
 import software.seriouschoi.timeisgold.domain.data.timeroutine.TimeRoutineDetailData
-import software.seriouschoi.timeisgold.domain.data.timeslot.TimeSlotData
+import software.seriouschoi.timeisgold.domain.entities.TimeSlotEntity
 import java.time.DayOfWeek
 import java.time.LocalTime
 import java.util.UUID
@@ -29,7 +29,7 @@ internal object TimeRoutineDataFixture {
             uuid = uuid,
             createTime = System.currentTimeMillis(),
             dayOfWeekList = dayOfWeekList.map {
-                TimeRoutineDayOfWeekData(
+                TimeRoutineDayOfWeekEntity(
                     dayOfWeek = it,
                     uuid = UUID.randomUUID().toString()
                 )
@@ -37,7 +37,7 @@ internal object TimeRoutineDataFixture {
         )
     }
 
-    private fun createTimeSlotList(): List<TimeSlotData> {
+    private fun createTimeSlotList(): List<TimeSlotEntity> {
         val baseTime = LocalTime.of(10, 0, 0)
 
         return (0..10).map { i ->
@@ -45,7 +45,7 @@ internal object TimeRoutineDataFixture {
             val endTime = startTime.plusHours(1)
 
             val uuid = UUID.randomUUID().toString()
-            TimeSlotData(
+            TimeSlotEntity(
                 uuid = uuid,
                 title = "test_$uuid",
                 startTime = startTime,

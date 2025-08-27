@@ -9,6 +9,7 @@ import software.seriouschoi.timeisgold.data.database.schema.TimeRoutineSchema
  * Created by jhchoi on 2025. 8. 7.
  * jhchoi
  */
+@Deprecated("use datbaseview")
 internal data class TimeRoutineDayOfWeekRelation (
     @Embedded val dayOfWeekEntity: TimeRoutineDayOfWeekSchema,
     @Relation(

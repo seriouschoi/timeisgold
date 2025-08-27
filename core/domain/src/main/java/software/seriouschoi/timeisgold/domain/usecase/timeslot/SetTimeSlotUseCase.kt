@@ -1,6 +1,6 @@
 package software.seriouschoi.timeisgold.domain.usecase.timeslot
 
-import software.seriouschoi.timeisgold.domain.data.timeslot.TimeSlotDetailData
+import software.seriouschoi.timeisgold.domain.composition.TimeSlotComposition
 import software.seriouschoi.timeisgold.domain.policy.TimeSlotPolicy
 import software.seriouschoi.timeisgold.domain.port.TimeRoutineRepositoryPort
 import software.seriouschoi.timeisgold.domain.port.TimeSlotRepositoryPort
@@ -12,7 +12,7 @@ class SetTimeSlotUseCase @Inject constructor(
     private val timeslotPolicy: TimeSlotPolicy
 ) {
 
-    suspend operator fun invoke(timeRoutineUuid: String, timeSlotData: TimeSlotDetailData) {
+    suspend operator fun invoke(timeRoutineUuid: String, timeSlotData: TimeSlotComposition) {
         val timeRoutineDetail = timeRoutineRepositoryPort.getTimeRoutineDetailByUuid(timeRoutineUuid)
             ?: throw IllegalStateException("time routine is null")
 

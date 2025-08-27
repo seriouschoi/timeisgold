@@ -7,9 +7,13 @@
 [:core:db](/core/data-room-adapter)
 - [ ] db get함수를 전부 flow로 리턴하기.
   - [x] GetTimeRoutineFlowTest 작성하기.
-- [ ] @Relation -> @DatabaseView
+- [x] @Relation -> @DatabaseView
   - db 의 relation객체를 datbaseview를 사용해서, 만든는게 더 명료해 보임.
   - DatabaseView하나를 만듦으로서, 불필요한 쿼리들도 줄일 수 있음.
+  - [ ] Deprecated된 Relation제거.
+  - [ ] 테스트 다시 구현.
+- [x] 도메인 정의 정리. TimeRoutine과 DayOfWeek분리.
+  - [ ] 테스트 다시 구현.
 
 - [ ] 화면 작업. 
   - [ ] :presentation을 :feature 서브 모듈들로 쪼개야함.
@@ -23,3 +27,7 @@
 ## TimeSlot Tag.
 - [ ] 타임슬롯에 태그 추가. 추후 리포트제공시 태그 기반으로 수행률 확인.
   - TimeSlotTag 추가.
+
+## TimeSlot Memo
+- [ ] 수행 기록제공을 할때, 사용자가 메모를 남기는 기능. 
+  - 사진과 함께 다이어리 처럼 남기는 컨텐츠 제작도구 형태.

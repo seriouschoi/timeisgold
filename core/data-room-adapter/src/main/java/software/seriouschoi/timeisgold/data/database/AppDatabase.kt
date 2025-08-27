@@ -7,22 +7,25 @@ import software.seriouschoi.timeisgold.data.database.dao.TimeRoutineDao
 import software.seriouschoi.timeisgold.data.database.dao.TimeRoutineDayOfWeekDao
 import software.seriouschoi.timeisgold.data.database.dao.TimeSlotDao
 import software.seriouschoi.timeisgold.data.database.dao.TimeSlotMemoDao
-import software.seriouschoi.timeisgold.data.database.dao.relation.TimeRoutineRelationDao
-import software.seriouschoi.timeisgold.data.database.dao.relation.TimeRoutineWithDayOfWeeksDao
-import software.seriouschoi.timeisgold.data.database.dao.relation.TimeSlotRelationDao
+import software.seriouschoi.timeisgold.data.database.dao.view.TimeRoutineJoinDayOfWeekViewDao
+import software.seriouschoi.timeisgold.data.database.dao.view.TimeRoutineJoinTimeSlotViewDao
 import software.seriouschoi.timeisgold.data.database.schema.TimeRoutineDayOfWeekSchema
 import software.seriouschoi.timeisgold.data.database.schema.TimeRoutineSchema
 import software.seriouschoi.timeisgold.data.database.schema.TimeSlotSchema
-import software.seriouschoi.timeisgold.data.database.schema.TimeSlotMemoSchema
+import software.seriouschoi.timeisgold.data.database.schema.view.TimeRoutineJoinDayOfWeekView
+import software.seriouschoi.timeisgold.data.database.schema.view.TimeRoutineJoinTimeSlotView
 import software.seriouschoi.timeisgold.data.database.typeconverter.DayOfWeekConverter
 import software.seriouschoi.timeisgold.data.database.typeconverter.LocalTimeConverter
 
 @Database(
     entities = [
         TimeSlotSchema::class,
-        TimeSlotMemoSchema::class,
         TimeRoutineSchema::class,
         TimeRoutineDayOfWeekSchema::class
+    ],
+    views = [
+        TimeRoutineJoinTimeSlotView::class,
+        TimeRoutineJoinDayOfWeekView::class
     ],
     version = 1,
     exportSchema = true
@@ -35,8 +38,7 @@ internal abstract class AppDatabase : RoomDatabase() {
     abstract fun TimeSlotDao(): TimeSlotDao
     abstract fun TimeSlotMemoDao(): TimeSlotMemoDao
 
-    abstract fun TimeSlotRelationDao(): TimeSlotRelationDao
-    abstract fun TimeRoutineRelationDao(): TimeRoutineRelationDao
+    abstract fun TimeRoutineJoinDayOfWeekViewDao(): TimeRoutineJoinDayOfWeekViewDao
 
-    abstract fun TimeRoutineWithDayOfWeeksDao(): TimeRoutineWithDayOfWeeksDao
+    abstract fun TimeRoutineJoinTimeSlotViewDao(): TimeRoutineJoinTimeSlotViewDao
 }

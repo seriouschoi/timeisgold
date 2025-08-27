@@ -17,24 +17,11 @@ internal abstract class TimeRoutineDao {
     abstract fun add(entity: TimeRoutineSchema): Long
 
     @Query("SELECT * FROM TimeRoutineSchema WHERE uuid = :uuid")
-    abstract fun get(uuid: String): TimeRoutineSchema?
+    abstract fun get(uuid: String): Flow<TimeRoutineSchema?>
 
     @Update
     abstract fun update(timeRoutineSchema: TimeRoutineSchema)
 
     @Delete
     abstract fun delete(timeRoutineSchema: TimeRoutineSchema)
-
-    @Query(
-        """
-            SELECT tr.uuid
-            FROM TimeRoutineDayOfWeekSchema trd
-            INNER JOIN TimeRoutineSchema tr
-            ON trd.timeRoutineId = tr.id
-            WHERE trd.dayOfWeek = :dayOfWeek
-            ORDER BY tr.createTime DESC
-            LIMIT 1
-        """
-    )
-    abstract fun getLatestUuidByDayOfWeekFlow(dayOfWeek: DayOfWeek): Flow<String?>
 }

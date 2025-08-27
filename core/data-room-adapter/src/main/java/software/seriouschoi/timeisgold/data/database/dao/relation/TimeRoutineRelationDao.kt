@@ -8,6 +8,7 @@ import software.seriouschoi.timeisgold.data.database.relations.TimeRoutineRelati
 import software.seriouschoi.timeisgold.data.database.relations.TimeRoutineDayOfWeekRelation
 import java.time.DayOfWeek
 
+@Deprecated("해당 개념은 DatabaseView로 대체될 예정.")
 @Dao
 internal abstract class TimeRoutineRelationDao {
     @Transaction

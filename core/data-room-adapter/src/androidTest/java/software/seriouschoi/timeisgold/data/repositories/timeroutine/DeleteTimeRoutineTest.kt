@@ -1,6 +1,7 @@
 package software.seriouschoi.timeisgold.data.repositories.timeroutine
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Test
@@ -9,6 +10,7 @@ import software.seriouschoi.timeisgold.data.BaseRoomTest
 
 @RunWith(AndroidJUnit4::class)
 internal class DeleteTimeRoutineTest : BaseRoomTest() {
+
     @Before
     fun setup() {
         runTest {
@@ -19,7 +21,7 @@ internal class DeleteTimeRoutineTest : BaseRoomTest() {
             timeSlotTestFixtures.createDetailDataList().forEach {
                 timeSlotRepo.addTimeSlot(
                     timeSlotData = it,
-                    timeRoutineUuid = routine1.uuid
+                    timeRoutineUuid = routine1.timeRoutine.uuid
                 )
             }
 
@@ -30,7 +32,7 @@ internal class DeleteTimeRoutineTest : BaseRoomTest() {
             timeSlotTestFixtures.createDetailDataList().forEach {
                 timeSlotRepo.addTimeSlot(
                     timeSlotData = it,
-                    timeRoutineUuid = routine2.uuid
+                    timeRoutineUuid = routine2.timeRoutine.uuid
                 )
             }
         }
@@ -41,15 +43,16 @@ internal class DeleteTimeRoutineTest : BaseRoomTest() {
         //time routine을 삭제했을때, 관련된 모든 엔티티가 같이 삭제되었는가?
         runTest {
             val dayOfWeek = timeSlotTestFixtures.getTestRoutineDayOfWeeks1().first()
-            val routine = timeRoutineRepo.getTimeRoutineDetail(dayOfWeek)
+            val routine = timeRoutineRepo.getTimeRoutine(dayOfWeek).first()
                 ?: throw IllegalStateException("time routine is null")
+            val timeSlotList =timeSlotRepo.getTimeSlotList(routine.uuid)
 
-            timeRoutineRepo.deleteTimeRoutine(routine.timeRoutineData.uuid)
+            timeRoutineRepo.deleteTimeRoutine(routine.uuid)
 
-            val compareData = timeRoutineRepo.getTimeRoutineDetailByUuid(routine.timeRoutineData.uuid)
+            val compareData = timeRoutineRepo.getTimeRoutineDetailByUuid(routine.uuid)
 
             assert(compareData == null)
-            routine.timeSlotList.forEach { timeSlot ->
+            timeSlotList.forEach { timeSlot ->
                 val compareTimeSlot = timeSlotRepo.getTimeSlotDetail(timeSlot.uuid)
                 assert(compareTimeSlot == null)
             }
@@ -57,23 +60,23 @@ internal class DeleteTimeRoutineTest : BaseRoomTest() {
     }
 
     @Test
-    fun deleteTimeRoutine_whenWrongDay_shouldReturnData() {
-        //엉뚱한 요일을 지워도 정상 동작 하는가?
+    fun deleteTimeRoutine_byOneDayOfWeek_shouldReturnData() {
+        //요일중 하나를 지워도 정상 동작 하는가?
         runTest {
             val dayOfWeek1 = timeSlotTestFixtures.getTestRoutineDayOfWeeks1().first()
-            val routine1 = timeRoutineRepo.getTimeRoutineDetail(dayOfWeek1)
+            val routine1 = timeRoutineRepo.getTimeRoutine(dayOfWeek1).first()
                 ?: throw IllegalStateException("time routine is null")
+
 
             val dayOfWeekForDelete = timeSlotTestFixtures.getTestRoutineDayOfWeeks2().first()
             val routineForDelete =
-                timeRoutineRepo.getTimeRoutineDetail(dayOfWeekForDelete) ?: throw IllegalStateException(
+                timeRoutineRepo.getTimeRoutine(dayOfWeekForDelete).first() ?: throw IllegalStateException(
                     "time routine is null"
                 )
-
-            timeRoutineRepo.deleteTimeRoutine(routineForDelete.timeRoutineData.uuid)
+            timeRoutineRepo.deleteTimeRoutine(routineForDelete.uuid)
 
             val compareData1 =
-                timeRoutineRepo.getTimeRoutineDetailByUuid(routine1.timeRoutineData.uuid)
+                timeRoutineRepo.getTimeRoutineDetailByUuid(routine1.uuid)
             assert(compareData1 == routine1)
         }
     }

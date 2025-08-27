@@ -1,8 +1,8 @@
-package software.seriouschoi.timeisgold.domain.data.timeslot
+package software.seriouschoi.timeisgold.domain.entities
 
 import java.time.LocalTime
 
-data class TimeSlotData(
+data class TimeSlotEntity(
     val uuid: String,
     val startTime: LocalTime,
     val endTime: LocalTime,

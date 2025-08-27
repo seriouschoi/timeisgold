@@ -6,6 +6,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
+import kotlinx.coroutines.flow.Flow
 import software.seriouschoi.timeisgold.data.database.schema.TimeSlotSchema
 
 @Dao
@@ -20,5 +21,5 @@ internal abstract class TimeSlotDao {
     abstract fun delete(entity: TimeSlotSchema)
 
     @Query("SELECT * FROM TimeSlotSchema WHERE uuid = :timeslotUuid")
-    abstract fun get(timeslotUuid: String): TimeSlotSchema?
+    abstract fun get(timeslotUuid: String): Flow<TimeSlotSchema?>
 }
