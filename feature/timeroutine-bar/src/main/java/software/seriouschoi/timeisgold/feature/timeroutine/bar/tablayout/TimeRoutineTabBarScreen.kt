@@ -41,6 +41,9 @@ internal fun TimeRoutineTabBarScreen() {
     val dayOfWeekList by dayOfWeekListFlow.collectAsStateWithLifecycle(
         initialValue = emptyList()
     )
+    if (dayOfWeekList.isEmpty()) {
+        return
+    }
 
     //페이저 순환.
     val pageCount = Int.MAX_VALUE

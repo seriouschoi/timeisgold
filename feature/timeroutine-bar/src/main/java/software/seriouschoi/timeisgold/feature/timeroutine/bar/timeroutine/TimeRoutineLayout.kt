@@ -41,6 +41,7 @@ fun TimeRoutineLayout(
     이거를 uiState의 타입으로 만들자.
      */
     Column(modifier = modifier) {
+        Text(text = dayOfWeek.name)
         Text(text = title)
     }
 
