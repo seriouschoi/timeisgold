@@ -29,7 +29,9 @@ internal class GetTimeRoutineTest : BaseRoomTest() {
             )
             timeRoutineRepo.addTimeRoutine(routineForAdd)
 
-            val routine = timeRoutineRepo.getTimeRoutineDetail(DayOfWeek.MONDAY)
+            val routine = timeRoutineRepo.getTimeRoutineDetail(
+                timeSlotTestFixtures.getTestRoutineDayOfWeeks1().first()
+            )
             assert(routine?.timeRoutineData == routineForAdd)
         }
     }

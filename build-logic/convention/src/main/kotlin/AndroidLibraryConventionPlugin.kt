@@ -48,6 +48,16 @@ class AndroidLibraryConventionPlugin : Plugin<Project> {
                 testImplementation(target.libs, "junit")
                 androidTestImplementation(target.libs, "androidx.junit")
                 androidTestImplementation(target.libs, "androidx.espresso.core")
+
+                testImplementation(target.libs, "kotlin.test")
+                androidTestImplementation(target.libs, "kotlin.test")
+
+                //for log.
+                implementation(target.libs, "timber")
+
+                //for flow test.
+                testImplementation(target.libs, "app.cash.turbine")
+                androidTestImplementation(target.libs, "app.cash.turbine")
             }
         }
     }

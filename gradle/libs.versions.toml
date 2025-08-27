@@ -26,6 +26,7 @@ androidx-activity-compose = "1.10.1"
 navigationCompose = "2.9.3"
 navigationRuntimeKtx = "2.9.3"
 truth = "1.4.4"
+turbine = "1.2.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -72,6 +73,7 @@ compose-gradlePlugin = { module = "org.jetbrains.kotlin:compose-compiler-gradle-
 kotlin-gradlePlugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
 ksp-gradlePlugin = { group = "com.google.devtools.ksp", name = "com.google.devtools.ksp.gradle.plugin", version.ref = "ksp" }
 kotlin-serialization-plugin-artifact = { group = "org.jetbrains.kotlin", name = "kotlin-serialization", version.ref = "kotlin" }
+app-cash-turbine = { module = "app.cash.turbine:turbine", version.ref = "turbine" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

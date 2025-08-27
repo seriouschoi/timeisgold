@@ -18,11 +18,6 @@ ksp {
 dependencies {
     implementation(project(":core:domain"))
 
-    testImplementation(libs.kotlin.test)
-    androidTestImplementation(libs.kotlin.test)
-
     implementation(libs.androidx.room.runtime)
     ksp(libs.androidx.room.compiler)
-
-    implementation(libs.timber)
 }

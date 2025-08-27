@@ -25,3 +25,6 @@
 MVVM + UDF(Unidirectional Data Flow) 형태로 UI에 반영하였습니다.
 
 TDD는 목표보다는 DDD를 구현하는 과정에서 부가적으로 얻게된 이득이었습니다.
+
+### 학습 자료
+[:doc:study](study)
