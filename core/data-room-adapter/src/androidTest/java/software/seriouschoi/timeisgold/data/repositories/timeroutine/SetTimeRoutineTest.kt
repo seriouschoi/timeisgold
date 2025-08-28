@@ -1,13 +1,15 @@
 package software.seriouschoi.timeisgold.data.repositories.timeroutine
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import app.cash.turbine.testIn
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import software.seriouschoi.timeisgold.data.BaseRoomTest
-import software.seriouschoi.timeisgold.domain.entities.TimeRoutineDayOfWeekEntity
-import java.util.UUID
 
 /**
  * Created by jhchoi on 2025. 8. 7.
@@ -15,48 +17,75 @@ import java.util.UUID
  */
 @RunWith(AndroidJUnit4::class)
 internal class SetTimeRoutineTest : BaseRoomTest() {
+    val routineComposition = testFixtures.routineCompoMonTue
+
     @Before
     fun setup() {
         runTest {
-            val dayOfWeekForRoutine = timeSlotTestFixtures.getTestRoutineDayOfWeeks1()
-            val routine = timeSlotTestFixtures.createTimeRoutine(dayOfWeekForRoutine)
-            timeRoutineRepo.addTimeRoutine(routine)
-
-            timeSlotTestFixtures.createDetailDataList().forEach {
-                timeSlotRepo.addTimeSlot(
-                    timeSlotData = it,
-                    timeRoutineUuid = routine.uuid
-                )
-            }
+            timeRoutineRepo.addTimeRoutineComposition(routineComposition)
         }
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun setTimeRoutine_changeTitleTimeslotDayOfWeek_shouldCollectChanged() {
         runTest {
-            val dayOfWeekForRoutine = timeSlotTestFixtures.getTestRoutineDayOfWeeks1()
-            val routineDetailFromDb =
-                timeRoutineRepo.getTimeRoutineDetail(dayOfWeekForRoutine.first())
-                    ?: throw IllegalStateException("routine is null")
-            val routineFromDb = routineDetailFromDb.timeRoutineData
+            val routine = routineComposition
+            val routineTurbine = timeRoutineRepo
+                .getTimeRoutineByDayOfWeek(routine.dayOfWeeks.first().dayOfWeek)
+                .testIn(backgroundScope)
 
-            val dayOfWeekForNewRoutine = timeSlotTestFixtures.getTestRoutineDayOfWeeks2()
-            val routineForChange = routineFromDb.copy(
-                title = "test_title_changed",
-                dayOfWeekList = dayOfWeekForNewRoutine.map {
-                    TimeRoutineDayOfWeekEntity(
-                        dayOfWeek = it,
-                        uuid = UUID.randomUUID().toString()
-                    )
-                },
-                createTime = System.currentTimeMillis(),
+            val newRoutine = routine.let {
+                testFixtures.routineCompoWedThu.copy(
+                    dayOfWeeks = it.dayOfWeeks
+                )
+                val routine = it.timeRoutine.copy(
+                    title = "new title",
+                    createTime = System.currentTimeMillis()
+                )
+                it.copy(
+                    timeRoutine = routine,
+                    timeSlots = emptyList()
+                )
+            }
+            backgroundScope.launch {
+
+                timeRoutineRepo.setTimeRoutineComposition(newRoutine)
+            }
+
+            advanceUntilIdle()
+
+            assert(routineTurbine.awaitItem() == newRoutine)
+            assert(routineTurbine.awaitItem() != routine)
+
+            routineTurbine.cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    /**
+     * 중복된 타임 슬롯 id를 저장할 경우. Exception발생.
+     * 예를 들면.. 이미 루틴1 컴포지션이 저장된 상태.
+     * 루틴2 컴포지션도 있는 상태.
+     * 이 상태에 루틴2의 슬롯에 루틴1의 슬롯의 일부 요소를 넣어서 저장하려고 하면 오류가 나야함.
+     */
+    @Test(expected = Exception::class)
+    fun setTimeSlot_duplicateUuid_shouldThrowException() {
+        runTest {
+            val routine2 = testFixtures.routineCompoWedThu
+            timeRoutineRepo.addTimeRoutineComposition(routine2)
+
+            //루틴1과 중복된 요소가 있는 슬롯 목록을 생성.
+            val newSlots = routine2.timeSlots.toMutableList().apply {
+                this.add(routineComposition.timeSlots.first())
+            }.toList()
+
+            //루틴2에 중복 요소가 있는 슬롯을 저장.
+            val routine2ForUpdate = routine2.copy(
+                timeSlots = newSlots
             )
-            timeRoutineRepo.setTimeRoutine(routineForChange)
 
-            //jhchoi 2025. 8. 7. 스케줄 변경이 잘 되는가?
-            val changedRoutine = timeRoutineRepo.getTimeRoutineDetailByUuid(routineFromDb.uuid)
-            assert(routineFromDb != changedRoutine?.timeRoutineData)
-            assert(routineForChange == changedRoutine?.timeRoutineData)
+            //Excpetion발생.
+            timeRoutineRepo.setTimeRoutineComposition(routine2ForUpdate)
         }
     }
 

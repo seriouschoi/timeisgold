@@ -13,7 +13,8 @@ class AddTimeSlotUseCase @Inject constructor(
     private val timeslotPolicy: TimeSlotPolicy
 ) {
     suspend operator fun invoke(timeRoutineUuid: String, timeSlotData: TimeSlotComposition) {
-        val timeRoutineDetail = timeRoutineRepositoryPort.getTimeRoutineDetailByUuid(timeRoutineUuid)
+        // TODO: jhchoi 2025. 8. 28. usecase에 누락된 작업 진행. 
+        val timeRoutineDetail = timeRoutineRepositoryPort.getTimeRoutineCompositionByUuid(timeRoutineUuid)
             ?: throw TIGException.TimeRoutineNotFound(timeRoutineUuid)
 
         timeslotPolicy.checkCanAdd(timeRoutineDetail.timeSlotList, timeSlotData.timeSlotData)

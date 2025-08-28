@@ -13,7 +13,7 @@ class SetTimeSlotUseCase @Inject constructor(
 ) {
 
     suspend operator fun invoke(timeRoutineUuid: String, timeSlotData: TimeSlotComposition) {
-        val timeRoutineDetail = timeRoutineRepositoryPort.getTimeRoutineDetailByUuid(timeRoutineUuid)
+        val timeRoutineDetail = timeRoutineRepositoryPort.getTimeRoutineCompositionByUuid(timeRoutineUuid)
             ?: throw IllegalStateException("time routine is null")
 
         timeslotPolicy.checkCanAdd(timeRoutineDetail.timeSlotList, timeSlotData.timeSlotData)

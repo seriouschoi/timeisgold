@@ -1,4 +1,6 @@
-# Turbine.
+# Test
+
+## Turbine.
 
 Turbine은 Flow의 테스트를 제공하는 라이브러리.
 
@@ -22,3 +24,10 @@ Turbine은 Flow의 테스트를 제공하는 라이브러리.
   - Flow 수집을 취소하고, 남아 있는 이벤트는 모두 무시. 빨리 테스트 끝내고 싶을 때.
 - ensureAllEventsConsumed()
   - 테스트 블록 종료 시 자동으로 호출되며, 소모되지 않은 이벤트가 없는지 검증. 흐름 완전 소비 필수 여부 확인.
+
+
+## advanceUntilIdle()
+test환경에서 코루틴을 실행할때, runTest 블록을 사용한다.  
+runTest블록안에서 실행되는 모든 코루틴은 TestScheduler에 등록된다.  
+advanceUntilIdle()는 TestScheduler에 앞서 등록된 코루틴들이   
+전부 완료될때까지 가상 시간을 흐르게하는 테스트용 함수이다.

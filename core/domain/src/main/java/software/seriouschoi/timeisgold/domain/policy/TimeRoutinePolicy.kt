@@ -1,7 +1,9 @@
 package software.seriouschoi.timeisgold.domain.policy
 
-import software.seriouschoi.timeisgold.domain.data.timeroutine.TimeRoutineData
+import software.seriouschoi.timeisgold.domain.composition.TimeRoutineComposition
+import software.seriouschoi.timeisgold.domain.entities.TimeRoutineEntity
 import software.seriouschoi.timeisgold.domain.exception.TIGException
+import java.time.DayOfWeek
 
 /**
  * Created by jhchoi on 2025. 8. 8.
@@ -9,12 +11,10 @@ import software.seriouschoi.timeisgold.domain.exception.TIGException
  */
 class TimeRoutinePolicy {
     fun checkCanAdd(
-        routineList: List<TimeRoutineData>,
-        timeRoutine: TimeRoutineData
+        existingDays: List<DayOfWeek>,
+        timeRoutine: TimeRoutineComposition
     ) {
-        val existingDays =
-            routineList.map { it.dayOfWeekList.map { it.dayOfWeek } }.flatten().toSet()
-        val newDays = timeRoutine.dayOfWeekList.map { it.dayOfWeek }.toSet()
+        val newDays = timeRoutine.dayOfWeeks.map { it.dayOfWeek }.toSet()
         val conflictDays = existingDays.filter {
             newDays.contains(it)
         }

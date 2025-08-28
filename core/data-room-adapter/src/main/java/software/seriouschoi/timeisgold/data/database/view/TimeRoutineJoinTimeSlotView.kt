@@ -1,4 +1,4 @@
-package software.seriouschoi.timeisgold.data.database.schema.view
+package software.seriouschoi.timeisgold.data.database.view
 
 import androidx.room.DatabaseView
 import java.time.LocalTime

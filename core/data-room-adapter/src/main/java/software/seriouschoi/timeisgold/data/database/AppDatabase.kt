@@ -6,7 +6,6 @@ import androidx.room.TypeConverters
 import software.seriouschoi.timeisgold.data.database.dao.TimeRoutineDao
 import software.seriouschoi.timeisgold.data.database.dao.TimeRoutineDayOfWeekDao
 import software.seriouschoi.timeisgold.data.database.dao.TimeSlotDao
-import software.seriouschoi.timeisgold.data.database.dao.TimeSlotMemoDao
 import software.seriouschoi.timeisgold.data.database.dao.view.TimeRoutineJoinDayOfWeekViewDao
 import software.seriouschoi.timeisgold.data.database.dao.view.TimeRoutineJoinTimeSlotViewDao
 import software.seriouschoi.timeisgold.data.database.schema.TimeRoutineDayOfWeekSchema
@@ -36,9 +35,7 @@ internal abstract class AppDatabase : RoomDatabase() {
     abstract fun TimeRoutineDayOfWeekDao(): TimeRoutineDayOfWeekDao
 
     abstract fun TimeSlotDao(): TimeSlotDao
-    abstract fun TimeSlotMemoDao(): TimeSlotMemoDao
 
     abstract fun TimeRoutineJoinDayOfWeekViewDao(): TimeRoutineJoinDayOfWeekViewDao
-
     abstract fun TimeRoutineJoinTimeSlotViewDao(): TimeRoutineJoinTimeSlotViewDao
 }

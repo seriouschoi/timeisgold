@@ -32,7 +32,7 @@ internal object TimeSlotTestFixtures {
         )
     }
 
-    fun createTimeRoutine(dayOfWeekList: List<DayOfWeek>): TimeRoutineComposition {
+    fun createTimeRoutineComposition(dayOfWeekList: List<DayOfWeek>, timeSlots: List<TimeSlotEntity> = emptyList()): TimeRoutineComposition {
         val uuid = UUID.randomUUID().toString()
         val timeRoutine = TimeRoutineEntity(
             uuid = uuid,
@@ -44,7 +44,7 @@ internal object TimeSlotTestFixtures {
         }
         return TimeRoutineComposition(
             timeRoutine = timeRoutine,
-            timeSlots = emptyList(),
+            timeSlots = timeSlots,
             dayOfWeeks = dayOfWeekEntities
         )
     }

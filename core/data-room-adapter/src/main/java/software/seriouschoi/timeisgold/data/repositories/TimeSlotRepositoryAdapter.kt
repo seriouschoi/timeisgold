@@ -1,7 +1,10 @@
 package software.seriouschoi.timeisgold.data.repositories
 
 import androidx.room.withTransaction
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import software.seriouschoi.timeisgold.data.database.AppDatabase
 import software.seriouschoi.timeisgold.data.mapper.toTimeSlotEntity
 import software.seriouschoi.timeisgold.data.mapper.toTimeSlotSchema
@@ -25,18 +28,24 @@ internal class TimeSlotRepositoryAdapter @Inject constructor(
         }
     }
 
-    override suspend fun getTimeSlotDetail(timeslotUuid: String): TimeSlotComposition? {
-        val timeSlotDto = database.TimeSlotDao().get(timeslotUuid).first() ?: return null
-
-        val timeSlotEntity = timeSlotDto.toTimeSlotEntity()
-        return TimeSlotComposition(
-            timeSlotData = timeSlotEntity
-        )
+    override suspend fun getTimeSlotDetail(timeslotUuid: String): Flow<TimeSlotComposition?> {
+        return database.TimeSlotDao()
+            .get(timeslotUuid)
+            .distinctUntilChanged()
+            .map {
+                it?.toTimeSlotEntity()?.let {
+                    TimeSlotComposition(
+                        timeSlotData = it
+                    )
+                }
+            }
     }
 
-    override suspend fun getTimeSlotList(timeRoutineUuid: String): List<TimeSlotEntity> {
-        val list = database.TimeRoutineJoinTimeSlotViewDao().getTimeSlotsByTimeRoutine(timeRoutineUuid).first()
-        return list.map { it.toTimeSlotEntity() }
+    override suspend fun getTimeSlotList(timeRoutineUuid: String): Flow<List<TimeSlotEntity>> {
+        val dao = database.TimeRoutineJoinTimeSlotViewDao()
+        return dao.getTimeSlotsByTimeRoutine(timeRoutineUuid).distinctUntilChanged().map {
+            it.map { it.toTimeSlotEntity() }
+        }
     }
 
     override suspend fun setTimeSlot(timeSlotData: TimeSlotComposition) {
@@ -47,7 +56,8 @@ internal class TimeSlotRepositoryAdapter @Inject constructor(
 
     override suspend fun deleteTimeSlot(timeslotUuid: String) {
         database.withTransaction {
-            val timeSlot = database.TimeSlotDao().get(timeslotUuid).first() ?: return@withTransaction
+            val timeSlot =
+                database.TimeSlotDao().get(timeslotUuid).first() ?: return@withTransaction
 
             //delete entities
             database.TimeSlotDao().delete(timeSlot)

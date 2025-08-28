@@ -12,7 +12,7 @@ internal fun TimeRoutineEntity.toTimeRoutineSchemaSchema(id:Long?): TimeRoutineS
     )
 }
 
-internal fun TimeRoutineSchema.toTimeRoutineEntity(): TimeRoutineEntity {
+internal fun TimeRoutineSchema.schemaToTimeRoutineEntity(): TimeRoutineEntity {
     return TimeRoutineEntity(
         uuid = this.uuid,
         title = this.title,

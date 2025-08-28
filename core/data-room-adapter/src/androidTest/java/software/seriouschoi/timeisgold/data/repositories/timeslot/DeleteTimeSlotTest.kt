@@ -1,5 +1,9 @@
 package software.seriouschoi.timeisgold.data.repositories.timeslot
 
+import app.cash.turbine.testIn
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Test
@@ -9,48 +13,45 @@ import software.seriouschoi.timeisgold.data.BaseRoomTest
  * Created by jhchoi on 2025. 8. 7.
  * jhchoi
  */
+@OptIn(ExperimentalCoroutinesApi::class)
 internal class DeleteTimeSlotTest : BaseRoomTest() {
+
+    private val timeRoutine1Saved = testFixtures.routineCompoMonTue
 
     @Before
     fun setup() {
         runTest {
-            val dayOfWeeks = timeSlotTestFixtures.getTestRoutineDayOfWeeks1()
-            val timeRoutine = timeSlotTestFixtures.createTimeRoutine(dayOfWeeks)
-            timeRoutineRepo.addTimeRoutine(timeRoutine)
-
-            timeSlotTestFixtures.createDetailDataList().forEach {
-                timeSlotRepo.addTimeSlot(
-                    timeSlotData = it,
-                    timeRoutineUuid = timeRoutine.uuid
-                )
-            }
+            timeRoutineRepo.addTimeRoutineComposition(timeRoutine1Saved)
         }
     }
+
     @Test
     fun deleteTimeSlot_should_DeletedTimeSlotAndMemo() {
         runTest {
-            val dayOfWeek = timeSlotTestFixtures.getTestRoutineDayOfWeeks1().first()
-            val routine = timeRoutineRepo.getTimeRoutineDetail(dayOfWeek)
-                ?: throw IllegalStateException("time routine is null")
+            val timeSlotsTurbine = timeSlotRepo
+                .getTimeSlotList(timeRoutine1Saved.timeRoutine.uuid)
+                .testIn(backgroundScope)
 
-            val timeSlotDetailList = routine.timeSlotList.map {
-                timeSlotRepo.getTimeSlotDetail(it.uuid)
+            val slotForDelete = timeRoutine1Saved.timeSlots.first()
+            val slotForNotDelete = timeRoutine1Saved.timeSlots.last()
+
+            backgroundScope.launch {
+                timeSlotRepo.deleteTimeSlot(slotForDelete.uuid)
             }
 
-            //삭제.
-            val timeSlot =
-                timeSlotDetailList.first() ?: throw IllegalStateException("test data is null")
-            timeSlotRepo.deleteTimeSlot(timeSlot.timeSlotData.uuid)
+            advanceUntilIdle()
 
-            //삭제된 정보를 조회.
-            val compareData = timeSlotRepo.getTimeSlotDetail(timeSlot.timeSlotData.uuid)
-            assert(compareData == null)
+            val emitted = timeSlotsTurbine.awaitItem()
+            val isExistSlotForDelete = emitted.any {
+                it == slotForDelete
+            }
+            val isExistSlotForNotDelete = emitted.any {
+                it == slotForNotDelete
+            }
+            assert(!isExistSlotForDelete)
+            assert(isExistSlotForNotDelete)
 
-            //다른 데이터는 잘 있는가?
-            val otherTimeSlot =
-                timeSlotDetailList[1] ?: throw IllegalStateException("test data is null")
-            val compareOtherData = timeSlotRepo.getTimeSlotDetail(otherTimeSlot.timeSlotData.uuid)
-            assert(compareOtherData == otherTimeSlot)
+            timeSlotsTurbine.cancelAndIgnoreRemainingEvents()
         }
     }
 }

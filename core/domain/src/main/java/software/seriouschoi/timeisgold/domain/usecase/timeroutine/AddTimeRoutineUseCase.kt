@@ -1,19 +1,21 @@
 package software.seriouschoi.timeisgold.domain.usecase.timeroutine
 
-import software.seriouschoi.timeisgold.domain.data.timeroutine.TimeRoutineData
+import kotlinx.coroutines.flow.first
+import software.seriouschoi.timeisgold.domain.composition.TimeRoutineComposition
 import software.seriouschoi.timeisgold.domain.policy.TimeRoutinePolicy
 import software.seriouschoi.timeisgold.domain.port.TimeRoutineRepositoryPort
+import java.time.DayOfWeek
 import javax.inject.Inject
 
 class AddTimeRoutineUseCase @Inject constructor(
     private val timeRoutineRepositoryPort: TimeRoutineRepositoryPort,
     private val timeRoutinePolicy: TimeRoutinePolicy
 ) {
-    suspend operator fun invoke(timeRoutine: TimeRoutineData) {
-        val allTimeRoutineList = timeRoutineRepositoryPort.getAllTimeRoutines()
+    suspend operator fun invoke(timeRoutine: TimeRoutineComposition) {
+        val existingDays: List<DayOfWeek> = timeRoutineRepositoryPort.getAllDayOfWeeks().first()
         timeRoutinePolicy.checkCanAdd(
-            allTimeRoutineList, timeRoutine
+            existingDays, timeRoutine
         )
-        timeRoutineRepositoryPort.addTimeRoutine(timeRoutine)
+        timeRoutineRepositoryPort.addTimeRoutineComposition(timeRoutine)
     }
 }

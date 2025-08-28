@@ -46,11 +46,11 @@ class SetTimeSlotUseCaseTest {
     fun `setTimeSlot when same time should throw exception`() {
         runTest {
             val routineUuid = UUID.randomUUID().toString()
-            whenever(timeRoutineRepo.getTimeRoutineDetailByUuid(routineUuid)).thenReturn(
+            whenever(timeRoutineRepo.getTimeRoutineCompositionByUuid(routineUuid)).thenReturn(
                 testFixture.createTimeRoutineDetail(listOf(DayOfWeek.MONDAY))
             )
 
-            val routine = timeRoutineRepo.getTimeRoutineDetailByUuid(routineUuid)
+            val routine = timeRoutineRepo.getTimeRoutineCompositionByUuid(routineUuid)
                 ?: throw IllegalStateException("time routine not found")
             val timeslotFromData = routine.timeSlotList.first()
 
@@ -74,11 +74,11 @@ class SetTimeSlotUseCaseTest {
     fun `setTimeSlot when overlap time should throw exception`() {
         runTest {
             val routineUuid = UUID.randomUUID().toString()
-            whenever(timeRoutineRepo.getTimeRoutineDetailByUuid(routineUuid)).thenReturn(
+            whenever(timeRoutineRepo.getTimeRoutineCompositionByUuid(routineUuid)).thenReturn(
                 testFixture.createTimeRoutineDetail(listOf(DayOfWeek.MONDAY))
             )
 
-            val routine = timeRoutineRepo.getTimeRoutineDetailByUuid(routineUuid)
+            val routine = timeRoutineRepo.getTimeRoutineCompositionByUuid(routineUuid)
                 ?: throw IllegalStateException("time routine not found")
             val timeslotFromData = routine.timeSlotList.last()
 

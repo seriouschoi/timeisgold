@@ -15,6 +15,8 @@
 - [x] 도메인 정의 정리. TimeRoutine과 DayOfWeek분리.
   - [ ] 테스트 다시 구현.
 
+- [ ] 정책에 dayOfWeek설정 안하고 저장 못하게, 막기.
+
 - [ ] 화면 작업. 
   - [ ] :presentation을 :feature 서브 모듈들로 쪼개야함.
   - [ ] feature/timeroutinetab-bar 모듈 정의 및 개발
