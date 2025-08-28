@@ -12,7 +12,7 @@ import software.seriouschoi.timeisgold.data.database.schema.TimeSlotSchema
 @Dao
 internal abstract class TimeSlotDao {
     @Insert(onConflict = OnConflictStrategy.ABORT)
-    abstract fun insert(timeSlots: TimeSlotSchema): Long
+    abstract fun insert(timeSlot: TimeSlotSchema): Long
 
     @Update
     abstract fun update(timeSlots: TimeSlotSchema)

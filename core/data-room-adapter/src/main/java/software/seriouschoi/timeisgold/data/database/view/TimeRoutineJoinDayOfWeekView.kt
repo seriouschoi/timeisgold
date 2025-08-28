@@ -15,6 +15,7 @@ import java.time.DayOfWeek
         
     FROM TimeRoutineSchema r
     INNER JOIN TimeRoutineDayOfWeekSchema d ON r.id = d.timeRoutineId
+    ORDER BY routineCreateTime DESC, dayOfWeek ASC
 """)
 internal data class TimeRoutineJoinDayOfWeekView(
     val routineId: Long,

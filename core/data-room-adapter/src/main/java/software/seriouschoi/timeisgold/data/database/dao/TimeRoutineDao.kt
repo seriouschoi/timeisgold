@@ -23,5 +23,5 @@ internal abstract class TimeRoutineDao {
     abstract fun update(timeRoutineSchema: TimeRoutineSchema)
 
     @Delete
-    abstract fun delete(timeRoutineSchema: TimeRoutineSchema)
+    abstract fun delete(timeRoutineSchema: TimeRoutineSchema): Int
 }

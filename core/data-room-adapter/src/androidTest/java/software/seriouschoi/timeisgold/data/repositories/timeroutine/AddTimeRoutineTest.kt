@@ -3,13 +3,16 @@ package software.seriouschoi.timeisgold.data.repositories.timeroutine
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import app.cash.turbine.turbineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import org.junit.runner.RunWith
 import software.seriouschoi.timeisgold.data.BaseRoomTest
+import software.seriouschoi.timeisgold.data.mapper.toTimeRoutineDayOfWeekEntity
 import software.seriouschoi.timeisgold.domain.composition.TimeRoutineComposition
+import java.time.DayOfWeek
 
 @RunWith(AndroidJUnit4::class)
 internal class AddTimeRoutineTest : BaseRoomTest() {
@@ -65,35 +68,36 @@ internal class AddTimeRoutineTest : BaseRoomTest() {
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun addTimeRoutine_duplicateDayOfWeek_updateTimeRoutine() = runTest {
-        turbineScope {
-            val routine1 = testFixtures.routineCompoMonTue
+        val testDay = DayOfWeek.MONDAY
+        val routineCompo1 = TimeRoutineComposition(
+            timeRoutine = testFixtures.generateTimeRoutine(
+                routineTitle = "test routine 1",
+                createDayAgo = 2
+            ),
+            timeSlots = testFixtures.generateTimeSlotList(),
+            dayOfWeeks = listOf(testDay, DayOfWeek.TUESDAY).map {
+                it.toTimeRoutineDayOfWeekEntity()
+            }.toSet()
+        )
+        timeRoutineRepo.addTimeRoutineComposition(routineCompo1)
 
-            //같은 요일 루틴 추가.
-            val routine2 = testFixtures.routineCompoMonTue.copy(
-                timeRoutine = testFixtures.generateTimeRoutine("test routine 2"),
-                timeSlots = testFixtures.generateTimeSlotList()
-            )
+        //같은 요일 루틴 추가.
+        val routine2Compo = TimeRoutineComposition(
+            timeRoutine = testFixtures.generateTimeRoutine(
+                routineTitle = "test routine 2",
+                createDayAgo = 1
+            ),
+            timeSlots = testFixtures.generateTimeSlotList(),
+            dayOfWeeks = listOf(testDay).map {
+                it.toTimeRoutineDayOfWeekEntity()
+            }.toSet()
+        )
+        timeRoutineRepo.addTimeRoutineComposition(routine2Compo)
 
-            val testDay = testFixtures.routineCompoMonTue.dayOfWeeks.first().dayOfWeek
 
-            val turbine = timeRoutineRepo
-                .getTimeRoutineCompositionByDayOfWeek(testDay)
-                .testIn(
-                    backgroundScope
-                )
-
-            backgroundScope.launch {
-                timeRoutineRepo.addTimeRoutineComposition(routine1)
-                timeRoutineRepo.addTimeRoutineComposition(routine2)
-            }
-
-            advanceUntilIdle()
-
-            val emitted = turbine.awaitItem()
-            assert(emitted == routine2.timeRoutine)
-
-            turbine.cancelAndIgnoreRemainingEvents()
-        }
+        val emitted = timeRoutineRepo
+            .getTimeRoutineCompositionByDayOfWeek(testDay).first()
+        assert(emitted == routine2Compo)
     }
 
 

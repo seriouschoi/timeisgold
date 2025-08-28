@@ -7,5 +7,5 @@ import software.seriouschoi.timeisgold.domain.entities.TimeRoutineEntity
 data class TimeRoutineComposition(
     val timeRoutine: TimeRoutineEntity,
     val timeSlots: List<TimeSlotEntity>,
-    val dayOfWeeks: List<TimeRoutineDayOfWeekEntity>
+    val dayOfWeeks: Set<TimeRoutineDayOfWeekEntity>
 )

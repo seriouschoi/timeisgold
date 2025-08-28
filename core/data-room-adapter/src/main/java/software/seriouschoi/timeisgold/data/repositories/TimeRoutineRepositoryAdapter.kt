@@ -16,11 +16,13 @@ import software.seriouschoi.timeisgold.data.mapper.toTimeRoutineDayOfWeekSchema
 import software.seriouschoi.timeisgold.data.mapper.toTimeRoutineEntity
 import software.seriouschoi.timeisgold.data.mapper.toTimeRoutineSchemaSchema
 import software.seriouschoi.timeisgold.data.mapper.toTimeSlotEntity
+import software.seriouschoi.timeisgold.data.mapper.toTimeSlotSchema
 import software.seriouschoi.timeisgold.domain.composition.TimeRoutineComposition
 import software.seriouschoi.timeisgold.domain.entities.TimeRoutineDayOfWeekEntity
 import software.seriouschoi.timeisgold.domain.entities.TimeRoutineEntity
 import software.seriouschoi.timeisgold.domain.entities.TimeSlotEntity
 import software.seriouschoi.timeisgold.domain.port.TimeRoutineRepositoryPort
+import timber.log.Timber
 import java.time.DayOfWeek
 import javax.inject.Inject
 
@@ -30,9 +32,15 @@ internal class TimeRoutineRepositoryAdapter @Inject constructor(
 ) : TimeRoutineRepositoryPort {
     override suspend fun addTimeRoutineComposition(timeRoutine: TimeRoutineComposition) {
         appDatabase.withTransaction {
-            appDatabase.TimeRoutineDao().add(
+            val timeRoutineId = appDatabase.TimeRoutineDao().add(
                 timeRoutine.timeRoutine.toTimeRoutineSchemaSchema(null)
             )
+
+            timeRoutine.timeSlots.forEach {
+                appDatabase.TimeSlotDao().insert(it.toTimeSlotSchema(
+                    timeRoutineId = timeRoutineId
+                ))
+            }
 
             updateDayOfWeekList(
                 routineDayOfWeekList = timeRoutine.dayOfWeeks,
@@ -57,7 +65,7 @@ internal class TimeRoutineRepositoryAdapter @Inject constructor(
                     ) { weeks, slots ->
                         TimeRoutineComposition(
                             timeRoutine = routine,
-                            dayOfWeeks = weeks,
+                            dayOfWeeks = weeks.toSet(),
                             timeSlots = slots
                         )
                     }
@@ -69,7 +77,9 @@ internal class TimeRoutineRepositoryAdapter @Inject constructor(
     private fun observeWeeks(routineUuid: String): Flow<List<TimeRoutineDayOfWeekEntity>> =
         appDatabase.TimeRoutineJoinDayOfWeekViewDao()
             .getDayOfWeeksByTimeRoutine(routineUuid)
+            .distinctUntilChanged()
             .map { dayOfWeeks: List<DayOfWeek> ->
+                Timber.d("observeWeeks - routineUuid=$routineUuid, dayOfWeeks=$dayOfWeeks")
                 dayOfWeeks.map {
                     it.toTimeRoutineDayOfWeekEntity()
                 }
@@ -79,7 +89,9 @@ internal class TimeRoutineRepositoryAdapter @Inject constructor(
     private fun observeSlots(routineUuid: String): Flow<List<TimeSlotEntity>> =
         appDatabase.TimeRoutineJoinTimeSlotViewDao()
             .getTimeSlotsByTimeRoutine(routineUuid)
+            .distinctUntilChanged()
             .map { list ->
+                Timber.d("observeSlots - routineUuid=$routineUuid, list=$list")
                 list.map {
                     it.toTimeSlotEntity()
                 }
@@ -109,11 +121,12 @@ internal class TimeRoutineRepositoryAdapter @Inject constructor(
 
     override suspend fun deleteTimeRoutine(timeRoutineUuid: String) {
         appDatabase.withTransaction {
-            val timeRoutineEntity =
+            val timeRoutineSchema =
                 appDatabase.TimeRoutineDao().get(timeRoutineUuid).first() ?: return@withTransaction
 
             // remove time routine.
-            appDatabase.TimeRoutineDao().delete(timeRoutineEntity)
+            val deletedCount = appDatabase.TimeRoutineDao().delete(timeRoutineSchema)
+            Timber.d("deletedCount: $deletedCount")
         }
     }
 
@@ -139,7 +152,7 @@ internal class TimeRoutineRepositoryAdapter @Inject constructor(
                     ) { weeks, slots ->
                         TimeRoutineComposition(
                             timeRoutine = it,
-                            dayOfWeeks = weeks,
+                            dayOfWeeks = weeks.toSet(),
                             timeSlots = slots
                         )
                     }
@@ -149,7 +162,7 @@ internal class TimeRoutineRepositoryAdapter @Inject constructor(
     }
 
     private suspend fun updateDayOfWeekList(
-        routineDayOfWeekList: List<TimeRoutineDayOfWeekEntity>,
+        routineDayOfWeekList: Set<TimeRoutineDayOfWeekEntity>,
         timeRoutineUuid: String
     ) {
         appDatabase.withTransaction {

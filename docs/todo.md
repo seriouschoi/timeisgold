@@ -10,10 +10,11 @@
 - [x] @Relation -> @DatabaseView
   - db 의 relation객체를 datbaseview를 사용해서, 만든는게 더 명료해 보임.
   - DatabaseView하나를 만듦으로서, 불필요한 쿼리들도 줄일 수 있음.
-  - [ ] Deprecated된 Relation제거.
-  - [ ] 테스트 다시 구현.
+  - [x] Deprecated된 Relation제거.
+  - [x] 테스트 다시 구현.
 - [x] 도메인 정의 정리. TimeRoutine과 DayOfWeek분리.
-  - [ ] 테스트 다시 구현.
+  - [x] 테스트 다시 구현.
+  - [ ] turbine남발한 영역들 제거.
 
 - [ ] 정책에 dayOfWeek설정 안하고 저장 못하게, 막기.
 
