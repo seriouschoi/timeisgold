@@ -1,5 +1,6 @@
 package software.seriouschoi.timeisgold.domain.usecase.timeslot
 
+import kotlinx.coroutines.flow.first
 import software.seriouschoi.timeisgold.domain.composition.TimeSlotComposition
 import software.seriouschoi.timeisgold.domain.policy.TimeSlotPolicy
 import software.seriouschoi.timeisgold.domain.port.TimeRoutineRepositoryPort
@@ -8,15 +9,12 @@ import javax.inject.Inject
 
 class SetTimeSlotUseCase @Inject constructor(
     private val timeslotRepositoryPort: TimeSlotRepositoryPort,
-    private val timeRoutineRepositoryPort: TimeRoutineRepositoryPort,
-    private val timeslotPolicy: TimeSlotPolicy
+    private val timeslotPolicy: TimeSlotPolicy,
 ) {
 
     suspend operator fun invoke(timeRoutineUuid: String, timeSlotData: TimeSlotComposition) {
-        val timeRoutineDetail = timeRoutineRepositoryPort.getTimeRoutineCompositionByUuid(timeRoutineUuid)
-            ?: throw IllegalStateException("time routine is null")
-
-        timeslotPolicy.checkCanAdd(timeRoutineDetail.timeSlotList, timeSlotData.timeSlotData)
+        val timeSlots = timeslotRepositoryPort.getTimeSlotList(timeRoutineUuid).first()
+        timeslotPolicy.checkCanAdd(timeSlots, timeSlotData.timeSlotData)
 
         timeslotRepositoryPort.setTimeSlot(timeSlotData)
     }

@@ -1,5 +1,6 @@
 package software.seriouschoi.timeisgold.domain.usecase.timeroutine
 
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Test
@@ -20,7 +21,7 @@ import java.time.DayOfWeek
  */
 @RunWith(MockitoJUnitRunner::class)
 internal class AddTimeRoutineUseCaseTest {
-    private lateinit var testFixture: TimeRoutineDataFixture
+    private val testFixture = TimeRoutineDataFixture()
 
     @Mock
     lateinit var timeRoutineRepo: TimeRoutineRepositoryPort
@@ -30,15 +31,18 @@ internal class AddTimeRoutineUseCaseTest {
     @Before
     fun setup() {
         MockitoAnnotations.openMocks(this)
-        testFixture = TimeRoutineDataFixture
         useCase = AddTimeRoutineUseCase(timeRoutineRepo, TimeRoutinePolicy())
 
         runTest {
-            whenever(timeRoutineRepo.getAllTimeRoutines()).thenReturn(
-                listOf(
-                    testFixture.createTimeRoutine(listOf(DayOfWeek.SUNDAY)),
-                    testFixture.createTimeRoutine(listOf(DayOfWeek.MONDAY)),
-                )
+            whenever(timeRoutineRepo.getAllDayOfWeeks()).thenReturn(
+                flow {
+                    emit(
+                        listOf(
+                            DayOfWeek.SUNDAY,
+                            DayOfWeek.MONDAY
+                        ),
+                    )
+                }
             )
         }
     }
@@ -46,20 +50,16 @@ internal class AddTimeRoutineUseCaseTest {
     @Test(expected = TIGException.RoutineConflict::class)
     fun `addTimeRoutine when duplicate dayOfWeek should throw exception`() {
         runTest {
-            val routineInMondayWednesday = testFixture.createTimeRoutine(
-                listOf(DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY)
-            )
-            useCase.invoke(routineInMondayWednesday)
+            val routineMonTue = testFixture.routineCompoMonTue
+            useCase.invoke(routineMonTue)
         }
     }
 
     @Test
     fun `addTimeRoutine when not duplicate dayOfWeek should not throw exception`() {
         runTest {
-            val routineInMondayWednesday = testFixture.createTimeRoutine(
-                listOf(DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY)
-            )
-            useCase.invoke(routineInMondayWednesday)
+            val routineMonTue = testFixture.routineCompoWedThu
+            useCase.invoke(routineMonTue)
         }
     }
 

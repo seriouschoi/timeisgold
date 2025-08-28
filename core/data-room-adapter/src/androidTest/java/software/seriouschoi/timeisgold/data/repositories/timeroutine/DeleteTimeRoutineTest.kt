@@ -1,7 +1,7 @@
 package software.seriouschoi.timeisgold.data.repositories.timeroutine
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import app.cash.turbine.testIn
+import app.cash.turbine.turbineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -29,18 +29,19 @@ internal class DeleteTimeRoutineTest : BaseRoomTest() {
      */
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
-    fun deleteTimeRoutine_should_allRelationData() {
-        runTest {
-
+    fun deleteTimeRoutine_should_allRelationData() = runTest {
+        turbineScope {
             //루틴 1 수집.
             val routine1Turbine =
-                timeRoutineRepo.getTimeRoutineCompositionByUuid(routine1.timeRoutine.uuid).testIn(backgroundScope)
+                timeRoutineRepo.getTimeRoutineCompositionByUuid(routine1.timeRoutine.uuid)
+                    .testIn(backgroundScope)
             val routine1TimeSlotTurbine =
                 timeSlotRepo.getTimeSlotList(routine1.timeRoutine.uuid).testIn(backgroundScope)
 
             //루틴 2 수집
             val routine2Turbine =
-                timeRoutineRepo.getTimeRoutineCompositionByUuid(routine2.timeRoutine.uuid).testIn(backgroundScope)
+                timeRoutineRepo.getTimeRoutineCompositionByUuid(routine2.timeRoutine.uuid)
+                    .testIn(backgroundScope)
             val routine2TimeSlotTurbine =
                 timeSlotRepo.getTimeSlotList(routine2.timeRoutine.uuid).testIn(backgroundScope)
 

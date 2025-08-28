@@ -3,6 +3,7 @@ package software.seriouschoi.timeisgold.data.repositories.timeslot
 import android.database.sqlite.SQLiteConstraintException
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import app.cash.turbine.testIn
+import app.cash.turbine.turbineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -32,8 +33,8 @@ internal class AddTimeSlotTest : BaseRoomTest() {
      */
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
-    fun addTimeSlot_should_PersistEntityCorrectly() {
-        runTest {
+    fun addTimeSlot_should_PersistEntityCorrectly() = runTest {
+        turbineScope {
             val timeSlotTurbine = timeSlotRepo.getTimeSlotList(
                 timeRoutineAdded.timeRoutine.uuid
             ).testIn(backgroundScope)

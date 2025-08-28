@@ -2,6 +2,7 @@ package software.seriouschoi.timeisgold.data.repositories.timeroutine
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import app.cash.turbine.testIn
+import app.cash.turbine.turbineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -28,8 +29,8 @@ internal class SetTimeRoutineTest : BaseRoomTest() {
 
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
-    fun setTimeRoutine_changeTitleTimeslotDayOfWeek_shouldCollectChanged() {
-        runTest {
+    fun setTimeRoutine_changeTitleTimeslotDayOfWeek_shouldCollectChanged() = runTest {
+        turbineScope {
             val routine = routineComposition
             val routineTurbine = timeRoutineRepo
                 .getTimeRoutineByDayOfWeek(routine.dayOfWeeks.first().dayOfWeek)

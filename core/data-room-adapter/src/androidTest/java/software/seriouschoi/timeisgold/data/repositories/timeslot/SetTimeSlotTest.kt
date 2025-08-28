@@ -2,6 +2,7 @@ package software.seriouschoi.timeisgold.data.repositories.timeslot
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import app.cash.turbine.testIn
+import app.cash.turbine.turbineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -30,8 +31,8 @@ internal class SetTimeSlotTest : BaseRoomTest() {
     }
 
     @Test
-    fun setTimeSlot_should_PersistEntityCorrectly() {
-        runTest {
+    fun setTimeSlot_should_PersistEntityCorrectly() = runTest {
+        turbineScope {
             val slotFotUpdate = routineForAdd1.timeSlots.first().copy(
                 title = "test_title_changed",
                 startTime = LocalTime.now().minusMinutes(10),

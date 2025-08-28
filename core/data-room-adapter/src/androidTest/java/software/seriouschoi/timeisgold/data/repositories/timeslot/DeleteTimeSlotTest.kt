@@ -1,6 +1,7 @@
 package software.seriouschoi.timeisgold.data.repositories.timeslot
 
 import app.cash.turbine.testIn
+import app.cash.turbine.turbineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -26,8 +27,8 @@ internal class DeleteTimeSlotTest : BaseRoomTest() {
     }
 
     @Test
-    fun deleteTimeSlot_should_DeletedTimeSlotAndMemo() {
-        runTest {
+    fun deleteTimeSlot_should_DeletedTimeSlotAndMemo() = runTest {
+        turbineScope {
             val timeSlotsTurbine = timeSlotRepo
                 .getTimeSlotList(timeRoutine1Saved.timeRoutine.uuid)
                 .testIn(backgroundScope)

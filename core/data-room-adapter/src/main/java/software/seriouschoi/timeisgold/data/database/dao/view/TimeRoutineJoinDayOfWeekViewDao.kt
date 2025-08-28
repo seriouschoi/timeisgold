@@ -11,11 +11,12 @@ internal abstract class TimeRoutineJoinDayOfWeekViewDao {
     @Query(
         """
         SELECT * FROM TimeRoutineJoinDayOfWeekView
+        WHERE dayOfWeek = :dayOfWeek
         ORDER BY routineCreateTime DESC
         LIMIT 1
     """
     )
-    abstract fun getLatestByDayOfWeek(week: DayOfWeek): Flow<TimeRoutineJoinDayOfWeekView?>
+    abstract fun getLatestByDayOfWeek(dayOfWeek: DayOfWeek): Flow<TimeRoutineJoinDayOfWeekView?>
 
     @Query(
         """

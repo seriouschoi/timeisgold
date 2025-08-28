@@ -11,10 +11,10 @@ import software.seriouschoi.timeisgold.data.database.dao.view.TimeRoutineJoinTim
 import software.seriouschoi.timeisgold.data.database.schema.TimeRoutineDayOfWeekSchema
 import software.seriouschoi.timeisgold.data.database.schema.TimeRoutineSchema
 import software.seriouschoi.timeisgold.data.database.schema.TimeSlotSchema
-import software.seriouschoi.timeisgold.data.database.schema.view.TimeRoutineJoinDayOfWeekView
-import software.seriouschoi.timeisgold.data.database.schema.view.TimeRoutineJoinTimeSlotView
 import software.seriouschoi.timeisgold.data.database.typeconverter.DayOfWeekConverter
 import software.seriouschoi.timeisgold.data.database.typeconverter.LocalTimeConverter
+import software.seriouschoi.timeisgold.data.database.view.TimeRoutineJoinDayOfWeekView
+import software.seriouschoi.timeisgold.data.database.view.TimeRoutineJoinTimeSlotView
 
 @Database(
     entities = [

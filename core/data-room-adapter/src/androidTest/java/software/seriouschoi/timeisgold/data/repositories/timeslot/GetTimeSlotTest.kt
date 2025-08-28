@@ -2,6 +2,7 @@ package software.seriouschoi.timeisgold.data.repositories.timeslot
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import app.cash.turbine.testIn
+import app.cash.turbine.turbineScope
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Test
@@ -30,8 +31,8 @@ internal class GetTimeSlotTest : BaseRoomTest() {
      * timeslot list를 요청하면, 저장된 timeslot list를 리턴하는가?
      */
     @Test
-    fun getTimeSlotList_should_ReturnTimeSlotList() {
-        runTest {
+    fun getTimeSlotList_should_ReturnTimeSlotList() = runTest {
+        turbineScope {
             val timeSlotTurbine =
                 timeSlotRepo.getTimeSlotList(routine.timeRoutine.uuid).testIn(backgroundScope)
 
@@ -46,8 +47,8 @@ internal class GetTimeSlotTest : BaseRoomTest() {
      * timeslot을 요청하면, 지정된 timeslot을 리턴하는가?
      */
     @Test
-    fun getTimeSlot_should_ReturnTimeSlot() {
-        runTest {
+    fun getTimeSlot_should_ReturnTimeSlot() = runTest {
+        turbineScope {
             val timeSlot = routine.timeSlots.first()
             val timeSlotTurbine = timeSlotRepo.getTimeSlotDetail(timeSlot.uuid).testIn(
                 backgroundScope
@@ -64,8 +65,8 @@ internal class GetTimeSlotTest : BaseRoomTest() {
      * 없은 timeslot을 요청하면, null을 리턴하는가?
      */
     @Test
-    fun getTimeSlot_withDeletedTimeSlot_should_ReturnNull() {
-        runTest {
+    fun getTimeSlot_withDeletedTimeSlot_should_ReturnNull() = runTest {
+        turbineScope {
             //없는 데이터상태 요청.
             val turbine = timeSlotRepo.getTimeSlotDetail(UUID.randomUUID().toString()).testIn(
                 backgroundScope

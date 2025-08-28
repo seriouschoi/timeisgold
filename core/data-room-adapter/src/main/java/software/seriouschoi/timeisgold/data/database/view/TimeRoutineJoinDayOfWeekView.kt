@@ -24,5 +24,4 @@ internal data class TimeRoutineJoinDayOfWeekView(
 
     val dayOfWeek: DayOfWeek,
     val dayOfWeekId: Long,
-    val dayOfWeekUuid: String
 )

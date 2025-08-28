@@ -1,10 +1,13 @@
 package software.seriouschoi.timeisgold.domain.fixture
 
-import software.seriouschoi.timeisgold.domain.data.timeroutine.TimeRoutineData
+import software.seriouschoi.software.seriouschoi.util.localtime.toEpochMillis
+import software.seriouschoi.timeisgold.domain.composition.TimeRoutineComposition
+import software.seriouschoi.timeisgold.domain.composition.TimeSlotComposition
 import software.seriouschoi.timeisgold.domain.entities.TimeRoutineDayOfWeekEntity
-import software.seriouschoi.timeisgold.domain.data.timeroutine.TimeRoutineDetailData
+import software.seriouschoi.timeisgold.domain.entities.TimeRoutineEntity
 import software.seriouschoi.timeisgold.domain.entities.TimeSlotEntity
 import java.time.DayOfWeek
+import java.time.LocalDateTime
 import java.time.LocalTime
 import java.util.UUID
 
@@ -12,46 +15,80 @@ import java.util.UUID
  * Created by jhchoi on 2025. 8. 8.
  * jhchoi
  */
-internal object TimeRoutineDataFixture {
-    fun createTimeRoutineDetail(
-        dayOfWeekList: List<DayOfWeek>,
-    ): TimeRoutineDetailData {
-        return TimeRoutineDetailData(
-            timeRoutineData = createTimeRoutine(dayOfWeekList),
-            timeSlotList = createTimeSlotList()
+internal class TimeRoutineDataFixture {
+    // TODO: :core:data의 테스트 모듈과 병합하기.
+    val routineCompoMonTue: TimeRoutineComposition = TimeRoutineComposition(
+        timeRoutine = generateTimeRoutine(
+            routineTitle = "routine1",
+            createDayAgo = 10
+        ),
+        timeSlots = generateTimeSlotList(),
+        dayOfWeeks = listOf(
+            DayOfWeek.MONDAY,
+            DayOfWeek.TUESDAY
+        ).map {
+            TimeRoutineDayOfWeekEntity(it)
+        }
+    )
+
+    val routineCompoWedThu: TimeRoutineComposition = TimeRoutineComposition(
+        timeRoutine = generateTimeRoutine(
+            routineTitle = "routine2",
+            createDayAgo = 5
+        ),
+        timeSlots = generateTimeSlotList(),
+        dayOfWeeks = listOf(
+            DayOfWeek.WEDNESDAY,
+            DayOfWeek.THURSDAY
+        ).map {
+            TimeRoutineDayOfWeekEntity(it)
+        }
+    )
+
+    val routineCompoSun: TimeRoutineComposition = TimeRoutineComposition(
+        timeRoutine = generateTimeRoutine(
+            routineTitle = "routine3",
+            createDayAgo = 2
+        ),
+        timeSlots = generateTimeSlotList(),
+        dayOfWeeks = listOf(
+            DayOfWeek.SUNDAY,
+        ).map {
+            TimeRoutineDayOfWeekEntity(it)
+        }
+    )
+
+
+    fun generateTimeRoutine(
+        routineTitle: String,
+        createDayAgo: Long = 0
+    ): TimeRoutineEntity {
+        return TimeRoutineEntity(
+            title = routineTitle,
+            uuid = UUID.randomUUID().toString(),
+            createTime = LocalDateTime.now().minusDays(createDayAgo).toEpochMillis()
         )
     }
 
-    fun createTimeRoutine(dayOfWeekList: List<DayOfWeek>): TimeRoutineData {
-        val uuid = UUID.randomUUID().toString()
-        return TimeRoutineData(
-            title = "test_$uuid",
-            uuid = uuid,
-            createTime = System.currentTimeMillis(),
-            dayOfWeekList = dayOfWeekList.map {
-                TimeRoutineDayOfWeekEntity(
-                    dayOfWeek = it,
-                    uuid = UUID.randomUUID().toString()
-                )
-            }
-        )
-    }
 
-    private fun createTimeSlotList(): List<TimeSlotEntity> {
-        val baseTime = LocalTime.of(10, 0, 0)
+    fun generateTimeSlotList(startHour: Int = 0, endHour: Int = 23): List<TimeSlotEntity> {
+        val timeSlotStartTime = LocalTime.of(0, 0)
 
-        return (0..10).map { i ->
-            val startTime = baseTime.plusHours(i.toLong())
-            val endTime = startTime.plusHours(1)
-
-            val uuid = UUID.randomUUID().toString()
+        return (startHour..endHour).map { i ->
+            val uuid = UUID.randomUUID()
             TimeSlotEntity(
-                uuid = uuid,
+                uuid = uuid.toString(),
                 title = "test_$uuid",
-                startTime = startTime,
-                endTime = endTime,
-                createTime = System.currentTimeMillis()
+                startTime = timeSlotStartTime.plusHours(i.toLong()),
+                endTime = timeSlotStartTime.plusHours(i.toLong() + 1),
+                createTime = LocalDateTime.now().toEpochMillis()
             )
+        }
+    }
+
+    fun generateTimeSlotCompositionList(startHour: Int = 0, endHour: Int = 23): List<TimeSlotComposition> {
+        return generateTimeSlotList(startHour, endHour).map {
+            TimeSlotComposition(it)
         }
     }
 }

@@ -1,7 +1,7 @@
 package software.seriouschoi.timeisgold.data.repositories.timeroutine
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import app.cash.turbine.testIn
+import app.cash.turbine.turbineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -18,9 +18,9 @@ internal class AddTimeRoutineTest : BaseRoomTest() {
      * 타임루틴이 정상적으로 저장되는가?
      */
     @Test
-    fun addTimeRoutine_whenQueriedOnCorrectDay_shouldReturnEntity() {
-        val routineForAdd: TimeRoutineComposition = testFixtures.routineCompoMonTue
-        runTest {
+    fun addTimeRoutine_whenQueriedOnCorrectDay_shouldReturnEntity() = runTest {
+        turbineScope {
+            val routineForAdd: TimeRoutineComposition = testFixtures.routineCompoMonTue
             val turbine = timeRoutineRepo
                 .getTimeRoutineCompositionByUuid(routineForAdd.timeRoutine.uuid)
                 .testIn(backgroundScope)
@@ -64,8 +64,8 @@ internal class AddTimeRoutineTest : BaseRoomTest() {
      */
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
-    fun addTimeRoutine_duplicateDayOfWeek_updateTimeRoutine() {
-        runTest {
+    fun addTimeRoutine_duplicateDayOfWeek_updateTimeRoutine() = runTest {
+        turbineScope {
             val routine1 = testFixtures.routineCompoMonTue
 
             //같은 요일 루틴 추가.
@@ -95,6 +95,7 @@ internal class AddTimeRoutineTest : BaseRoomTest() {
             turbine.cancelAndIgnoreRemainingEvents()
         }
     }
+
 
     /**
      * 중복된 타임 슬롯 id를 저장할 경우. Exception발생.

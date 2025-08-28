@@ -1,5 +1,6 @@
 package software.seriouschoi.timeisgold.domain.usecase.timeslot
 
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Test
@@ -8,19 +9,20 @@ import org.mockito.Mock
 import org.mockito.MockitoAnnotations
 import org.mockito.junit.MockitoJUnitRunner
 import org.mockito.kotlin.whenever
-import software.seriouschoi.timeisgold.domain.entities.TimeSlotEntity
 import software.seriouschoi.timeisgold.domain.composition.TimeSlotComposition
+import software.seriouschoi.timeisgold.domain.entities.TimeSlotEntity
 import software.seriouschoi.timeisgold.domain.exception.TIGException
 import software.seriouschoi.timeisgold.domain.fixture.TimeRoutineDataFixture
 import software.seriouschoi.timeisgold.domain.policy.TimeSlotPolicy
 import software.seriouschoi.timeisgold.domain.port.TimeRoutineRepositoryPort
 import software.seriouschoi.timeisgold.domain.port.TimeSlotRepositoryPort
 import java.time.DayOfWeek
+import java.time.LocalTime
 import java.util.UUID
 
 @RunWith(MockitoJUnitRunner::class)
 class AddTimeSlotUseCaseTest {
-    private lateinit var testFixture: TimeRoutineDataFixture
+    private val testFixture = TimeRoutineDataFixture()
 
     @Mock
     lateinit var timeRoutineRepo: TimeRoutineRepositoryPort
@@ -33,10 +35,8 @@ class AddTimeSlotUseCaseTest {
     @Before
     fun setup() {
         MockitoAnnotations.openMocks(this)
-        testFixture = TimeRoutineDataFixture
         useCase = AddTimeSlotUseCase(
-            timeRoutineRepositoryPort = timeRoutineRepo,
-            timeslotRepositoryPort = timeSlotRepo,
+            timeSlotRepo = timeSlotRepo,
             timeslotPolicy = TimeSlotPolicy()
         )
     }
@@ -44,25 +44,27 @@ class AddTimeSlotUseCaseTest {
     @Test(expected = TIGException.TimeSlotConflict::class)
     fun `addTimeSlot when same time should throw exception`() {
         runTest {
-            val routineUuid = UUID.randomUUID().toString()
-            whenever(timeRoutineRepo.getTimeRoutineCompositionByUuid(routineUuid)).thenReturn(
-                testFixture.createTimeRoutineDetail(listOf(DayOfWeek.MONDAY))
+            val routineCompo = testFixture.routineCompoMonTue.copy(
+                timeSlots = testFixture.generateTimeSlotList(
+                    18, 21
+                )
             )
-
-            val routine = timeRoutineRepo.getTimeRoutineCompositionByUuid(routineUuid)
-                ?: throw IllegalStateException("time routine not found")
-            val timeslotFromData = routine.timeSlotList.first()
+            val routineUuid = routineCompo.timeRoutine.uuid
+            whenever(timeSlotRepo.getTimeSlotList(routineUuid)).thenReturn(
+                flow {
+                    emit(testFixture.routineCompoMonTue.timeSlots)
+                }
+            )
 
             val timeSlotForAdd = TimeSlotEntity(
                 uuid = UUID.randomUUID().toString(),
                 title = "test",
-                startTime = timeslotFromData.startTime,
-                endTime = timeslotFromData.endTime,
+                startTime = LocalTime.of(18, 0),
+                endTime = LocalTime.of(19, 0),
                 createTime = System.currentTimeMillis(),
             )
             val timeSlotDetailForAdd = TimeSlotComposition(
                 timeSlotData = timeSlotForAdd,
-                timeSlotMemoData = null
             )
 
             useCase.invoke(routineUuid, timeSlotDetailForAdd)
@@ -72,25 +74,27 @@ class AddTimeSlotUseCaseTest {
     @Test(expected = TIGException.TimeSlotConflict::class)
     fun `addTimeSlot when overlap time should throw exception`() {
         runTest {
-            val routineUuid = UUID.randomUUID().toString()
-            whenever(timeRoutineRepo.getTimeRoutineCompositionByUuid(routineUuid)).thenReturn(
-                testFixture.createTimeRoutineDetail(listOf(DayOfWeek.MONDAY))
+            val routineCompo = testFixture.routineCompoMonTue.copy(
+                timeSlots = testFixture.generateTimeSlotList(
+                    18, 21
+                )
             )
-
-            val routine = timeRoutineRepo.getTimeRoutineCompositionByUuid(routineUuid)
-                ?: throw IllegalStateException("time routine not found")
-            val timeslotFromData = routine.timeSlotList.last()
+            val routineUuid = routineCompo.timeRoutine.uuid
+            whenever(timeSlotRepo.getTimeSlotList(routineUuid)).thenReturn(
+                flow {
+                    emit(testFixture.routineCompoMonTue.timeSlots)
+                }
+            )
 
             val timeSlotForAdd = TimeSlotEntity(
                 uuid = UUID.randomUUID().toString(),
                 title = "test",
-                startTime = timeslotFromData.endTime.minusMinutes(10),
-                endTime = timeslotFromData.endTime.plusMinutes(10),
+                startTime = LocalTime.of(20, 50),
+                endTime = LocalTime.of(21, 10),
                 createTime = System.currentTimeMillis(),
             )
             val timeSlotDetailForAdd = TimeSlotComposition(
                 timeSlotData = timeSlotForAdd,
-                timeSlotMemoData = null
             )
 
             useCase.invoke(routineUuid, timeSlotDetailForAdd)

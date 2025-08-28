@@ -3,6 +3,7 @@ package software.seriouschoi.timeisgold.data.repositories.timeroutine
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import app.cash.turbine.test
 import app.cash.turbine.testIn
+import app.cash.turbine.turbineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
@@ -36,8 +37,8 @@ internal class GetTimeRoutineFlowTest : BaseRoomTest() {
      */
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
-    fun givenRoutine_whenQuery_returnRoutine() {
-        runTest {
+    fun givenRoutine_whenQuery_returnRoutine() = runTest {
+        turbineScope {
             val routine1 = testFixtures.routineCompoMonTue
             val days = routine1.dayOfWeeks.map { it.dayOfWeek }
 
@@ -64,8 +65,8 @@ internal class GetTimeRoutineFlowTest : BaseRoomTest() {
      */
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
-    fun givenDayRoutine_whenChangeRoutineWhereDayOfWeek_returnChangedRoutine() {
-        runTest {
+    fun givenDayRoutine_whenChangeRoutineWhereDayOfWeek_returnChangedRoutine() = runTest {
+        turbineScope {
             val routineForAdd1 = testFixtures.routineCompoMonTue
             val routineForAdd2 = testFixtures.routineCompoWedThu.copy(
                 dayOfWeeks = routineForAdd1.dayOfWeeks
@@ -100,15 +101,15 @@ internal class GetTimeRoutineFlowTest : BaseRoomTest() {
      */
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
-    fun getTimeRoutineCompositionByDayOfWeek_returnsOnlyMatchingDay() {
-        //TimeRoutine을 넣었을때, 정확한 요일로 조회가 되는가?
-        val routine1Composition = testFixtures.routineCompoMonTue
-        val routine2Composition = testFixtures.routineCompoWedThu
-        val routine2Days = routine2Composition.dayOfWeeks.map { it.dayOfWeek }
-        val routine3Composition = testFixtures.routineCompoSun
-        val routine3Days = routine3Composition.dayOfWeeks.map { it.dayOfWeek }
+    fun getTimeRoutineCompositionByDayOfWeek_returnsOnlyMatchingDay() = runTest {
+        turbineScope {
+            //TimeRoutine을 넣었을때, 정확한 요일로 조회가 되는가?
+            val routine1Composition = testFixtures.routineCompoMonTue
+            val routine2Composition = testFixtures.routineCompoWedThu
+            val routine2Days = routine2Composition.dayOfWeeks.map { it.dayOfWeek }
+            val routine3Composition = testFixtures.routineCompoSun
+            val routine3Days = routine3Composition.dayOfWeeks.map { it.dayOfWeek }
 
-        runTest {
             val routine2DayTurbine = timeRoutineRepo
                 .getTimeRoutineCompositionByDayOfWeek(routine2Days.first())
                 .filterNotNull()

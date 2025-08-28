@@ -6,3 +6,7 @@ plugins {
     alias(libs.plugins.timeisgold.kotlin.library)
 }
 
+dependencies {
+    implementation(project(":core:localtime-util"))
+}
+
