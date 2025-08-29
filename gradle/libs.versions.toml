@@ -3,6 +3,7 @@
 [versions]
 agp = "8.12.1"
 androidTools = "31.12.1"
+gson = "2.13.1"
 hiltNavigationCompose = "1.2.0"
 javaxInject = "1"
 kotlin = "2.2.10"
@@ -20,17 +21,19 @@ mockitoKotlin = "6.0.0"
 room = "2.7.2"
 timber = "5.0.1"
 coroutine = "1.10.2"
-composeBom = "2025.08.00"
+composeBom = "2025.08.01"
 activity = "1.10.1"
 androidx-activity-compose = "1.10.1"
 navigationCompose = "2.9.3"
 navigationRuntimeKtx = "2.9.3"
 truth = "1.4.4"
+turbine = "1.2.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
 
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 javax-inject = { module = "javax.inject:javax.inject", version.ref = "javaxInject" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
@@ -72,6 +75,7 @@ compose-gradlePlugin = { module = "org.jetbrains.kotlin:compose-compiler-gradle-
 kotlin-gradlePlugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
 ksp-gradlePlugin = { group = "com.google.devtools.ksp", name = "com.google.devtools.ksp.gradle.plugin", version.ref = "ksp" }
 kotlin-serialization-plugin-artifact = { group = "org.jetbrains.kotlin", name = "kotlin-serialization", version.ref = "kotlin" }
+app-cash-turbine = { module = "app.cash.turbine:turbine", version.ref = "turbine" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

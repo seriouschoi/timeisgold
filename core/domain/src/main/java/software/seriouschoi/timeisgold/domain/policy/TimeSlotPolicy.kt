@@ -1,12 +1,12 @@
 package software.seriouschoi.timeisgold.domain.policy
 
-import software.seriouschoi.timeisgold.domain.data.timeslot.TimeSlotData
+import software.seriouschoi.timeisgold.domain.entities.TimeSlotEntity
 import software.seriouschoi.timeisgold.domain.exception.TIGException
 
 class TimeSlotPolicy {
     fun checkCanAdd(
-        timeSlotDataListForCompare: List<TimeSlotData>,
-        timeSlotDataForAdd: TimeSlotData
+        timeSlotDataListForCompare: List<TimeSlotEntity>,
+        timeSlotDataForAdd: TimeSlotEntity
     ) {
         //timeslot의 시간이 겹치는지 확인하는 로직.
         val isDuplicateTime = timeSlotDataListForCompare.any {

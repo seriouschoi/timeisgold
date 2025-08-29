@@ -1,14 +1,17 @@
 package software.seriouschoi.timeisgold.domain.port
 
-import software.seriouschoi.timeisgold.domain.data.timeroutine.TimeRoutineData
-import software.seriouschoi.timeisgold.domain.data.timeroutine.TimeRoutineDetailData
+import kotlinx.coroutines.flow.Flow
+import software.seriouschoi.timeisgold.domain.composition.TimeRoutineComposition
+import software.seriouschoi.timeisgold.domain.entities.TimeRoutineEntity
 import java.time.DayOfWeek
 
 interface TimeRoutineRepositoryPort {
-    suspend fun addTimeRoutine(timeRoutine: TimeRoutineData)
-    suspend fun getTimeRoutineDetail(week: DayOfWeek): TimeRoutineDetailData?
-    suspend fun getTimeRoutineDetailByUuid(timeRoutineUuid: String): TimeRoutineDetailData?
-    suspend fun getAllTimeRoutines(): List<TimeRoutineData>
-    suspend fun setTimeRoutine(timeRoutine: TimeRoutineData)
+    suspend fun addTimeRoutineComposition(timeRoutine: TimeRoutineComposition)
+    suspend fun setTimeRoutineComposition(composition: TimeRoutineComposition)
+    fun getTimeRoutineCompositionByDayOfWeek(dayOfWeek: DayOfWeek): Flow<TimeRoutineComposition?>
+    fun getTimeRoutineCompositionByUuid(timeRoutineUuid: String): Flow<TimeRoutineComposition?>
+
+    fun getTimeRoutineByDayOfWeek(day: DayOfWeek): Flow<TimeRoutineEntity?>
     suspend fun deleteTimeRoutine(timeRoutineUuid: String)
+    fun getAllDayOfWeeks(): Flow<List<DayOfWeek>>
 }

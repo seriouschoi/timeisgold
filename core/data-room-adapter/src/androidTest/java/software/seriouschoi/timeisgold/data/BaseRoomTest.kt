@@ -5,7 +5,7 @@ import androidx.test.core.app.ApplicationProvider
 import org.junit.After
 import org.junit.Before
 import software.seriouschoi.timeisgold.data.database.AppDatabase
-import software.seriouschoi.timeisgold.data.fixture.TimeSlotTestFixtures
+import software.seriouschoi.timeisgold.data.fixture.TimeRoutineTestFixtures
 import software.seriouschoi.timeisgold.data.repositories.TimeRoutineRepositoryAdapter
 import software.seriouschoi.timeisgold.data.repositories.TimeSlotRepositoryAdapter
 import software.seriouschoi.timeisgold.domain.port.TimeRoutineRepositoryPort
@@ -15,8 +15,8 @@ internal abstract class BaseRoomTest {
     private lateinit var db: AppDatabase
 
     protected lateinit var timeSlotRepo: TimeSlotRepositoryAdapter
-    protected lateinit var timeRoutineRepo: TimeRoutineRepositoryPort
-    protected val timeSlotTestFixtures = TimeSlotTestFixtures
+    protected lateinit var timeRoutineRepo: TimeRoutineRepositoryAdapter
+    protected val testFixtures = TimeRoutineTestFixtures()
 
     @Before
     fun setupBase() {

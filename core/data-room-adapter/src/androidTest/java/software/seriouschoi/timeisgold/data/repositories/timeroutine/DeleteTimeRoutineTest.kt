@@ -1,6 +1,7 @@
 package software.seriouschoi.timeisgold.data.repositories.timeroutine
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Test
@@ -9,77 +10,34 @@ import software.seriouschoi.timeisgold.data.BaseRoomTest
 
 @RunWith(AndroidJUnit4::class)
 internal class DeleteTimeRoutineTest : BaseRoomTest() {
+    private val routine1 = testFixtures.routineCompoMonTue
+    private val routine2 = testFixtures.routineCompoWedThu
+
     @Before
     fun setup() {
         runTest {
-            val dayOfWeeks1 = timeSlotTestFixtures.getTestRoutineDayOfWeeks1()
-            val routine1 = timeSlotTestFixtures.createTimeRoutine(dayOfWeeks1)
-            timeRoutineRepo.addTimeRoutine(routine1)
-
-            timeSlotTestFixtures.createDetailDataList().forEach {
-                timeSlotRepo.addTimeSlot(
-                    timeSlotData = it,
-                    timeRoutineUuid = routine1.uuid
-                )
-            }
-
-            val dayOfWeeks2 = timeSlotTestFixtures.getTestRoutineDayOfWeeks2()
-            val routine2 = timeSlotTestFixtures.createTimeRoutine(dayOfWeeks2)
-            timeRoutineRepo.addTimeRoutine(routine2)
-
-            timeSlotTestFixtures.createDetailDataList().forEach {
-                timeSlotRepo.addTimeSlot(
-                    timeSlotData = it,
-                    timeRoutineUuid = routine2.uuid
-                )
-            }
+            timeRoutineRepo.addTimeRoutineComposition(routine1)
+            timeRoutineRepo.addTimeRoutineComposition(routine2)
         }
     }
 
     @Test
-    fun deleteTimeRoutine_should_allRelationData() {
-        //time routine을 삭제했을때, 관련된 모든 엔티티가 같이 삭제되었는가?
-        runTest {
-            val dayOfWeek = timeSlotTestFixtures.getTestRoutineDayOfWeeks1().first()
-            val routine = timeRoutineRepo.getTimeRoutineDetail(dayOfWeek)
-                ?: throw IllegalStateException("time routine is null")
+    fun deleteTimeRoutine_should_allRelationData() = runTest {
+        //루틴 1 삭제.
+        timeRoutineRepo.deleteTimeRoutine(timeRoutineUuid = routine1.timeRoutine.uuid)
 
-            timeRoutineRepo.deleteTimeRoutine(routine.timeRoutineData.uuid)
+        val routine1Flow = timeRoutineRepo.getTimeRoutineCompositionByUuid(routine1.timeRoutine.uuid)
+        val routine2Flow = timeRoutineRepo.getTimeRoutineCompositionByUuid(routine2.timeRoutine.uuid)
 
-            val compareData = timeRoutineRepo.getTimeRoutineDetailByUuid(routine.timeRoutineData.uuid)
+        val routine1SlotFlow = timeSlotRepo.getTimeSlotList(routine1.timeRoutine.uuid)
+        val routine2SlotFlow = timeSlotRepo.getTimeSlotList(routine2.timeRoutine.uuid)
 
-            assert(compareData == null)
-            routine.timeSlotList.forEach { timeSlot ->
-                val compareTimeSlot = timeSlotRepo.getTimeSlotDetail(timeSlot.uuid)
-                assert(compareTimeSlot == null)
-            }
-        }
-    }
+        //루틴 1 삭제 확인.
+        assert(routine1Flow.first() == null) { "routine1 is not deleted" }
+        assert(routine1SlotFlow.first().isEmpty()) { "routine1 time slot is not deleted" }
 
-    @Test
-    fun deleteTimeRoutine_whenWrongDay_shouldReturnData() {
-        //엉뚱한 요일을 지워도 정상 동작 하는가?
-        runTest {
-            val dayOfWeek1 = timeSlotTestFixtures.getTestRoutineDayOfWeeks1().first()
-            val routine1 = timeRoutineRepo.getTimeRoutineDetail(dayOfWeek1)
-                ?: throw IllegalStateException("time routine is null")
-
-            val dayOfWeekForDelete = timeSlotTestFixtures.getTestRoutineDayOfWeeks2().first()
-            val routineForDelete =
-                timeRoutineRepo.getTimeRoutineDetail(dayOfWeekForDelete) ?: throw IllegalStateException(
-                    "time routine is null"
-                )
-
-            timeRoutineRepo.deleteTimeRoutine(routineForDelete.timeRoutineData.uuid)
-
-            val compareData1 =
-                timeRoutineRepo.getTimeRoutineDetailByUuid(routine1.timeRoutineData.uuid)
-            assert(compareData1 == routine1)
-        }
-    }
-
-    @Test
-    fun deleteDayOfWeek_shouldReturnNull() {
-        //요일만 삭제하는 로직은 도메인에 없는 동작. 현재 요일은 routine update로 처리됨.
+        //루틴 2 유지 확인.
+        assert(routine2Flow.first() == routine2) { "routine2 is deleted" }
+        assert(routine2SlotFlow.first() == routine2.timeSlots) { "routine2 time slot is deleted" }
     }
 }

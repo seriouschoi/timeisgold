@@ -1,6 +1,6 @@
 package software.seriouschoi.timeisgold.domain.exception
 
-import software.seriouschoi.timeisgold.domain.data.timeslot.TimeSlotData
+import software.seriouschoi.timeisgold.domain.entities.TimeSlotEntity
 import java.time.DayOfWeek
 
 sealed class TIGException : Exception() {
@@ -9,6 +9,6 @@ sealed class TIGException : Exception() {
     ) : TIGException()
 
     class TimeRoutineNotFound(val timeRoutineUuid: String) : TIGException()
-    class TimeSlotConflict(val timeSlotDataForAdd: TimeSlotData) : TIGException()
+    class TimeSlotConflict(val timeSlotDataForAdd: TimeSlotEntity) : TIGException()
 
 }

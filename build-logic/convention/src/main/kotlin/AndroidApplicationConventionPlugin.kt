@@ -32,6 +32,7 @@ class AndroidApplicationConventionPlugin : Plugin<Project> {
 
                 defaultConfig {
                     minSdk = TigConstAndroidSdk.MIN_SDK
+                    targetSdk = TigConstAndroidSdk.COMPILE_SDK
                     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
                 }
                 compileOptions {

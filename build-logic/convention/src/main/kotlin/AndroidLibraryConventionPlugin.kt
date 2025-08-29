@@ -28,26 +28,12 @@ class AndroidLibraryConventionPlugin : Plugin<Project> {
 
                 defaultConfig {
                     minSdk = TigConstAndroidSdk.MIN_SDK
+                    targetSdk = TigConstAndroidSdk.COMPILE_SDK
                     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-                    consumerProguardFiles("consumer-rules.pro")
                 }
                 compileOptions {
                     sourceCompatibility = TigConstJava.JavaVersion
                     targetCompatibility = TigConstJava.JavaVersion
-                }
-
-
-                buildTypes {
-                    debug {
-                        enableAndroidTestCoverage = true
-                    }
-                    release {
-                        isMinifyEnabled = false
-                        proguardFiles(
-                            getDefaultProguardFile("proguard-android-optimize.txt"),
-                            "proguard-rules.pro"
-                        )
-                    }
                 }
             }
 
@@ -62,6 +48,15 @@ class AndroidLibraryConventionPlugin : Plugin<Project> {
                 testImplementation(target.libs, "junit")
                 androidTestImplementation(target.libs, "androidx.junit")
                 androidTestImplementation(target.libs, "androidx.espresso.core")
+
+                testImplementation(target.libs, "kotlin.test")
+                androidTestImplementation(target.libs, "kotlin.test")
+
+                //for log.
+                implementation(target.libs, "timber")
+
+                implementation(target.libs, "gson")
+
             }
         }
     }

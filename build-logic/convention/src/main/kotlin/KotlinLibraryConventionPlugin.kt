@@ -4,6 +4,7 @@ import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.kotlin.dsl.apply
 import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.dependencies
+import software.seriouschoi.timeisgold.androidTestImplementation
 import software.seriouschoi.timeisgold.const.TigConstJava
 import software.seriouschoi.timeisgold.implementation
 import software.seriouschoi.timeisgold.libs
@@ -35,6 +36,8 @@ class KotlinLibraryConventionPlugin : Plugin<Project> {
                 testImplementation(target.libs, "mockito.kotlin")
 
                 implementation(target.libs, "javax.inject")
+                implementation(target.libs, "coroutine")
+                testImplementation(target.libs, "coroutine.test")
             }
         }
     }

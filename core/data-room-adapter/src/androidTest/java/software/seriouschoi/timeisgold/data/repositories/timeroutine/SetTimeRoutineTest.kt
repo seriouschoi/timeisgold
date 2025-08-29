@@ -1,13 +1,19 @@
 package software.seriouschoi.timeisgold.data.repositories.timeroutine
 
+import android.database.sqlite.SQLiteConstraintException
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.google.gson.Gson
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import software.seriouschoi.timeisgold.data.BaseRoomTest
-import software.seriouschoi.timeisgold.domain.data.timeroutine.TimeRoutineDayOfWeekData
-import java.util.UUID
+import software.seriouschoi.timeisgold.data.mapper.toTimeRoutineDayOfWeekEntity
+import software.seriouschoi.timeisgold.domain.composition.TimeRoutineComposition
+import java.time.DayOfWeek
+import kotlin.test.todo
 
 /**
  * Created by jhchoi on 2025. 8. 7.
@@ -15,49 +21,72 @@ import java.util.UUID
  */
 @RunWith(AndroidJUnit4::class)
 internal class SetTimeRoutineTest : BaseRoomTest() {
+    val savedRoutineCompoMonTue = testFixtures.routineCompoMonTue
+
     @Before
     fun setup() {
         runTest {
-            val dayOfWeekForRoutine = timeSlotTestFixtures.getTestRoutineDayOfWeeks1()
-            val routine = timeSlotTestFixtures.createTimeRoutine(dayOfWeekForRoutine)
-            timeRoutineRepo.addTimeRoutine(routine)
-
-            timeSlotTestFixtures.createDetailDataList().forEach {
-                timeSlotRepo.addTimeSlot(
-                    timeSlotData = it,
-                    timeRoutineUuid = routine.uuid
-                )
-            }
+            timeRoutineRepo.addTimeRoutineComposition(savedRoutineCompoMonTue)
         }
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
-    fun setTimeRoutine_changeTitleTimeslotDayofweek_shouldCollectChanged() {
-        runTest {
-            val dayOfWeekForRoutine = timeSlotTestFixtures.getTestRoutineDayOfWeeks1()
-            val routineDetailFromDb =
-                timeRoutineRepo.getTimeRoutineDetail(dayOfWeekForRoutine.first())
-                    ?: throw IllegalStateException("routine is null")
-            val routineFromDb = routineDetailFromDb.timeRoutineData
+    fun setTimeRoutine_changeTitleTimeslotDayOfWeek_shouldCollectChanged() = runTest {
+        val routineCompoMonTue = savedRoutineCompoMonTue
+        val routineFlow = timeRoutineRepo
+            .getTimeRoutineCompositionByUuid(routineCompoMonTue.timeRoutine.uuid)
 
-            val dayOfWeekForNewRoutine = timeSlotTestFixtures.getTestRoutineDayOfWeeks2()
-            val routineForChange = routineFromDb.copy(
-                title = "test_title_changed",
-                dayOfWeekList = dayOfWeekForNewRoutine.map {
-                    TimeRoutineDayOfWeekData(
-                        dayOfWeek = it,
-                        uuid = UUID.randomUUID().toString()
-                    )
-                },
-                createTime = System.currentTimeMillis(),
-            )
-            timeRoutineRepo.setTimeRoutine(routineForChange)
+        val routineCompoForUpdate = routineCompoMonTue.copy(
+            timeRoutine = routineCompoMonTue.timeRoutine.copy(
+                title = "new title"
+            ),
+            timeSlots = testFixtures.generateTimeSlotList(10, 14),
+            dayOfWeeks = listOf(DayOfWeek.SATURDAY).map {
+                it.toTimeRoutineDayOfWeekEntity()
+            }.toSet()
+        )
 
-            //jhchoi 2025. 8. 7. 스케줄 변경이 잘 되는가?
-            val changedRoutine = timeRoutineRepo.getTimeRoutineDetailByUuid(routineFromDb.uuid)
-            assert(routineFromDb != changedRoutine?.timeRoutineData)
-            assert(routineForChange == changedRoutine?.timeRoutineData)
+        timeRoutineRepo.setTimeRoutineComposition(routineCompoForUpdate)
+
+        val gson = Gson()
+        val routineEmitted: TimeRoutineComposition? = routineFlow.first()
+        assert(routineEmitted != routineCompoMonTue) { "update not working"}
+        assert(routineEmitted == routineCompoForUpdate) {
+            """
+                update failed.
+                .timeRoutine same? : ${routineEmitted?.timeRoutine == routineCompoForUpdate.timeRoutine}
+                .dayOfWeeks same? : ${routineEmitted?.dayOfWeeks == routineCompoForUpdate.dayOfWeeks}
+                .timeSlots same? : ${routineEmitted?.timeSlots == routineCompoForUpdate.timeSlots}
+                
+                routineEmitted: ${gson.toJson(routineEmitted)}
+            """.trimIndent()
         }
+    }
+
+    /**
+     * 중복된 타임 슬롯 id를 저장할 경우. Exception발생.
+     * 예를 들면.. 이미 루틴1 컴포지션이 저장된 상태.
+     * 루틴2 컴포지션도 있는 상태.
+     * 이 상태에 루틴2의 슬롯에 루틴1의 슬롯의 일부 요소를 넣어서 저장하려고 하면 오류가 나야함.
+     */
+    @Test(expected = SQLiteConstraintException::class)
+    fun setTimeSlot_duplicateUuid_shouldThrowException() = runTest {
+        val routineCompoWedThu = testFixtures.routineCompoWedThu
+        timeRoutineRepo.addTimeRoutineComposition(routineCompoWedThu)
+
+        //루틴1과 중복된 요소가 있는 슬롯 목록을 생성.
+        val newSlots = routineCompoWedThu.timeSlots.toMutableList().apply {
+            this.add(savedRoutineCompoMonTue.timeSlots.first())
+        }.toList()
+
+        //루틴2에 중복 요소가 있는 슬롯을 저장.
+        val routine2ForUpdate = routineCompoWedThu.copy(
+            timeSlots = newSlots
+        )
+
+        //Excpetion발생.
+        timeRoutineRepo.setTimeRoutineComposition(routine2ForUpdate)
     }
 
     @Test
