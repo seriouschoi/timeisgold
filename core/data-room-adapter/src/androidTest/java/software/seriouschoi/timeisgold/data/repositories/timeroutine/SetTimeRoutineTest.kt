@@ -1,5 +1,6 @@
 package software.seriouschoi.timeisgold.data.repositories.timeroutine
 
+import android.database.sqlite.SQLiteConstraintException
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.gson.Gson
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -49,7 +50,6 @@ internal class SetTimeRoutineTest : BaseRoomTest() {
         timeRoutineRepo.setTimeRoutineComposition(routineCompoForUpdate)
 
         val gson = Gson()
-        // TODO: jhchoi 2025. 8. 29. test failed.
         val routineEmitted: TimeRoutineComposition? = routineFlow.first()
         assert(routineEmitted != routineCompoMonTue) { "update not working"}
         assert(routineEmitted == routineCompoForUpdate) {
@@ -70,7 +70,7 @@ internal class SetTimeRoutineTest : BaseRoomTest() {
      * 루틴2 컴포지션도 있는 상태.
      * 이 상태에 루틴2의 슬롯에 루틴1의 슬롯의 일부 요소를 넣어서 저장하려고 하면 오류가 나야함.
      */
-    @Test(expected = Exception::class)
+    @Test(expected = SQLiteConstraintException::class)
     fun setTimeSlot_duplicateUuid_shouldThrowException() = runTest {
         val routineCompoWedThu = testFixtures.routineCompoWedThu
         timeRoutineRepo.addTimeRoutineComposition(routineCompoWedThu)

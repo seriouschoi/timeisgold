@@ -5,7 +5,7 @@
 
 [:doc:core:db](core/data-room-adapter)  
 [:core:db](/core/data-room-adapter)
-- [ ] db get함수를 전부 flow로 리턴하기.
+- [x] db get함수를 전부 flow로 리턴하기.
   - [x] GetTimeRoutineFlowTest 작성하기.
 - [x] @Relation -> @DatabaseView
   - db 의 relation객체를 datbaseview를 사용해서, 만든는게 더 명료해 보임.
@@ -15,7 +15,7 @@
 - [x] 도메인 정의 정리. TimeRoutine과 DayOfWeek분리.
   - [x] 테스트 다시 구현.
   - [x] turbine, advanceUntilIdle, backgroundScope.launch 남발한 영역들 제거.
-  - [ ] 테스트 exception 조건을 정확히 명시하기.
+  - [x] 테스트 exception 조건을 정확히 명시하기.
 
 - [ ] 정책에 dayOfWeek설정 안하고 저장 못하게, 막기.
 

@@ -1,5 +1,6 @@
 package software.seriouschoi.timeisgold.data.repositories.timeroutine
 
+import android.database.sqlite.SQLiteConstraintException
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
@@ -31,7 +32,7 @@ internal class AddTimeRoutineTest : BaseRoomTest() {
     /**
      * 중복된 uuid를 추가할때 예외가 발생하는가?
      */
-    @Test(expected = Exception::class)
+    @Test(expected = SQLiteConstraintException::class)
     fun addTimeRoutine_duplicateUuid_shouldThrowException() = runTest {
         val routine1 = testFixtures.routineCompoMonTue
         //routine1과 같은 uuid를 가진 routine 생성.
@@ -90,7 +91,7 @@ internal class AddTimeRoutineTest : BaseRoomTest() {
     /**
      * 중복된 타임 슬롯 id를 저장할 경우. Exception발생.
      */
-    @Test(expected = Exception::class)
+    @Test(expected = SQLiteConstraintException::class)
     fun addTimeSlot_duplicateUuid_shouldThrowException() = runTest {
         val routine1 = testFixtures.routineCompoMonTue
         val routine2 = testFixtures.routineCompoWedThu.copy(
