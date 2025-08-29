@@ -10,11 +10,10 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import software.seriouschoi.timeisgold.data.database.AppDatabase
-import software.seriouschoi.timeisgold.data.mapper.schemaToTimeRoutineEntity
 import software.seriouschoi.timeisgold.data.mapper.toTimeRoutineDayOfWeekEntity
 import software.seriouschoi.timeisgold.data.mapper.toTimeRoutineDayOfWeekSchema
 import software.seriouschoi.timeisgold.data.mapper.toTimeRoutineEntity
-import software.seriouschoi.timeisgold.data.mapper.toTimeRoutineSchemaSchema
+import software.seriouschoi.timeisgold.data.mapper.toTimeRoutineSchema
 import software.seriouschoi.timeisgold.data.mapper.toTimeSlotEntity
 import software.seriouschoi.timeisgold.data.mapper.toTimeSlotSchema
 import software.seriouschoi.timeisgold.domain.composition.TimeRoutineComposition
@@ -33,13 +32,15 @@ internal class TimeRoutineRepositoryAdapter @Inject constructor(
     override suspend fun addTimeRoutineComposition(timeRoutine: TimeRoutineComposition) {
         appDatabase.withTransaction {
             val timeRoutineId = appDatabase.TimeRoutineDao().add(
-                timeRoutine.timeRoutine.toTimeRoutineSchemaSchema(null)
+                timeRoutine.timeRoutine.toTimeRoutineSchema(null)
             )
 
             timeRoutine.timeSlots.forEach {
-                appDatabase.TimeSlotDao().insert(it.toTimeSlotSchema(
-                    timeRoutineId = timeRoutineId
-                ))
+                appDatabase.TimeSlotDao().insert(
+                    it.toTimeSlotSchema(
+                        timeRoutineId = timeRoutineId
+                    )
+                )
             }
 
             updateDayOfWeekList(
@@ -82,6 +83,8 @@ internal class TimeRoutineRepositoryAdapter @Inject constructor(
                 Timber.d("observeWeeks - routineUuid=$routineUuid, dayOfWeeks=$dayOfWeeks")
                 dayOfWeeks.map {
                     it.toTimeRoutineDayOfWeekEntity()
+                }.sortedBy {
+                    it.dayOfWeek
                 }
             }
             .distinctUntilChanged()
@@ -94,7 +97,7 @@ internal class TimeRoutineRepositoryAdapter @Inject constructor(
                 Timber.d("observeSlots - routineUuid=$routineUuid, list=$list")
                 list.map {
                     it.toTimeSlotEntity()
-                }
+                }.sortedBy { it.startTime }
             }
             .distinctUntilChanged()
 
@@ -111,11 +114,51 @@ internal class TimeRoutineRepositoryAdapter @Inject constructor(
             val routineId =
                 appDatabase.TimeRoutineDao().get(composition.timeRoutine.uuid).first()?.id
                     ?: throw IllegalStateException("time routine is null")
+
+
             appDatabase.TimeRoutineDao().update(
-                composition.timeRoutine.toTimeRoutineSchemaSchema(id = routineId)
+                composition.timeRoutine.toTimeRoutineSchema(id = routineId)
             )
 
+            //slots delete
+            updateTimeSlot(
+                timeSlots = composition.timeSlots,
+                routineUuid = composition.timeRoutine.uuid,
+            )
             updateDayOfWeekList(composition.dayOfWeeks, composition.timeRoutine.uuid)
+        }
+    }
+
+    private suspend fun updateTimeSlot(
+        timeSlots: List<TimeSlotEntity>,
+        routineUuid: String,
+    ) {
+        val routineId =
+            appDatabase.TimeRoutineDao().get(routineUuid).first()?.id ?: return
+        val slotsFromDB = appDatabase.TimeRoutineJoinTimeSlotViewDao()
+            .getTimeSlotsByTimeRoutine(routineUuid).first()
+
+        val timeSlotsUuidList = timeSlots.map { it.uuid }
+        slotsFromDB.filter { slot ->
+            !timeSlotsUuidList.contains(slot.timeSlotUuid)
+        }.forEach {
+            appDatabase.TimeSlotDao().delete(it.timeSlotUuid)
+        }
+
+        //slots update
+        timeSlots.forEach { slotForUpdate ->
+            val timeSlotDao = appDatabase.TimeSlotDao()
+            val slotId = slotsFromDB.find { it.timeSlotUuid == slotForUpdate.uuid }?.timeSlotId
+            if (slotId != null) {
+                timeSlotDao.update(
+                    slotForUpdate.toTimeSlotSchema(
+                        timeRoutineId = routineId,
+                        timeSlotId = slotId
+                    )
+                )
+            } else {
+                timeSlotDao.insert(slotForUpdate.toTimeSlotSchema(routineId))
+            }
         }
     }
 
@@ -141,7 +184,7 @@ internal class TimeRoutineRepositoryAdapter @Inject constructor(
             .get(timeRoutineUuid)
             .distinctUntilChanged()
             .map {
-                it?.schemaToTimeRoutineEntity()
+                it?.toTimeRoutineEntity()
             }
             .flatMapLatest {
                 if (it == null) flowOf(null)

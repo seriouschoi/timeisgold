@@ -28,7 +28,7 @@ internal class TimeRoutineDataFixture {
             DayOfWeek.TUESDAY
         ).map {
             TimeRoutineDayOfWeekEntity(it)
-        }
+        }.toSet()
     )
 
     val routineCompoWedThu: TimeRoutineComposition = TimeRoutineComposition(
@@ -42,7 +42,7 @@ internal class TimeRoutineDataFixture {
             DayOfWeek.THURSDAY
         ).map {
             TimeRoutineDayOfWeekEntity(it)
-        }
+        }.toSet()
     )
 
     val routineCompoSun: TimeRoutineComposition = TimeRoutineComposition(
@@ -55,7 +55,7 @@ internal class TimeRoutineDataFixture {
             DayOfWeek.SUNDAY,
         ).map {
             TimeRoutineDayOfWeekEntity(it)
-        }
+        }.toSet()
     )
 
 

@@ -1,11 +1,8 @@
 package software.seriouschoi.timeisgold.data.repositories.timeroutine
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import app.cash.turbine.turbineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -22,21 +19,12 @@ internal class AddTimeRoutineTest : BaseRoomTest() {
      */
     @Test
     fun addTimeRoutine_whenQueriedOnCorrectDay_shouldReturnEntity() = runTest {
-        turbineScope {
-            val routineForAdd: TimeRoutineComposition = testFixtures.routineCompoMonTue
-            val turbine = timeRoutineRepo
-                .getTimeRoutineCompositionByUuid(routineForAdd.timeRoutine.uuid)
-                .testIn(backgroundScope)
+        val routineForAdd: TimeRoutineComposition = testFixtures.routineCompoMonTue
+        val routineFlow = timeRoutineRepo
+            .getTimeRoutineCompositionByUuid(routineForAdd.timeRoutine.uuid)
 
-            backgroundScope.launch {
-                timeRoutineRepo.addTimeRoutineComposition(routineForAdd)
-            }
-
-            val emitted = turbine.awaitItem()
-            assert(routineForAdd == emitted)
-
-            turbine.cancelAndIgnoreRemainingEvents()
-        }
+        timeRoutineRepo.addTimeRoutineComposition(routineForAdd)
+        assert(routineForAdd == routineFlow.first())
     }
 
 
@@ -44,22 +32,20 @@ internal class AddTimeRoutineTest : BaseRoomTest() {
      * 중복된 uuid를 추가할때 예외가 발생하는가?
      */
     @Test(expected = Exception::class)
-    fun addTimeRoutine_duplicateUuid_shouldThrowException() {
-        runTest {
-            val routine1 = testFixtures.routineCompoMonTue
-            //routine1과 같은 uuid를 가진 routine 생성.
-            val routine2 = testFixtures.routineCompoWedThu.let {
-                val routine = it.timeRoutine.copy(
-                    uuid = routine1.timeRoutine.uuid
-                )
-                it.copy(
-                    timeRoutine = routine
-                )
-            }
-
-            timeRoutineRepo.addTimeRoutineComposition(routine1)
-            timeRoutineRepo.addTimeRoutineComposition(routine2)
+    fun addTimeRoutine_duplicateUuid_shouldThrowException() = runTest {
+        val routine1 = testFixtures.routineCompoMonTue
+        //routine1과 같은 uuid를 가진 routine 생성.
+        val routine2 = testFixtures.routineCompoWedThu.let {
+            val routine = it.timeRoutine.copy(
+                uuid = routine1.timeRoutine.uuid
+            )
+            it.copy(
+                timeRoutine = routine
+            )
         }
+
+        timeRoutineRepo.addTimeRoutineComposition(routine1)
+        timeRoutineRepo.addTimeRoutineComposition(routine2)
     }
 
     /**
@@ -95,9 +81,9 @@ internal class AddTimeRoutineTest : BaseRoomTest() {
         timeRoutineRepo.addTimeRoutineComposition(routine2Compo)
 
 
-        val emitted = timeRoutineRepo
-            .getTimeRoutineCompositionByDayOfWeek(testDay).first()
-        assert(emitted == routine2Compo)
+        val testDayFlow = timeRoutineRepo
+            .getTimeRoutineCompositionByDayOfWeek(testDay)
+        assert(testDayFlow.first() == routine2Compo)
     }
 
 
@@ -105,20 +91,17 @@ internal class AddTimeRoutineTest : BaseRoomTest() {
      * 중복된 타임 슬롯 id를 저장할 경우. Exception발생.
      */
     @Test(expected = Exception::class)
-    fun addTimeSlot_duplicateUuid_shouldThrowException() {
-        runTest {
-            val routine1 = testFixtures.routineCompoMonTue
-            val routine2 = testFixtures.routineCompoWedThu.copy(
-                timeSlots = listOf(
-                    listOf(routine1.timeSlots.first()),
-                    testFixtures.routineCompoWedThu.timeSlots
-                ).flatten()
-            )
+    fun addTimeSlot_duplicateUuid_shouldThrowException() = runTest {
+        val routine1 = testFixtures.routineCompoMonTue
+        val routine2 = testFixtures.routineCompoWedThu.copy(
+            timeSlots = listOf(
+                listOf(routine1.timeSlots.first()),
+                testFixtures.routineCompoWedThu.timeSlots
+            ).flatten()
+        )
 
-            timeRoutineRepo.addTimeRoutineComposition(routine1)
-            timeRoutineRepo.addTimeRoutineComposition(routine2)
-
-        }
+        timeRoutineRepo.addTimeRoutineComposition(routine1)
+        timeRoutineRepo.addTimeRoutineComposition(routine2)
     }
 
 }

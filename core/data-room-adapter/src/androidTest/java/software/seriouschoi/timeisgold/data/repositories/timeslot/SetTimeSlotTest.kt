@@ -1,11 +1,8 @@
 package software.seriouschoi.timeisgold.data.repositories.timeslot
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import app.cash.turbine.testIn
-import app.cash.turbine.turbineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Test
@@ -32,30 +29,21 @@ internal class SetTimeSlotTest : BaseRoomTest() {
 
     @Test
     fun setTimeSlot_should_PersistEntityCorrectly() = runTest {
-        turbineScope {
-            val slotFotUpdate = routineForAdd1.timeSlots.first().copy(
-                title = "test_title_changed",
-                startTime = LocalTime.now().minusMinutes(10),
+        val slotFotUpdate = routineForAdd1.timeSlots.first().copy(
+            title = "test_title_changed",
+            startTime = LocalTime.now().minusMinutes(10),
+        )
+
+        val slotDetailFlow = timeSlotRepo
+            .getTimeSlotDetail(slotFotUpdate.uuid)
+
+        timeSlotRepo.setTimeSlot(
+            timeSlotData = TimeSlotComposition(
+                slotFotUpdate
             )
+        )
 
-            val turbine = timeSlotRepo
-                .getTimeSlotDetail(slotFotUpdate.uuid)
-                .testIn(backgroundScope)
-
-            backgroundScope.launch {
-                timeSlotRepo.setTimeSlot(
-                    timeSlotData = TimeSlotComposition(
-                        slotFotUpdate
-                    )
-                )
-            }
-
-            advanceUntilIdle()
-
-            val emitted = turbine.awaitItem()
-            assert(emitted?.timeSlotData == slotFotUpdate)
-
-            turbine.cancelAndIgnoreRemainingEvents()
-        }
+        val emitted = slotDetailFlow.first()
+        assert(emitted?.timeSlotData == slotFotUpdate)
     }
 }

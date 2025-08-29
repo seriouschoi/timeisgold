@@ -17,9 +17,14 @@ internal abstract class TimeSlotDao {
     @Update
     abstract fun update(timeSlots: TimeSlotSchema)
 
-    @Delete
-    abstract fun delete(entity: TimeSlotSchema)
+    @Query("""
+        DELETE FROM TimeSlotSchema 
+        WHERE uuid = :slotUuid
+    """)
+    abstract fun delete(slotUuid: String)
 
-    @Query("SELECT * FROM TimeSlotSchema WHERE uuid = :timeslotUuid")
+    @Query("""
+        SELECT * FROM TimeSlotSchema WHERE uuid = :timeslotUuid
+    """)
     abstract fun get(timeslotUuid: String): Flow<TimeSlotSchema?>
 }

@@ -14,7 +14,8 @@
   - [x] 테스트 다시 구현.
 - [x] 도메인 정의 정리. TimeRoutine과 DayOfWeek분리.
   - [x] 테스트 다시 구현.
-  - [ ] turbine남발한 영역들 제거.
+  - [x] turbine, advanceUntilIdle, backgroundScope.launch 남발한 영역들 제거.
+  - [ ] 테스트 exception 조건을 정확히 명시하기.
 
 - [ ] 정책에 dayOfWeek설정 안하고 저장 못하게, 막기.
 

@@ -2,18 +2,18 @@ package software.seriouschoi.timeisgold.data.repositories.timeslot
 
 import android.database.sqlite.SQLiteConstraintException
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import app.cash.turbine.testIn
-import app.cash.turbine.turbineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import software.seriouschoi.timeisgold.data.BaseRoomTest
+import software.seriouschoi.timeisgold.data.mapper.toTimeRoutineDayOfWeekEntity
+import software.seriouschoi.timeisgold.domain.composition.TimeRoutineComposition
 import software.seriouschoi.timeisgold.domain.composition.TimeSlotComposition
 import software.seriouschoi.timeisgold.domain.entities.TimeSlotEntity
+import java.time.DayOfWeek
 
 @RunWith(AndroidJUnit4::class)
 internal class AddTimeSlotTest : BaseRoomTest() {
@@ -34,39 +34,47 @@ internal class AddTimeSlotTest : BaseRoomTest() {
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun addTimeSlot_should_PersistEntityCorrectly() = runTest {
-        turbineScope {
-            val timeSlotTurbine = timeSlotRepo.getTimeSlotList(
+        val slotListFlow = timeSlotRepo.getTimeSlotList(
+            timeRoutineAdded.timeRoutine.uuid
+        )
+
+        val newTimeSlots =
+            testFixtures.generateTimeSlotList(startHour = 12, endHour = 13)
+
+        newTimeSlots.forEach {
+            timeSlotRepo.addTimeSlot(
+                TimeSlotComposition(it),
                 timeRoutineAdded.timeRoutine.uuid
-            ).testIn(backgroundScope)
-
-            val newTimeSlots =
-                testFixtures.generateTimeSlotList(startHour = 12, endHour = 13)
-
-            backgroundScope.launch {
-                newTimeSlots.forEach {
-                    timeSlotRepo.addTimeSlot(
-                        TimeSlotComposition(it),
-                        timeRoutineAdded.timeRoutine.uuid
-                    )
-                }
-            }
-            advanceUntilIdle()
-
-            val isAddedNewSlots = timeSlotTurbine.awaitItem().all { it: TimeSlotEntity ->
-                newTimeSlots.contains(
-                    it
-                )
-            }
-            assert(isAddedNewSlots)
-
-            timeSlotTurbine.cancelAndIgnoreRemainingEvents()
+            )
         }
+
+        val emitted = slotListFlow.first()
+        val isAddedNewSlots = emitted.all { it: TimeSlotEntity ->
+            newTimeSlots.contains(
+                it
+            )
+        }
+        assert(isAddedNewSlots)
+
     }
 
+    // TODO: jhchoi 2025. 8. 29. 이거 다른 코드 찾아서, exception 타입 명시해야겠다.
+    /*
+    다른 로직에 의해 오류가 나는건데 의도된 오류로 착각하면 테스트 의미가 없음.
+     */
     @Test(expected = SQLiteConstraintException::class)
     fun addTimeSlot_duplicateUuid_shouldThrowException() {
         runTest {
-            val routine1 = timeRoutineAdded
+            //test data 준비.
+            val routine1 = TimeRoutineComposition(
+                timeRoutine = testFixtures.routineCompoMonTue.timeRoutine,
+                timeSlots = testFixtures.generateTimeSlotList(startHour = 12, endHour = 13),
+                dayOfWeeks = listOf(DayOfWeek.SATURDAY).map {
+                    it.toTimeRoutineDayOfWeekEntity()
+                }.toSet()
+            )
+            timeRoutineRepo.addTimeRoutineComposition(routine1)
+
             val duplicatedSlot = routine1.timeSlots.first().copy(
                 title = "new slot",
                 createTime = System.currentTimeMillis()

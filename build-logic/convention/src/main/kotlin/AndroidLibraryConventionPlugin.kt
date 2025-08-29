@@ -55,9 +55,8 @@ class AndroidLibraryConventionPlugin : Plugin<Project> {
                 //for log.
                 implementation(target.libs, "timber")
 
-                //for flow test.
-                testImplementation(target.libs, "app.cash.turbine")
-                androidTestImplementation(target.libs, "app.cash.turbine")
+                implementation(target.libs, "gson")
+
             }
         }
     }

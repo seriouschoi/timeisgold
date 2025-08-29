@@ -23,26 +23,21 @@ internal class DeleteTimeRoutineTest : BaseRoomTest() {
 
     @Test
     fun deleteTimeRoutine_should_allRelationData() = runTest {
-
         //루틴 1 삭제.
         timeRoutineRepo.deleteTimeRoutine(timeRoutineUuid = routine1.timeRoutine.uuid)
 
-        //루틴 1 삭제 확인.
-        val emittedRoutine1 =
-            timeRoutineRepo.getTimeRoutineCompositionByUuid(routine1.timeRoutine.uuid).first()
-        assert(emittedRoutine1 == null) { "routine1 is not deleted" }
+        val routine1Flow = timeRoutineRepo.getTimeRoutineCompositionByUuid(routine1.timeRoutine.uuid)
+        val routine2Flow = timeRoutineRepo.getTimeRoutineCompositionByUuid(routine2.timeRoutine.uuid)
 
-        val emittedRoutine2 =
-            timeRoutineRepo.getTimeRoutineCompositionByUuid(routine2.timeRoutine.uuid).first()
-        assert(emittedRoutine2 == routine2) { "routine2 is deleted" }
+        val routine1SlotFlow = timeSlotRepo.getTimeSlotList(routine1.timeRoutine.uuid)
+        val routine2SlotFlow = timeSlotRepo.getTimeSlotList(routine2.timeRoutine.uuid)
+
+        //루틴 1 삭제 확인.
+        assert(routine1Flow.first() == null) { "routine1 is not deleted" }
+        assert(routine1SlotFlow.first().isEmpty()) { "routine1 time slot is not deleted" }
 
         //루틴 2 유지 확인.
-        val emittedRoutine1TimeSlots =
-            timeSlotRepo.getTimeSlotList(routine1.timeRoutine.uuid).first()
-        assert(emittedRoutine1TimeSlots.isEmpty()) { "routine1 time slot is not deleted" }
-
-        val emittedRoutine2TimeSlots =
-            timeSlotRepo.getTimeSlotList(routine2.timeRoutine.uuid).first()
-        assert(emittedRoutine2TimeSlots == routine2.timeSlots) { "routine2 time slot is deleted" }
+        assert(routine2Flow.first() == routine2) { "routine2 is deleted" }
+        assert(routine2SlotFlow.first() == routine2.timeSlots) { "routine2 time slot is deleted" }
     }
 }

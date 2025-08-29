@@ -1,10 +1,7 @@
 package software.seriouschoi.timeisgold.data.repositories.timeslot
 
-import app.cash.turbine.testIn
-import app.cash.turbine.turbineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Test
@@ -28,31 +25,23 @@ internal class DeleteTimeSlotTest : BaseRoomTest() {
 
     @Test
     fun deleteTimeSlot_should_DeletedTimeSlotAndMemo() = runTest {
-        turbineScope {
-            val timeSlotsTurbine = timeSlotRepo
-                .getTimeSlotList(timeRoutine1Saved.timeRoutine.uuid)
-                .testIn(backgroundScope)
+        val timeSlotsFlow = timeSlotRepo
+            .getTimeSlotList(timeRoutine1Saved.timeRoutine.uuid)
 
-            val slotForDelete = timeRoutine1Saved.timeSlots.first()
-            val slotForNotDelete = timeRoutine1Saved.timeSlots.last()
+        val slotForDelete = timeRoutine1Saved.timeSlots.first()
+        val slotForNotDelete = timeRoutine1Saved.timeSlots.last()
 
-            backgroundScope.launch {
-                timeSlotRepo.deleteTimeSlot(slotForDelete.uuid)
-            }
+        timeSlotRepo.deleteTimeSlot(slotForDelete.uuid)
 
-            advanceUntilIdle()
 
-            val emitted = timeSlotsTurbine.awaitItem()
-            val isExistSlotForDelete = emitted.any {
-                it == slotForDelete
-            }
-            val isExistSlotForNotDelete = emitted.any {
-                it == slotForNotDelete
-            }
-            assert(!isExistSlotForDelete)
-            assert(isExistSlotForNotDelete)
-
-            timeSlotsTurbine.cancelAndIgnoreRemainingEvents()
+        val emitted = timeSlotsFlow.first()
+        val isExistSlotForDelete = emitted.any {
+            it == slotForDelete
         }
+        val isExistSlotForNotDelete = emitted.any {
+            it == slotForNotDelete
+        }
+        assert(!isExistSlotForDelete)
+        assert(isExistSlotForNotDelete)
     }
 }

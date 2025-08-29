@@ -38,9 +38,6 @@ class KotlinLibraryConventionPlugin : Plugin<Project> {
                 implementation(target.libs, "javax.inject")
                 implementation(target.libs, "coroutine")
                 testImplementation(target.libs, "coroutine.test")
-
-                //for flow test.
-                testImplementation(target.libs, "app.cash.turbine")
             }
         }
     }

@@ -56,11 +56,7 @@ internal class TimeSlotRepositoryAdapter @Inject constructor(
 
     override suspend fun deleteTimeSlot(timeslotUuid: String) {
         database.withTransaction {
-            val timeSlot =
-                database.TimeSlotDao().get(timeslotUuid).first() ?: return@withTransaction
-
-            //delete entities
-            database.TimeSlotDao().delete(timeSlot)
+            database.TimeSlotDao().delete(timeslotUuid)
         }
     }
 

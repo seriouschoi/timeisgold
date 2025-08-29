@@ -1,16 +1,18 @@
 package software.seriouschoi.timeisgold.data.repositories.timeroutine
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import app.cash.turbine.testIn
-import app.cash.turbine.turbineScope
+import com.google.gson.Gson
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import software.seriouschoi.timeisgold.data.BaseRoomTest
+import software.seriouschoi.timeisgold.data.mapper.toTimeRoutineDayOfWeekEntity
+import software.seriouschoi.timeisgold.domain.composition.TimeRoutineComposition
+import java.time.DayOfWeek
+import kotlin.test.todo
 
 /**
  * Created by jhchoi on 2025. 8. 7.
@@ -18,48 +20,47 @@ import software.seriouschoi.timeisgold.data.BaseRoomTest
  */
 @RunWith(AndroidJUnit4::class)
 internal class SetTimeRoutineTest : BaseRoomTest() {
-    val routineComposition = testFixtures.routineCompoMonTue
+    val savedRoutineCompoMonTue = testFixtures.routineCompoMonTue
 
     @Before
     fun setup() {
         runTest {
-            timeRoutineRepo.addTimeRoutineComposition(routineComposition)
+            timeRoutineRepo.addTimeRoutineComposition(savedRoutineCompoMonTue)
         }
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun setTimeRoutine_changeTitleTimeslotDayOfWeek_shouldCollectChanged() = runTest {
-        turbineScope {
-            val routine = routineComposition
-            val routineTurbine = timeRoutineRepo
-                .getTimeRoutineByDayOfWeek(routine.dayOfWeeks.first().dayOfWeek)
-                .testIn(backgroundScope)
+        val routineCompoMonTue = savedRoutineCompoMonTue
+        val routineFlow = timeRoutineRepo
+            .getTimeRoutineCompositionByUuid(routineCompoMonTue.timeRoutine.uuid)
 
-            val newRoutine = routine.let {
-                testFixtures.routineCompoWedThu.copy(
-                    dayOfWeeks = it.dayOfWeeks
-                )
-                val routine = it.timeRoutine.copy(
-                    title = "new title",
-                    createTime = System.currentTimeMillis()
-                )
-                it.copy(
-                    timeRoutine = routine,
-                    timeSlots = emptyList()
-                )
-            }
-            backgroundScope.launch {
+        val routineCompoForUpdate = routineCompoMonTue.copy(
+            timeRoutine = routineCompoMonTue.timeRoutine.copy(
+                title = "new title"
+            ),
+            timeSlots = testFixtures.generateTimeSlotList(10, 14),
+            dayOfWeeks = listOf(DayOfWeek.SATURDAY).map {
+                it.toTimeRoutineDayOfWeekEntity()
+            }.toSet()
+        )
 
-                timeRoutineRepo.setTimeRoutineComposition(newRoutine)
-            }
+        timeRoutineRepo.setTimeRoutineComposition(routineCompoForUpdate)
 
-            advanceUntilIdle()
-
-            assert(routineTurbine.awaitItem() == newRoutine)
-            assert(routineTurbine.awaitItem() != routine)
-
-            routineTurbine.cancelAndIgnoreRemainingEvents()
+        val gson = Gson()
+        // TODO: jhchoi 2025. 8. 29. test failed.
+        val routineEmitted: TimeRoutineComposition? = routineFlow.first()
+        assert(routineEmitted != routineCompoMonTue) { "update not working"}
+        assert(routineEmitted == routineCompoForUpdate) {
+            """
+                update failed.
+                .timeRoutine same? : ${routineEmitted?.timeRoutine == routineCompoForUpdate.timeRoutine}
+                .dayOfWeeks same? : ${routineEmitted?.dayOfWeeks == routineCompoForUpdate.dayOfWeeks}
+                .timeSlots same? : ${routineEmitted?.timeSlots == routineCompoForUpdate.timeSlots}
+                
+                routineEmitted: ${gson.toJson(routineEmitted)}
+            """.trimIndent()
         }
     }
 
@@ -70,24 +71,22 @@ internal class SetTimeRoutineTest : BaseRoomTest() {
      * 이 상태에 루틴2의 슬롯에 루틴1의 슬롯의 일부 요소를 넣어서 저장하려고 하면 오류가 나야함.
      */
     @Test(expected = Exception::class)
-    fun setTimeSlot_duplicateUuid_shouldThrowException() {
-        runTest {
-            val routine2 = testFixtures.routineCompoWedThu
-            timeRoutineRepo.addTimeRoutineComposition(routine2)
+    fun setTimeSlot_duplicateUuid_shouldThrowException() = runTest {
+        val routineCompoWedThu = testFixtures.routineCompoWedThu
+        timeRoutineRepo.addTimeRoutineComposition(routineCompoWedThu)
 
-            //루틴1과 중복된 요소가 있는 슬롯 목록을 생성.
-            val newSlots = routine2.timeSlots.toMutableList().apply {
-                this.add(routineComposition.timeSlots.first())
-            }.toList()
+        //루틴1과 중복된 요소가 있는 슬롯 목록을 생성.
+        val newSlots = routineCompoWedThu.timeSlots.toMutableList().apply {
+            this.add(savedRoutineCompoMonTue.timeSlots.first())
+        }.toList()
 
-            //루틴2에 중복 요소가 있는 슬롯을 저장.
-            val routine2ForUpdate = routine2.copy(
-                timeSlots = newSlots
-            )
+        //루틴2에 중복 요소가 있는 슬롯을 저장.
+        val routine2ForUpdate = routineCompoWedThu.copy(
+            timeSlots = newSlots
+        )
 
-            //Excpetion발생.
-            timeRoutineRepo.setTimeRoutineComposition(routine2ForUpdate)
-        }
+        //Excpetion발생.
+        timeRoutineRepo.setTimeRoutineComposition(routine2ForUpdate)
     }
 
     @Test

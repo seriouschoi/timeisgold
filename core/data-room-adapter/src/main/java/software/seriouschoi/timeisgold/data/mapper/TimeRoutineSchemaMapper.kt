@@ -3,7 +3,7 @@ package software.seriouschoi.timeisgold.data.mapper
 import software.seriouschoi.timeisgold.data.database.schema.TimeRoutineSchema
 import software.seriouschoi.timeisgold.domain.entities.TimeRoutineEntity
 
-internal fun TimeRoutineEntity.toTimeRoutineSchemaSchema(id:Long?): TimeRoutineSchema {
+internal fun TimeRoutineEntity.toTimeRoutineSchema(id:Long?): TimeRoutineSchema {
     return TimeRoutineSchema(
         uuid = this.uuid,
         title = this.title,
@@ -12,7 +12,7 @@ internal fun TimeRoutineEntity.toTimeRoutineSchemaSchema(id:Long?): TimeRoutineS
     )
 }
 
-internal fun TimeRoutineSchema.schemaToTimeRoutineEntity(): TimeRoutineEntity {
+internal fun TimeRoutineSchema.toTimeRoutineEntity(): TimeRoutineEntity {
     return TimeRoutineEntity(
         uuid = this.uuid,
         title = this.title,

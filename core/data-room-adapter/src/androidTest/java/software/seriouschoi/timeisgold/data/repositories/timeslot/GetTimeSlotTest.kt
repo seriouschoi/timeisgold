@@ -1,8 +1,8 @@
 package software.seriouschoi.timeisgold.data.repositories.timeslot
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import app.cash.turbine.testIn
-import app.cash.turbine.turbineScope
+import com.google.gson.Gson
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Test
@@ -18,7 +18,8 @@ import kotlin.test.assertNull
 @RunWith(AndroidJUnit4::class)
 internal class GetTimeSlotTest : BaseRoomTest() {
 
-    val routine = testFixtures.routineCompoMonTue
+    private val routine = testFixtures.routineCompoMonTue
+    private val gson = Gson()
 
     @Before
     fun setup() {
@@ -32,15 +33,11 @@ internal class GetTimeSlotTest : BaseRoomTest() {
      */
     @Test
     fun getTimeSlotList_should_ReturnTimeSlotList() = runTest {
-        turbineScope {
-            val timeSlotTurbine =
-                timeSlotRepo.getTimeSlotList(routine.timeRoutine.uuid).testIn(backgroundScope)
+        val slotListFlow =
+            timeSlotRepo.getTimeSlotList(routine.timeRoutine.uuid)
 
-            val timeSlotList = timeSlotTurbine.awaitItem()
-            assert(timeSlotList == routine.timeSlots)
-
-            timeSlotTurbine.cancelAndIgnoreRemainingEvents()
-        }
+        val emitted = slotListFlow.first()
+        assert(emitted == routine.timeSlots)
     }
 
     /**
@@ -48,17 +45,18 @@ internal class GetTimeSlotTest : BaseRoomTest() {
      */
     @Test
     fun getTimeSlot_should_ReturnTimeSlot() = runTest {
-        turbineScope {
-            val timeSlot = routine.timeSlots.first()
-            val timeSlotTurbine = timeSlotRepo.getTimeSlotDetail(timeSlot.uuid).testIn(
-                backgroundScope
-            )
+        val timeSlot = routine.timeSlots.first()
+        val slotFlow = timeSlotRepo.getTimeSlotDetail(timeSlot.uuid)
 
-            val emitted = timeSlotTurbine.awaitItem()
-            assert(timeSlot == emitted)
-
-            timeSlotTurbine.cancelAndIgnoreRemainingEvents()
+        val emitted = slotFlow.first()
+        assert(timeSlot == emitted?.timeSlotData) {
+            """
+                    get timeslot failed.
+                    emitted: ${gson.toJson(emitted)}
+                    source: ${gson.toJson(timeSlot)}
+                """.trimIndent()
         }
+
     }
 
     /**
@@ -66,14 +64,9 @@ internal class GetTimeSlotTest : BaseRoomTest() {
      */
     @Test
     fun getTimeSlot_withDeletedTimeSlot_should_ReturnNull() = runTest {
-        turbineScope {
-            //없는 데이터상태 요청.
-            val turbine = timeSlotRepo.getTimeSlotDetail(UUID.randomUUID().toString()).testIn(
-                backgroundScope
-            )
+        //없는 데이터상태 요청.
+        val slotFlow = timeSlotRepo.getTimeSlotDetail(UUID.randomUUID().toString())
 
-            assertNull(turbine.awaitItem())
-            turbine.cancelAndIgnoreRemainingEvents()
-        }
+        assertNull(slotFlow.first())
     }
 }
