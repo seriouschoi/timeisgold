@@ -2,7 +2,7 @@ name: Emulator Boot Smoke
 on: workflow_dispatch
 jobs:
   boot:
-    runs-on: macos-13
+    runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
@@ -12,20 +12,17 @@ jobs:
 
       - run: $ANDROID_HOME/emulator/emulator -version || true
 
-      - name: Start emulator (Intel x86_64)
+      - name: Start emulator
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 33
-          target: google_apis
+          target: default
           arch: x86_64
-          avd-name: ci-api33-x86
-          cores: 2
-          ram-size: 2048
-          heap-size: 384M
+          profile: pixel_6
           force-avd-creation: true
           emulator-options: >-
             -no-window -gpu swiftshader_indirect -no-boot-anim
-            -no-snapshot -no-snapshot-load -no-snapshot-save -wipe-data
+            -no-snapshot -noaudio -no-boot-anim -camera-back none -camera-front none
             -accel on
           emulator-boot-timeout: 600000
           channel: stable
