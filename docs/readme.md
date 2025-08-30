@@ -10,21 +10,24 @@
 - 시간 슬롯별 메모 관리
 - 루틴 알림에서 빠르게 수행여부를 눌러서, 수행률 트래킹.
 
-### 아키텍쳐
-- :app - DI구성, NavHost
-- :core - 공용 인프라. 도메인, data, logger등.
-- :feature - 기능
+### 구조
+- [:app](/app) - DI구성, NavHost, 앱 오케스트레이션.
+- [:core](/core) - 공용 인프라. 도메인, data, logger등.
+- [:feature](/feature) - 기능, 화면(기능)
+- [:build-logic](/build-logic) - gradle build 설정 등.
 
 
 ### 프로젝트 구현 흐름.
-이 프로젝트는 DDD를 기반으로 도메인 설계를 우선한 뒤,
-이를 Clean Architecture 패턴으로 계층 분리하여 구성하였습니다.
 
-그 과정에서 테스트 가능한 구조가 자연스럽게 도출되었으며,
-도메인 유스케이스와 상태 전이를 기준으로 ViewModel을 구성하고,
-MVVM + UDF(Unidirectional Data Flow) 형태로 UI에 반영하였습니다.
+이 프로젝트는 NIA프로젝트를 참고하여, 권장아키텍쳐로 개발하였습니다.  
+그 과정에서 테스트 가능한 구조가 자연스럽게 도출되었으며,  
+도메인 유스케이스와 상태 전이를 기준으로 ViewModel을 구성하고,  
+MVVM + UDF(Unidirectional Data Flow) 형태로 UI에 반영하고 있습니다.
 
-TDD는 목표보다는 DDD를 구현하는 과정에서 부가적으로 얻게된 이득이었습니다.
+Domain Driven Dev, Test Driven Dev는  
+이 과정에서 필요할때 쓰는 방법론으로 사용했으며,  
+특정 주도 개발 보다는 원하는 기능의 결합도를 고민하는 것에   
+중심을 두고 개발하고 있습니다.  
 
-### 학습 자료
+### 학습 자료 모음
 [:doc:study](study)
