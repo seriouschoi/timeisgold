@@ -17,7 +17,7 @@ concurrency:
 
 jobs:
   connected:
-    runs-on: macos-13
+    runs-on: ubuntu-latest
     timeout-minutes: 60
 
     steps:
