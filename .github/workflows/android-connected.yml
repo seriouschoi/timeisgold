@@ -1,5 +1,6 @@
 name: Android Connected Tests
 on:
+  workflow_dispatch: {}
   pull_request:
     branches: [ master ]
     types: [opened, synchronize, reopened, ready_for_review, labeled]
@@ -9,7 +10,6 @@ on:
     paths-ignore: [ '**.md', 'docs/**' ]
   schedule:
     - cron: '0 18 * * *'   # 매일 03:00 KST (UTC 18:00)
-  workflow_dispatch: {}
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -35,19 +35,14 @@ jobs:
           api-level: 33
           target: default
           arch: x86_64
-          avd-name: ci-api33-x86
-          cores: 2
-          ram-size: 2048
-          heap-size: 384M
+          profile: pixel_2
           force-avd-creation: true
           emulator-options: >-
             -no-window -gpu swiftshader_indirect -no-boot-anim
-            -no-snapshot -no-snapshot-load -no-snapshot-save -wipe-data
-            -no-audio -camera-back none -camera-front none
+            -no-snapshot -noaudio -no-boot-anim -camera-back none -camera-front none
             -accel on
           emulator-boot-timeout: 600000
           channel: stable
-          disable-animations: true
           script: |
             adb wait-for-device
             adb shell 'while [[ -z "$(getprop sys.boot_completed)" ]]; do sleep 1; done; input keyevent 82'
