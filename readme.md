@@ -11,10 +11,10 @@
 - 루틴 알림에서 빠르게 수행여부를 눌러서, 수행률 트래킹.
 
 ### 구조
-- [:app](/app) - DI구성, NavHost, 앱 오케스트레이션.
-- [:core](/core) - 공용 인프라. 도메인, data, logger등.
-- [:feature](/feature) - 기능, 화면(기능)
-- [:build-logic](/build-logic) - gradle build 설정 등.
+- [:app](/) - DI구성, NavHost, 앱 오케스트레이션.
+- [:core](/) - 공용 인프라. 도메인, data, logger등.
+- [:feature](/) - 기능, 화면(기능)
+- [:build-logic](/) - gradle build 설정 등.
 
 
 ### 프로젝트 구현 흐름.
@@ -30,4 +30,4 @@ Domain Driven Dev, Test Driven Dev는
 중심을 두고 개발하고 있습니다.  
 
 ### 학습 자료 모음
-[:doc:study](study)
+[:doc:study](/docs/study)
