@@ -1,7 +1,7 @@
 package software.seriouschoi.timeisgold.domain.usecase.timeroutine
 
 import kotlinx.coroutines.flow.Flow
-import software.seriouschoi.timeisgold.domain.composition.TimeRoutineComposition
+import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineComposition
 import software.seriouschoi.timeisgold.domain.port.TimeRoutineRepositoryPort
 import java.time.DayOfWeek
 import javax.inject.Inject

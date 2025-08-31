@@ -1,11 +1,11 @@
 package software.seriouschoi.timeisgold.domain.fixture
 
 import software.seriouschoi.software.seriouschoi.util.localtime.toEpochMillis
-import software.seriouschoi.timeisgold.domain.composition.TimeRoutineComposition
-import software.seriouschoi.timeisgold.domain.composition.TimeSlotComposition
-import software.seriouschoi.timeisgold.domain.entities.TimeRoutineDayOfWeekEntity
-import software.seriouschoi.timeisgold.domain.entities.TimeRoutineEntity
-import software.seriouschoi.timeisgold.domain.entities.TimeSlotEntity
+import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineComposition
+import software.seriouschoi.timeisgold.domain.data.composition.TimeSlotComposition
+import software.seriouschoi.timeisgold.domain.data.entities.TimeRoutineDayOfWeekEntity
+import software.seriouschoi.timeisgold.domain.data.entities.TimeRoutineEntity
+import software.seriouschoi.timeisgold.domain.data.entities.TimeSlotEntity
 import java.time.DayOfWeek
 import java.time.LocalDateTime
 import java.time.LocalTime

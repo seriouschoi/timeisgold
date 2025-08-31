@@ -1,7 +1,7 @@
 package software.seriouschoi.timeisgold.data.mapper
 
 import software.seriouschoi.timeisgold.data.database.schema.TimeRoutineSchema
-import software.seriouschoi.timeisgold.domain.entities.TimeRoutineEntity
+import software.seriouschoi.timeisgold.domain.data.entities.TimeRoutineEntity
 
 internal fun TimeRoutineEntity.toTimeRoutineSchema(id:Long?): TimeRoutineSchema {
     return TimeRoutineSchema(

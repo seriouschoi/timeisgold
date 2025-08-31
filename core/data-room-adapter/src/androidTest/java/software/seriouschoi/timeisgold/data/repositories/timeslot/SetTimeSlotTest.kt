@@ -8,7 +8,7 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import software.seriouschoi.timeisgold.data.BaseRoomTest
-import software.seriouschoi.timeisgold.domain.composition.TimeSlotComposition
+import software.seriouschoi.timeisgold.domain.data.composition.TimeSlotComposition
 import java.time.LocalTime
 
 /**

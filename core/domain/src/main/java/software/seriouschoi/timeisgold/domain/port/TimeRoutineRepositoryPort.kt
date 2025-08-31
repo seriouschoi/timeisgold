@@ -1,8 +1,8 @@
 package software.seriouschoi.timeisgold.domain.port
 
 import kotlinx.coroutines.flow.Flow
-import software.seriouschoi.timeisgold.domain.composition.TimeRoutineComposition
-import software.seriouschoi.timeisgold.domain.entities.TimeRoutineEntity
+import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineComposition
+import software.seriouschoi.timeisgold.domain.data.entities.TimeRoutineEntity
 import java.time.DayOfWeek
 
 interface TimeRoutineRepositoryPort {

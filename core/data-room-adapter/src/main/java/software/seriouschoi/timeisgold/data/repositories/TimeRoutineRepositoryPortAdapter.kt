@@ -16,17 +16,17 @@ import software.seriouschoi.timeisgold.data.mapper.toTimeRoutineEntity
 import software.seriouschoi.timeisgold.data.mapper.toTimeRoutineSchema
 import software.seriouschoi.timeisgold.data.mapper.toTimeSlotEntity
 import software.seriouschoi.timeisgold.data.mapper.toTimeSlotSchema
-import software.seriouschoi.timeisgold.domain.composition.TimeRoutineComposition
-import software.seriouschoi.timeisgold.domain.entities.TimeRoutineDayOfWeekEntity
-import software.seriouschoi.timeisgold.domain.entities.TimeRoutineEntity
-import software.seriouschoi.timeisgold.domain.entities.TimeSlotEntity
+import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineComposition
+import software.seriouschoi.timeisgold.domain.data.entities.TimeRoutineDayOfWeekEntity
+import software.seriouschoi.timeisgold.domain.data.entities.TimeRoutineEntity
+import software.seriouschoi.timeisgold.domain.data.entities.TimeSlotEntity
 import software.seriouschoi.timeisgold.domain.port.TimeRoutineRepositoryPort
 import timber.log.Timber
 import java.time.DayOfWeek
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
-internal class TimeRoutineRepositoryAdapter @Inject constructor(
+internal class TimeRoutineRepositoryPortAdapter @Inject constructor(
     private val appDatabase: AppDatabase
 ) : TimeRoutineRepositoryPort {
     override suspend fun addTimeRoutineComposition(timeRoutine: TimeRoutineComposition) {

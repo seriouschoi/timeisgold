@@ -1,6 +1,6 @@
 package software.seriouschoi.timeisgold.domain.policy
 
-import software.seriouschoi.timeisgold.domain.entities.TimeSlotEntity
+import software.seriouschoi.timeisgold.domain.data.entities.TimeSlotEntity
 import software.seriouschoi.timeisgold.domain.exception.TIGException
 
 class TimeSlotPolicy {

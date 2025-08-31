@@ -1,4 +1,4 @@
-package software.seriouschoi.timeisgold.domain.entities
+package software.seriouschoi.timeisgold.domain.data.entities
 
 import java.time.LocalTime
 
