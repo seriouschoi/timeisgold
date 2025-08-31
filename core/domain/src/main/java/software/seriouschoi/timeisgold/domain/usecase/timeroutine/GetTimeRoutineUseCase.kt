@@ -7,9 +7,9 @@ import java.time.DayOfWeek
 import javax.inject.Inject
 
 class GetTimeRoutineUseCase @Inject constructor(
-    private val timeRoutineRepositoryPort: TimeRoutineRepositoryPort
+    private val timeRoutineRepositoryPort: TimeRoutineRepositoryPort,
 ) {
-    operator fun invoke(week: DayOfWeek) : Flow<TimeRoutineComposition?> {
-        return timeRoutineRepositoryPort.getTimeRoutineCompositionByDayOfWeek(week)
+    operator fun invoke(dayOfWeek: DayOfWeek): Flow<TimeRoutineComposition?> {
+        return timeRoutineRepositoryPort.getTimeRoutineCompositionByDayOfWeek(dayOfWeek)
     }
 }

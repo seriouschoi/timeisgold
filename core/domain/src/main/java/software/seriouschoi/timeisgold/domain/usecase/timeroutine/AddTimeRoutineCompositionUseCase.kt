@@ -7,7 +7,8 @@ import software.seriouschoi.timeisgold.domain.port.TimeRoutineRepositoryPort
 import java.time.DayOfWeek
 import javax.inject.Inject
 
-class AddTimeRoutineUseCase @Inject constructor(
+@Deprecated("use set time routine use case")
+class AddTimeRoutineCompositionUseCase @Inject constructor(
     private val timeRoutineRepositoryPort: TimeRoutineRepositoryPort,
     private val timeRoutinePolicy: TimeRoutinePolicy
 ) {

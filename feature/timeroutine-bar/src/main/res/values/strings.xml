@@ -1,1 +1,6 @@
-<resources></resources>
+<resources>
+    <string name="message_routine_create_confirm">%1$s 루틴을 만들까요?</string>
+    <string name="message_routine_loading">%1$s 루틴을 불러오는 중…</string>
+    <string name="message_routine_edit_cancel">입력하신 루틴의 등록을 취소하시겠습니까?</string>
+    <string name="message_routine_edit_confirm">입력하신 루틴을 저장하시겠습니까?</string>
+</resources>

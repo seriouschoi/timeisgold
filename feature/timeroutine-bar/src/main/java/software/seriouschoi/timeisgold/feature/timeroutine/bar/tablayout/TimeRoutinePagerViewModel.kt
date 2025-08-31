@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import software.seriouschoi.navigator.DestNavigatorPort
 import java.time.DayOfWeek
 import javax.inject.Inject
 
@@ -13,8 +14,9 @@ import javax.inject.Inject
  * jhchoi
  */
 @HiltViewModel
-internal class TimeRoutineTabBarViewModel @Inject constructor(
-    private val saved: SavedStateHandle
+internal class TimeRoutinePagerViewModel @Inject constructor(
+    private val saved: SavedStateHandle,
+    private val navigator: DestNavigatorPort,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(TimeRoutineTabBarUiState())
     val uiState = _uiState.asStateFlow()

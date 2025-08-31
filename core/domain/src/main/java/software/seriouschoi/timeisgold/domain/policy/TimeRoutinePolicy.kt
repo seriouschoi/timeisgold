@@ -1,7 +1,5 @@
 package software.seriouschoi.timeisgold.domain.policy
 
-import software.seriouschoi.timeisgold.domain.composition.TimeRoutineComposition
-import software.seriouschoi.timeisgold.domain.entities.TimeRoutineEntity
 import software.seriouschoi.timeisgold.domain.exception.TIGException
 import java.time.DayOfWeek
 
@@ -12,9 +10,9 @@ import java.time.DayOfWeek
 class TimeRoutinePolicy {
     fun checkCanAdd(
         existingDays: List<DayOfWeek>,
-        timeRoutine: TimeRoutineComposition
+        newRoutineDays: List<DayOfWeek>
     ) {
-        val newDays = timeRoutine.dayOfWeeks.map { it.dayOfWeek }.toSet()
+        val newDays = newRoutineDays.toSet()
         val conflictDays = existingDays.filter {
             newDays.contains(it)
         }
