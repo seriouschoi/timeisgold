@@ -10,5 +10,5 @@ sealed class TIGException : Exception() {
 
     class TimeRoutineNotFound(val timeRoutineUuid: String) : TIGException()
     class TimeSlotConflict(val timeSlotDataForAdd: TimeSlotEntity) : TIGException()
-
+    class EmptyDayOfWeeks : TIGException()
 }
