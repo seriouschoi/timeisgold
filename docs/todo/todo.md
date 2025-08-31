@@ -1,5 +1,6 @@
 # TODOs
 - [ ] 정책에 dayOfWeek설정 안하고 저장 못하게, 막기.
+- [ ] 테스트 커버리지 도구 도입.
 
 - [ ] 화면 작업. 
   - [ ] :presentation을 :feature 서브 모듈들로 쪼개야함.

@@ -7,10 +7,12 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import software.seriouschoi.navigator.DestNavigatorPort
 import software.seriouschoi.timeisgold.core.common.ui.ResultState
 import software.seriouschoi.timeisgold.core.common.ui.asResultState
 import software.seriouschoi.timeisgold.domain.composition.TimeRoutineComposition
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.GetTimeRoutineUseCase
+import software.seriouschoi.timeisgold.feature.timeroutine.bar.create.TimeRoutineEditScreenDest
 import java.time.DayOfWeek
 import java.time.LocalTime
 import javax.inject.Inject
@@ -22,6 +24,7 @@ import javax.inject.Inject
 @HiltViewModel
 internal class TimeRoutinePageViewModel @Inject constructor(
     val getTimeRoutineUseCase: GetTimeRoutineUseCase,
+    val navigator: DestNavigatorPort,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow<TimeRoutineUiState>(TimeRoutineUiState.Loading)
     val uiState = _uiState.asStateFlow()
@@ -45,9 +48,9 @@ internal class TimeRoutinePageViewModel @Inject constructor(
     }
 
     private fun onCollectedIntent(intent: TimeRoutineIntent) {
-        when(intent) {
+        when (intent) {
             is TimeRoutineIntent.CreateRoutine -> {
-                // TODO: show routine create page.
+                navigator.navigate(TimeRoutineEditScreenDest(intent.dayOfWeek))
             }
         }
     }

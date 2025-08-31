@@ -1,8 +1,6 @@
 package software.seriouschoi.timeisgold.feature.timeroutine.bar.tablayout
 
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -17,7 +15,6 @@ import kotlinx.serialization.Serializable
 import software.seriouschoi.navigator.NavigatorDest
 import software.seriouschoi.timeisgold.core.common.ui.InfiniteHorizontalPager
 import software.seriouschoi.timeisgold.feature.timeroutine.bar.timeroutine.TimeRoutinePage
-import kotlin.collections.get
 
 /**
  * Created by jhchoi on 2025. 8. 26.
@@ -25,17 +22,18 @@ import kotlin.collections.get
  */
 
 @Serializable
-internal data object TimeRoutineTabBarScreenDest : NavigatorDest
+internal data object TimeRoutinePagerScreenDest : NavigatorDest {
+    fun routes(navGraphBuilder: NavGraphBuilder) {
+        navGraphBuilder.composable<TimeRoutinePagerScreenDest> {
+            TimeRoutinePagerScreen()
+        }
 
-internal fun NavGraphBuilder.tabBar() {
-    composable<TimeRoutineTabBarScreenDest> {
-        TimeRoutineTabBarScreen()
     }
 }
 
 @Composable
-internal fun TimeRoutineTabBarScreen() {
-    val viewModel: TimeRoutineTabBarViewModel = hiltViewModel()
+internal fun TimeRoutinePagerScreen() {
+    val viewModel: TimeRoutinePagerViewModel = hiltViewModel()
 
     val dayOfWeekListFlow = remember(viewModel) {
         viewModel.uiState.map { it.dayOfWeekList }.distinctUntilChanged()
@@ -43,9 +41,6 @@ internal fun TimeRoutineTabBarScreen() {
     val dayOfWeekList by dayOfWeekListFlow.collectAsStateWithLifecycle(
         initialValue = emptyList()
     )
-    if (dayOfWeekList.isEmpty()) {
-        return
-    }
 
     //페이저 순환.
     InfiniteHorizontalPager(

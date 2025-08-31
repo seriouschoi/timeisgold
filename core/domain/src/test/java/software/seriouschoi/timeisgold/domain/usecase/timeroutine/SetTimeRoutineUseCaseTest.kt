@@ -22,12 +22,12 @@ internal class SetTimeRoutineUseCaseTest {
     @Mock
     lateinit var timeRoutineRepo: TimeRoutineRepositoryPort
 
-    private lateinit var useCase: SetTimeRoutineUseCase
+    private lateinit var useCase: SetTimeRoutineCompositionUseCase
 
     @Before
     fun setup() {
         MockitoAnnotations.openMocks(this)
-        useCase = SetTimeRoutineUseCase(timeRoutineRepo, TimeRoutinePolicy())
+        useCase = SetTimeRoutineCompositionUseCase(timeRoutineRepo, TimeRoutinePolicy())
 
         runTest {
             whenever(timeRoutineRepo.getAllDayOfWeeks()).thenReturn(

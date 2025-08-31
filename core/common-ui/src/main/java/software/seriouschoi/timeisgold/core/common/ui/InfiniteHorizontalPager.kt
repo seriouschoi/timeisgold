@@ -10,6 +10,8 @@ fun InfiniteHorizontalPager(
     pageList: List<Any>,
     contentPage: @Composable (Int) -> Unit,
 ) {
+    if (pageList.isEmpty()) return
+
     val pageCount = Int.MAX_VALUE
     val startPage = remember(pageList) {
         val size = pageList.size

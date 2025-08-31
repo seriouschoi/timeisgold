@@ -58,7 +58,6 @@ internal class AddTimeSlotTest : BaseRoomTest() {
 
     }
 
-    // TODO: jhchoi 2025. 8. 29. 이거 다른 코드 찾아서, exception 타입 명시해야겠다.
     /*
     다른 로직에 의해 오류가 나는건데 의도된 오류로 착각하면 테스트 의미가 없음.
      */
