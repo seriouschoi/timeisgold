@@ -1,1 +1,4 @@
-<resources></resources>
+<resources>
+    <string name="message_routine_create_confirm">%1$s 루틴을 만들까요?</string>
+    <string name="message_routine_loading">%1$s 루틴을 불러오는 중…</string>
+</resources>

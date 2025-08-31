@@ -15,7 +15,9 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.Serializable
 import software.seriouschoi.navigator.NavigatorDest
-import software.seriouschoi.timeisgold.feature.timeroutine.bar.timeroutine.TimeRoutineLayout
+import software.seriouschoi.timeisgold.core.common.ui.InfiniteHorizontalPager
+import software.seriouschoi.timeisgold.feature.timeroutine.bar.timeroutine.TimeRoutinePage
+import kotlin.collections.get
 
 /**
  * Created by jhchoi on 2025. 8. 26.
@@ -46,26 +48,15 @@ internal fun TimeRoutineTabBarScreen() {
     }
 
     //페이저 순환.
-    val pageCount = Int.MAX_VALUE
-    val startPage = remember(dayOfWeekList) {
-        val size = dayOfWeekList.size
-        if (size == 0) 0
-        else pageCount / 2 - (pageCount / 2) % size
-    }
-
-    val pagerState = rememberPagerState(
-        initialPage = startPage,
-        pageCount = { pageCount }, //무한.
-        initialPageOffsetFraction = 0f
-    )
-    HorizontalPager(
-        state = pagerState
-    ) { page: Int ->
-        val pageIndex = page % dayOfWeekList.size
-        TimeRoutineLayout(
+    InfiniteHorizontalPager(
+        dayOfWeekList
+    ) {
+        TimeRoutinePage(
             modifier = Modifier.fillMaxSize(),
-            dayOfWeek = dayOfWeekList[pageIndex]
+            dayOfWeek = dayOfWeekList[it]
         )
     }
 }
+
+
 

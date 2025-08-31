@@ -14,9 +14,8 @@
 - [ ] 수행 기록제공을 할때, 사용자가 메모를 남기는 기능. 
   - 사진과 함께 다이어리 처럼 남기는 컨텐츠 제작도구 형태.
 
-
 ## github action.
-- [ ] android-connect에 적용된 mac 환경 제거.
+- [x] android-connect에 적용된 mac 환경 제거.
 
 시간(분) 승수
 GitHub 호스트에서 Windows 및 macOS 실행기를 실행하는 작업은 Linux 실행기의 작업이 사용하는 속도의 2~10배에 이르는 시간(분)을 사용합니다.
