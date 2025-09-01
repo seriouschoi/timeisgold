@@ -9,13 +9,13 @@ import org.mockito.Mock
 import org.mockito.MockitoAnnotations
 import org.mockito.junit.MockitoJUnitRunner
 import org.mockito.kotlin.whenever
-import software.seriouschoi.timeisgold.domain.data.entities.TimeSlotEntity
 import software.seriouschoi.timeisgold.domain.data.composition.TimeSlotComposition
+import software.seriouschoi.timeisgold.domain.data.entities.TimeSlotEntity
 import software.seriouschoi.timeisgold.domain.exception.TIGException
 import software.seriouschoi.timeisgold.domain.fixture.TimeRoutineDataFixture
-import software.seriouschoi.timeisgold.domain.policy.TimeSlotPolicy
 import software.seriouschoi.timeisgold.domain.port.TimeRoutineRepositoryPort
 import software.seriouschoi.timeisgold.domain.port.TimeSlotRepositoryPort
+import software.seriouschoi.timeisgold.domain.services.TimeSlotDomainService
 import java.time.LocalTime
 import java.util.UUID
 
@@ -37,7 +37,7 @@ class SetTimeSlotUseCaseTest {
         MockitoAnnotations.openMocks(this)
         useCase = SetTimeSlotUseCase(
             timeslotRepositoryPort = timeSlotRepo,
-            timeslotPolicy = TimeSlotPolicy()
+            timeSlotDomainService = TimeSlotDomainService(timeSlotRepo)
         )
     }
 

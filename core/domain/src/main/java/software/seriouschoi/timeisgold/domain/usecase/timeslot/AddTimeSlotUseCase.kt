@@ -1,19 +1,16 @@
 package software.seriouschoi.timeisgold.domain.usecase.timeslot
 
-import kotlinx.coroutines.flow.first
 import software.seriouschoi.timeisgold.domain.data.composition.TimeSlotComposition
-import software.seriouschoi.timeisgold.domain.policy.TimeSlotPolicy
 import software.seriouschoi.timeisgold.domain.port.TimeSlotRepositoryPort
+import software.seriouschoi.timeisgold.domain.services.TimeSlotDomainService
 import javax.inject.Inject
 
 class AddTimeSlotUseCase @Inject constructor(
     private val timeSlotRepo: TimeSlotRepositoryPort,
-    private val timeslotPolicy: TimeSlotPolicy
+    private val timeSlotDomainService: TimeSlotDomainService
 ) {
     suspend operator fun invoke(timeRoutineUuid: String, timeSlotData: TimeSlotComposition) {
-        val timeSlots = timeSlotRepo.getTimeSlotList(timeRoutineUuid).first()
-        timeslotPolicy.checkCanAdd(timeSlots, timeSlotData.timeSlotData)
-
+        timeSlotDomainService.checkCanAdd(timeRoutineUuid, timeSlotData.timeSlotData)
         timeSlotRepo.addTimeSlot(timeSlotData, timeRoutineUuid)
     }
 }
