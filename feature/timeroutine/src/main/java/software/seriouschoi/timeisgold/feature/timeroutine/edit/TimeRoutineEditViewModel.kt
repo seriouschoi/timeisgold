@@ -42,7 +42,7 @@ internal class TimeRoutineEditViewModel @Inject constructor(
     val uiEvent = _uiEvent.asSharedFlow()
 
     init {
-        val dayOfWeek = savedStateHandle.toRoute<TimeRoutineEditScreenDest>().dayOfWeek
+        val dayOfWeek = savedStateHandle.toRoute<TimeRoutineEditScreenRoute>().dayOfWeek
         viewModelScope.launch {
             getTimeRoutineUseCase(dayOfWeek).asResultState().collect {
                 onCollectedTimeRoutine(it)

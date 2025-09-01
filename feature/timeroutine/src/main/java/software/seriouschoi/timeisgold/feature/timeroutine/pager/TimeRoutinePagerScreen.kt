@@ -12,7 +12,7 @@ import androidx.navigation.compose.composable
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.Serializable
-import software.seriouschoi.navigator.NavigatorDest
+import software.seriouschoi.navigator.NavigatorRoute
 import software.seriouschoi.timeisgold.core.common.ui.InfiniteHorizontalPager
 import software.seriouschoi.timeisgold.feature.timeroutine.page.TimeRoutinePageScreen
 
@@ -22,9 +22,9 @@ import software.seriouschoi.timeisgold.feature.timeroutine.page.TimeRoutinePageS
  */
 
 @Serializable
-internal data object TimeRoutinePagerScreenDest : NavigatorDest {
+internal data object TimeRoutinePagerScreenRoute : NavigatorRoute {
     fun routes(navGraphBuilder: NavGraphBuilder) {
-        navGraphBuilder.composable<TimeRoutinePagerScreenDest> {
+        navGraphBuilder.composable<TimeRoutinePagerScreenRoute> {
             TimeRoutinePagerScreen()
         }
 

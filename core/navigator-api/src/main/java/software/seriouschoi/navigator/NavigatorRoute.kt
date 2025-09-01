@@ -1,3 +1,3 @@
 package software.seriouschoi.navigator
 
-interface NavigatorDest
+interface NavigatorRoute

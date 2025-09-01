@@ -12,7 +12,7 @@ import software.seriouschoi.timeisgold.core.common.ui.ResultState
 import software.seriouschoi.timeisgold.core.common.ui.asResultState
 import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineComposition
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.GetTimeRoutineUseCase
-import software.seriouschoi.timeisgold.feature.timeroutine.edit.TimeRoutineEditScreenDest
+import software.seriouschoi.timeisgold.feature.timeroutine.edit.TimeRoutineEditScreenRoute
 import java.time.DayOfWeek
 import java.time.LocalTime
 import javax.inject.Inject
@@ -50,7 +50,7 @@ internal class TimeRoutinePageViewModel @Inject constructor(
     private fun onCollectedIntent(intent: TimeRoutineIntent) {
         when (intent) {
             is TimeRoutineIntent.CreateRoutine -> {
-                navigator.navigate(TimeRoutineEditScreenDest(intent.dayOfWeek))
+                navigator.navigate(TimeRoutineEditScreenRoute(intent.dayOfWeek))
             }
         }
     }

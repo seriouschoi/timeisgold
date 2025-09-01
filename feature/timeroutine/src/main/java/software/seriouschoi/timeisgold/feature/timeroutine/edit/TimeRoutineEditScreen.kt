@@ -11,17 +11,17 @@ import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.Serializable
-import software.seriouschoi.navigator.NavigatorDest
+import software.seriouschoi.navigator.NavigatorRoute
 import java.time.DayOfWeek
 
 @Serializable
-internal data class TimeRoutineEditScreenDest(
+internal data class TimeRoutineEditScreenRoute(
     val dayOfWeek: DayOfWeek,
-) : NavigatorDest {
+) : NavigatorRoute {
     companion object {
         fun routes(navGraphBuilder: NavGraphBuilder) {
-            navGraphBuilder.composable<TimeRoutineEditScreenDest> { it: NavBackStackEntry ->
-                val route = it.toRoute<TimeRoutineEditScreenDest>()
+            navGraphBuilder.composable<TimeRoutineEditScreenRoute> { it: NavBackStackEntry ->
+                val route = it.toRoute<TimeRoutineEditScreenRoute>()
                 TimeRoutineEditScreen(route)
             }
         }
@@ -30,7 +30,7 @@ internal data class TimeRoutineEditScreenDest(
 
 @Composable
 internal fun TimeRoutineEditScreen(
-    dest: TimeRoutineEditScreenDest,
+    dest: TimeRoutineEditScreenRoute,
 ) {
     val viewModel = hiltViewModel<TimeRoutineEditViewModel>()
     remember(viewModel) {
