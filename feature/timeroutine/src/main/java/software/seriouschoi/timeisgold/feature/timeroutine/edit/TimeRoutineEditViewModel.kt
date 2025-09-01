@@ -1,8 +1,9 @@
-package software.seriouschoi.timeisgold.feature.timeroutine.bar.create
+package software.seriouschoi.timeisgold.feature.timeroutine.edit
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.toRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,7 +20,7 @@ import software.seriouschoi.timeisgold.domain.data.entities.TimeRoutineEntity
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.GetTimeRoutineUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.SetTimeRoutineUseCase
 import software.seriouschoi.timeisgold.feature.timeroutine.bar.R
-import software.seriouschoi.timeisgold.feature.timeroutine.bar.create.TimeRoutineEditUiEvent.ShowConfirm
+import software.seriouschoi.timeisgold.feature.timeroutine.edit.TimeRoutineEditUiEvent.ShowConfirm
 import java.lang.Exception
 import java.time.DayOfWeek
 import javax.inject.Inject
@@ -41,17 +42,15 @@ internal class TimeRoutineEditViewModel @Inject constructor(
     val uiEvent = _uiEvent.asSharedFlow()
 
     init {
-        viewModelScope.launch {
-            _uiIntent.collect {
-                onCollectedIntent(it)
-            }
-        }
-    }
-
-    fun load(dayOfWeek: DayOfWeek) {
+        val dayOfWeek = savedStateHandle.toRoute<TimeRoutineEditScreenDest>().dayOfWeek
         viewModelScope.launch {
             getTimeRoutineUseCase(dayOfWeek).asResultState().collect {
                 onCollectedTimeRoutine(it)
+            }
+        }
+        viewModelScope.launch {
+            _uiIntent.collect {
+                onCollectedIntent(it)
             }
         }
     }
@@ -173,8 +172,8 @@ internal sealed interface TimeRoutineEditUiState {
         val routineTitle: String = "",
         val dayOfWeekList: List<DayOfWeek> = emptyList(),
         val routineUuid: String? = null,
+        val loading: Boolean = false
     ) : TimeRoutineEditUiState
-
     data object Loading : TimeRoutineEditUiState
 }
 

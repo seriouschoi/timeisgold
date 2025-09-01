@@ -2,6 +2,9 @@
 - [ ] 테스트 커버리지 도구 도입.
 - [x] 정책에 dayOfWeek설정 안하고 저장 못하게, 막기.
 - [x] 타임슬롯 저장 정책을 Policy가 아닌 서비스로 전환.
+- [ ] TimeRoutineEditScreen 여기 DayOfWeek파라미터가 아니라, routine uuid로 가야지.
+  - 아 근데.. 둘다 있어야 하는구나..
+- [ ] TimeRoutineEditScreenDest 이거 이름 이상하다. 바꾸자. TimeRoutineEditScreenRoute로.
 
 - [ ] 화면 작업. 
   - [ ] :presentation을 :feature 서브 모듈들로 쪼개야함.

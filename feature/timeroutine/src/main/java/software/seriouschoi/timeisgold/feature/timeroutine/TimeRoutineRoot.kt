@@ -1,11 +1,11 @@
-package software.seriouschoi.timeisgold.feature.timeroutine.bar
+package software.seriouschoi.timeisgold.feature.timeroutine
 
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.navigation
 import kotlinx.serialization.Serializable
 import software.seriouschoi.navigator.NavigatorDest
-import software.seriouschoi.timeisgold.feature.timeroutine.bar.create.TimeRoutineEditScreenDest
-import software.seriouschoi.timeisgold.feature.timeroutine.bar.tablayout.TimeRoutinePagerScreenDest
+import software.seriouschoi.timeisgold.feature.timeroutine.edit.TimeRoutineEditScreenDest
+import software.seriouschoi.timeisgold.feature.timeroutine.pager.TimeRoutinePagerScreenDest
 
 @Serializable
 data object TimeRoutineBarNavRoot : NavigatorDest
@@ -15,6 +15,6 @@ fun NavGraphBuilder.timeRoutineBarSection() {
         startDestination = TimeRoutinePagerScreenDest,
     ) {
         TimeRoutinePagerScreenDest.routes(this)
-        TimeRoutineEditScreenDest.routes(this)
+        TimeRoutineEditScreenDest.Companion.routes(this)
     }
 }

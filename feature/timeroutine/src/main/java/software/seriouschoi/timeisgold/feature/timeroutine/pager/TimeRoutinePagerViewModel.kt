@@ -1,4 +1,4 @@
-package software.seriouschoi.timeisgold.feature.timeroutine.bar.tablayout
+package software.seriouschoi.timeisgold.feature.timeroutine.pager
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel

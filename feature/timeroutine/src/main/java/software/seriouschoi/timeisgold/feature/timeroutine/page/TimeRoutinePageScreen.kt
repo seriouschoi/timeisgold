@@ -1,4 +1,4 @@
-package software.seriouschoi.timeisgold.feature.timeroutine.bar.timeroutine
+package software.seriouschoi.timeisgold.feature.timeroutine.page
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.Button
@@ -22,7 +22,7 @@ import software.seriouschoi.timeisgold.core.common.ui.R as CommonR
  * jhchoi
  */
 @Composable
-fun TimeRoutinePage(
+fun TimeRoutinePageScreen(
     modifier: Modifier,
     dayOfWeek: DayOfWeek,
 ) {

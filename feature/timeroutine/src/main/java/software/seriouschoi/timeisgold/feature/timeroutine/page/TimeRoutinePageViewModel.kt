@@ -1,4 +1,4 @@
-package software.seriouschoi.timeisgold.feature.timeroutine.bar.timeroutine
+package software.seriouschoi.timeisgold.feature.timeroutine.page
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -12,7 +12,7 @@ import software.seriouschoi.timeisgold.core.common.ui.ResultState
 import software.seriouschoi.timeisgold.core.common.ui.asResultState
 import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineComposition
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.GetTimeRoutineUseCase
-import software.seriouschoi.timeisgold.feature.timeroutine.bar.create.TimeRoutineEditScreenDest
+import software.seriouschoi.timeisgold.feature.timeroutine.edit.TimeRoutineEditScreenDest
 import java.time.DayOfWeek
 import java.time.LocalTime
 import javax.inject.Inject

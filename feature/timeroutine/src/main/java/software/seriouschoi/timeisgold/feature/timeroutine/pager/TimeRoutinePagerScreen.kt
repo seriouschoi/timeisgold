@@ -1,4 +1,4 @@
-package software.seriouschoi.timeisgold.feature.timeroutine.bar.tablayout
+package software.seriouschoi.timeisgold.feature.timeroutine.pager
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.serialization.Serializable
 import software.seriouschoi.navigator.NavigatorDest
 import software.seriouschoi.timeisgold.core.common.ui.InfiniteHorizontalPager
-import software.seriouschoi.timeisgold.feature.timeroutine.bar.timeroutine.TimeRoutinePage
+import software.seriouschoi.timeisgold.feature.timeroutine.page.TimeRoutinePageScreen
 
 /**
  * Created by jhchoi on 2025. 8. 26.
@@ -46,7 +46,7 @@ internal fun TimeRoutinePagerScreen() {
     InfiniteHorizontalPager(
         dayOfWeekList
     ) {
-        TimeRoutinePage(
+        TimeRoutinePageScreen(
             modifier = Modifier.fillMaxSize(),
             dayOfWeek = dayOfWeekList[it]
         )
