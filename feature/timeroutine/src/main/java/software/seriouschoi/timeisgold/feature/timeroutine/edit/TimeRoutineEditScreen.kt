@@ -1,45 +1,64 @@
 package software.seriouschoi.timeisgold.feature.timeroutine.edit
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavBackStackEntry
-import androidx.navigation.NavGraphBuilder
-import androidx.navigation.compose.composable
-import androidx.navigation.toRoute
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
-import kotlinx.serialization.Serializable
-import software.seriouschoi.navigator.NavigatorRoute
-import java.time.DayOfWeek
 
-@Serializable
-internal data class TimeRoutineEditScreenRoute(
-    val dayOfWeek: DayOfWeek,
-) : NavigatorRoute {
-    companion object {
-        fun routes(navGraphBuilder: NavGraphBuilder) {
-            navGraphBuilder.composable<TimeRoutineEditScreenRoute> { it: NavBackStackEntry ->
-                val route = it.toRoute<TimeRoutineEditScreenRoute>()
-                TimeRoutineEditScreen(route)
-            }
+@Composable
+internal fun TimeRoutineEditScreen() {
+
+    Column {
+        Box {
+            TimeRoutineLoading()
+            TimeRoutineEdit()
         }
     }
 }
 
 @Composable
-internal fun TimeRoutineEditScreen(
-    dest: TimeRoutineEditScreenRoute,
-) {
+private fun TimeRoutineLoading() {
     val viewModel = hiltViewModel<TimeRoutineEditViewModel>()
-    remember(viewModel) {
+
+    val loading by remember(viewModel) {
         viewModel.uiState.map { it: TimeRoutineEditUiState ->
-            (it as? TimeRoutineEditUiState.Routine)?.routineTitle
-        }
-    }
+            (it as? TimeRoutineEditUiState.Loading) != null
+        }.distinctUntilChanged()
+    }.collectAsState(false)
+
+    if (!loading)
+        return
+
+    CircularProgressIndicator()
+}
+
+@Composable
+private fun TimeRoutineEdit() {
+    val viewModel = hiltViewModel<TimeRoutineEditViewModel>()
+
+    val currentRoutine by remember(viewModel) {
+        viewModel.uiState.map { it: TimeRoutineEditUiState ->
+            (it as? TimeRoutineEditUiState.Routine)
+        }.distinctUntilChanged()
+    }.collectAsState(TimeRoutineEditUiState.Routine())
+
+    currentRoutine ?: return
 
     Column {
-        Text("timeRoutineEditScreen. ${dest.dayOfWeek.name}")
+        Text("timeRoutineEditScreen. ${currentRoutine?.currentDayOfWeek}")
+        TextField(
+            value = currentRoutine?.routineTitle ?: "",
+            onValueChange = {
+                viewModel.updateRoutineTitle(it)
+            }
+        )
     }
 }

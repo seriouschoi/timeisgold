@@ -12,7 +12,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import software.seriouschoi.navigator.DestNavigatorPort
 import software.seriouschoi.timeisgold.core.common.ui.ResultState
-import software.seriouschoi.timeisgold.core.common.ui.UiText
 import software.seriouschoi.timeisgold.core.common.ui.UiText.Res
 import software.seriouschoi.timeisgold.core.common.ui.asResultState
 import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineComposition
@@ -21,8 +20,6 @@ import software.seriouschoi.timeisgold.domain.usecase.timeroutine.GetTimeRoutine
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.SetTimeRoutineUseCase
 import software.seriouschoi.timeisgold.feature.timeroutine.bar.R
 import software.seriouschoi.timeisgold.feature.timeroutine.edit.TimeRoutineEditUiEvent.ShowConfirm
-import java.lang.Exception
-import java.time.DayOfWeek
 import javax.inject.Inject
 import software.seriouschoi.timeisgold.core.common.ui.R as CommonR
 
@@ -34,6 +31,8 @@ internal class TimeRoutineEditViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
+    private val route get() = savedStateHandle.toRoute<TimeRoutineEditScreenRoute>()
+
     private val _uiState = MutableStateFlow<TimeRoutineEditUiState>(TimeRoutineEditUiState.Loading)
     val uiState = _uiState.asStateFlow()
 
@@ -41,10 +40,11 @@ internal class TimeRoutineEditViewModel @Inject constructor(
     private val _uiEvent = MutableSharedFlow<TimeRoutineEditUiEvent>()
     val uiEvent = _uiEvent.asSharedFlow()
 
+    private var internalState = TimeRoutineEditInternalState()
+
     init {
-        val dayOfWeek = savedStateHandle.toRoute<TimeRoutineEditScreenRoute>().dayOfWeek
         viewModelScope.launch {
-            getTimeRoutineUseCase(dayOfWeek).asResultState().collect {
+            getTimeRoutineUseCase(route.dayOfWeek).asResultState().collect {
                 onCollectedTimeRoutine(it)
             }
         }
@@ -134,16 +134,7 @@ internal class TimeRoutineEditViewModel @Inject constructor(
         viewModelScope.launch {
             when (result) {
                 is ResultState.Success -> {
-                    val composition = result.data
-                    savedStateHandle[SavedStateHandleKeys.ROUTINE_UUID.name] =
-                        composition?.timeRoutine?.uuid
-
-                    _uiState.value = TimeRoutineEditUiState.Routine(
-                        routineTitle = composition?.timeRoutine?.title ?: "",
-                        dayOfWeekList = composition?.dayOfWeeks?.map {
-                            it.dayOfWeek
-                        } ?: emptyList()
-                    )
+                    onCollectedTimeRoutineSuccess(result)
                 }
 
                 is ResultState.Error -> {
@@ -162,38 +153,32 @@ internal class TimeRoutineEditViewModel @Inject constructor(
         }
     }
 
-    private enum class SavedStateHandleKeys {
-        ROUTINE_UUID
+    private fun onCollectedTimeRoutineSuccess(result: ResultState.Success<TimeRoutineComposition?>) {
+        val composition = result.data
+        internalState = internalState.copy(
+            routineUuid = composition?.timeRoutine?.uuid
+        )
+
+        _uiState.value = TimeRoutineEditUiState.Routine(
+            routineTitle = composition?.timeRoutine?.title ?: "",
+            dayOfWeekList = composition?.dayOfWeeks?.map {
+                it.dayOfWeek
+            } ?: emptyList(),
+            currentDayOfWeek = route.dayOfWeek
+        )
+    }
+
+    fun updateRoutineTitle(newTitle: String) {
+        val currentRoutineState = (uiState.value as? TimeRoutineEditUiState.Routine)
+        if (currentRoutineState == null) {
+            return
+        }
+        _uiState.value = currentRoutineState.copy(
+            routineTitle = newTitle
+        )
     }
 }
 
-internal sealed interface TimeRoutineEditUiState {
-    data class Routine(
-        val routineTitle: String = "",
-        val dayOfWeekList: List<DayOfWeek> = emptyList(),
-        val routineUuid: String? = null,
-        val loading: Boolean = false
-    ) : TimeRoutineEditUiState
-    data object Loading : TimeRoutineEditUiState
-}
-
-internal sealed interface TimeRoutineEditUiIntent {
-    data object Save : TimeRoutineEditUiIntent
-    data object Cancel : TimeRoutineEditUiIntent
-    data object Exit : TimeRoutineEditUiIntent
-    data object SaveConfirm : TimeRoutineEditUiIntent
-}
-
-internal sealed interface TimeRoutineEditUiEvent {
-    data class ShowConfirm(
-        val message: UiText,
-        val confirmIntent: TimeRoutineEditUiIntent,
-        val cancelIntent: TimeRoutineEditUiIntent?,
-    ) : TimeRoutineEditUiEvent
-
-    data class ShowAlert(
-        val message: UiText,
-        val confirmIntent: TimeRoutineEditUiIntent?,
-    ) : TimeRoutineEditUiEvent
-
-}
+private data class TimeRoutineEditInternalState(
+    val routineUuid: String? = null,
+)
