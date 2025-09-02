@@ -42,11 +42,9 @@ jobs:
 
       - uses: ./.github/actions/setup
 
-      # 스모크 + 정적체크 (빠르게 실패하도록)
       - name: Static checks
         run: |
           ./gradlew lintDebug --stacktrace
-            
 
       - name: Assemble
         run: |
@@ -63,7 +61,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: lint-reports
-          path: '**/build/reports/*.html'
+          path: '**/build/reports/*'
           retention-days: 7
       - name: Upload lint SARIF
         uses: github/codeql-action/upload-sarif@v3
