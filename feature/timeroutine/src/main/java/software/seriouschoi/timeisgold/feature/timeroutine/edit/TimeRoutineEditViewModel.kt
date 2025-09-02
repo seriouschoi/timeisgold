@@ -15,6 +15,7 @@ import software.seriouschoi.timeisgold.core.common.ui.ResultState
 import software.seriouschoi.timeisgold.core.common.ui.UiText.Res
 import software.seriouschoi.timeisgold.core.common.ui.asResultState
 import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineComposition
+import software.seriouschoi.timeisgold.domain.data.entities.DomainResult
 import software.seriouschoi.timeisgold.domain.data.entities.TimeRoutineEntity
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.GetTimeRoutineUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.SetTimeRoutineUseCase
@@ -45,7 +46,25 @@ internal class TimeRoutineEditViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             getTimeRoutineUseCase(route.dayOfWeek).asResultState().collect {
-                onCollectedTimeRoutine(it)
+                when (it) {
+                    is ResultState.Loading -> {
+                        _uiState.value = TimeRoutineEditUiState.Loading
+                    }
+
+                    is ResultState.Success -> {
+                        onCollectedTimeRoutine(it.data)
+
+                    }
+
+                    is ResultState.Error -> {
+                        _uiEvent.emit(
+                            TimeRoutineEditUiEvent.ShowAlert(
+                                message = Res(id = CommonR.string.message_failed_load_data),
+                                confirmIntent = TimeRoutineEditUiIntent.Exit,
+                            )
+                        )
+                    }
+                }
             }
         }
         viewModelScope.launch {
@@ -127,45 +146,29 @@ internal class TimeRoutineEditViewModel @Inject constructor(
                 )
             }
         }
-
     }
 
-    private fun onCollectedTimeRoutine(result: ResultState<TimeRoutineComposition?>) {
-        viewModelScope.launch {
-            when (result) {
-                is ResultState.Success -> {
-                    onCollectedTimeRoutineSuccess(result)
-                }
+    private fun onCollectedTimeRoutine(domainResult: DomainResult<TimeRoutineComposition>) {
+        when (domainResult) {
+            is DomainResult.Failure -> {
+                _uiState.value = TimeRoutineEditUiState.Routine()
+            }
 
-                is ResultState.Error -> {
-                    _uiEvent.emit(
-                        TimeRoutineEditUiEvent.ShowAlert(
-                            message = Res(id = CommonR.string.message_failed_load_data),
-                            confirmIntent = TimeRoutineEditUiIntent.Exit,
-                        )
-                    )
-                }
+            is DomainResult.Success -> {
+                val composition = domainResult.value
+                internalState = internalState.copy(
+                    routineUuid = composition.timeRoutine.uuid
+                )
 
-                is ResultState.Loading -> {
-                    _uiState.value = TimeRoutineEditUiState.Loading
-                }
+                _uiState.value = TimeRoutineEditUiState.Routine(
+                    routineTitle = composition.timeRoutine.title,
+                    dayOfWeekList = composition.dayOfWeeks.map {
+                        it.dayOfWeek
+                    },
+                    currentDayOfWeek = route.dayOfWeek
+                )
             }
         }
-    }
-
-    private fun onCollectedTimeRoutineSuccess(result: ResultState.Success<TimeRoutineComposition?>) {
-        val composition = result.data
-        internalState = internalState.copy(
-            routineUuid = composition?.timeRoutine?.uuid
-        )
-
-        _uiState.value = TimeRoutineEditUiState.Routine(
-            routineTitle = composition?.timeRoutine?.title ?: "",
-            dayOfWeekList = composition?.dayOfWeeks?.map {
-                it.dayOfWeek
-            } ?: emptyList(),
-            currentDayOfWeek = route.dayOfWeek
-        )
     }
 
     fun updateRoutineTitle(newTitle: String) {

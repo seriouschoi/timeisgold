@@ -10,6 +10,9 @@ class TimeRoutineDomainService @Inject constructor(
     private val timeRoutineRepository: TimeRoutineRepositoryPort,
 ) {
     suspend fun checkCanAdd(newRoutine: TimeRoutineComposition) {
+        if(newRoutine.timeRoutine.title.isEmpty()) {
+            throw TIGException.EmptyTitle()
+        }
         val newDays = newRoutine.dayOfWeeks.map { it.dayOfWeek }
         if(newDays.isEmpty()) {
             throw TIGException.EmptyDayOfWeeks()

@@ -11,6 +11,7 @@ import software.seriouschoi.navigator.DestNavigatorPort
 import software.seriouschoi.timeisgold.core.common.ui.ResultState
 import software.seriouschoi.timeisgold.core.common.ui.asResultState
 import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineComposition
+import software.seriouschoi.timeisgold.domain.data.entities.DomainResult
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.GetTimeRoutineUseCase
 import software.seriouschoi.timeisgold.feature.timeroutine.edit.TimeRoutineEditScreenRoute
 import java.time.DayOfWeek
@@ -42,7 +43,20 @@ internal class TimeRoutinePageViewModel @Inject constructor(
     fun load(dayOfWeek: DayOfWeek) {
         viewModelScope.launch {
             getTimeRoutineUseCase(dayOfWeek).asResultState().collect {
-                onCollectedTimeRoutineComposition(it)
+                when (it) {
+                    is ResultState.Loading -> {
+                        _uiState.value = TimeRoutineUiState.Loading
+                    }
+
+                    is ResultState.Success -> {
+                        onCollectedTimeRoutine(it.data)
+
+                    }
+
+                    is ResultState.Error -> {
+                        _uiState.value = TimeRoutineUiState.Error
+                    }
+                }
             }
         }
     }
@@ -55,35 +69,27 @@ internal class TimeRoutinePageViewModel @Inject constructor(
         }
     }
 
-    private fun onCollectedTimeRoutineComposition(result: ResultState<TimeRoutineComposition?>) {
-        when (result) {
-            is ResultState.Loading -> {
-                _uiState.value = TimeRoutineUiState.Loading
+    private fun onCollectedTimeRoutine(domainResult: DomainResult<TimeRoutineComposition>) {
+        when (domainResult) {
+            is DomainResult.Failure -> {
+                TimeRoutineUiState.Empty
             }
 
-            is ResultState.Success -> {
-                val data = result.data
-                if (data == null) {
-                    _uiState.value = TimeRoutineUiState.Empty
-                } else {
-                    _uiState.value = TimeRoutineUiState.Routine(
-                        title = data.timeRoutine.title,
-                        slotItemList = data.timeSlots.map {
-                            TimeSlotItemUiState(
-                                title = it.title,
-                                startTime = it.startTime,
-                                endTime = it.endTime
-                            )
-                        },
-                        dayOfWeeks = data.dayOfWeeks.map {
-                            it.dayOfWeek
-                        }.sorted()
-                    )
-                }
-            }
-
-            is ResultState.Error -> {
-                _uiState.value = TimeRoutineUiState.Error
+            is DomainResult.Success -> {
+                val data = domainResult.value
+                _uiState.value = TimeRoutineUiState.Routine(
+                    title = data.timeRoutine.title,
+                    slotItemList = data.timeSlots.map {
+                        TimeSlotItemUiState(
+                            title = it.title,
+                            startTime = it.startTime,
+                            endTime = it.endTime
+                        )
+                    },
+                    dayOfWeeks = data.dayOfWeeks.map {
+                        it.dayOfWeek
+                    }.sorted()
+                )
             }
         }
     }
@@ -97,7 +103,7 @@ internal class TimeRoutinePageViewModel @Inject constructor(
 
 internal sealed interface TimeRoutineUiState {
     data class Routine(
-        val title: String,
+        val title: String = "",
         val slotItemList: List<TimeSlotItemUiState> = emptyList(),
         val dayOfWeeks: List<DayOfWeek> = listOf(),
     ) : TimeRoutineUiState
