@@ -13,7 +13,28 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+  security-events: write
+
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+
+      - name: Run lint and collect SARIF
+        run: ./gradlew lintDebug mergeLintSarif
+
+      - name: Upload lint reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lint-report
+          path: |
+            **/build/reports/merged-lint/**
+
   unit:
     runs-on: ubuntu-latest
     steps:
@@ -42,10 +63,6 @@ jobs:
 
       - uses: ./.github/actions/setup
 
-      - name: Static checks
-        run: |
-          ./gradlew lintDebug --stacktrace
-
       - name: Assemble
         run: |
           ./gradlew assembleDebug --stacktrace
@@ -56,14 +73,3 @@ jobs:
           name: app-debug
           path: app/build/outputs/apk/debug/**
           retention-days: 7
-
-      - name: Upload all Lint reports
-        uses: actions/upload-artifact@v4
-        with:
-          name: lint-reports
-          path: '**/build/reports/*'
-          retention-days: 7
-      - name: Upload lint SARIF
-        uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: '**/build/reports/lint*.sarif'
