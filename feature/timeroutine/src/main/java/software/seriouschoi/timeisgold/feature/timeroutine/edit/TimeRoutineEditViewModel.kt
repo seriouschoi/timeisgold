@@ -12,10 +12,13 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import software.seriouschoi.navigator.DestNavigatorPort
 import software.seriouschoi.timeisgold.core.common.ui.ResultState
-import software.seriouschoi.timeisgold.core.common.ui.UiText.Res
+import software.seriouschoi.timeisgold.core.common.ui.UiText
 import software.seriouschoi.timeisgold.core.common.ui.asResultState
+import software.seriouschoi.timeisgold.domain.data.ConflictCode
+import software.seriouschoi.timeisgold.domain.data.DomainError
+import software.seriouschoi.timeisgold.domain.data.DomainResult
+import software.seriouschoi.timeisgold.domain.data.ValidationCode
 import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineComposition
-import software.seriouschoi.timeisgold.domain.data.entities.DomainResult
 import software.seriouschoi.timeisgold.domain.data.entities.TimeRoutineEntity
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.GetTimeRoutineUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.SetTimeRoutineUseCase
@@ -59,7 +62,7 @@ internal class TimeRoutineEditViewModel @Inject constructor(
                     is ResultState.Error -> {
                         _uiEvent.emit(
                             TimeRoutineEditUiEvent.ShowAlert(
-                                message = Res(id = CommonR.string.message_failed_load_data),
+                                message = UiText.Res(id = CommonR.string.message_failed_load_data),
                                 confirmIntent = TimeRoutineEditUiIntent.Exit,
                             )
                         )
@@ -79,7 +82,7 @@ internal class TimeRoutineEditViewModel @Inject constructor(
             is TimeRoutineEditUiIntent.Save -> {
                 _uiEvent.emit(
                     ShowConfirm(
-                        Res(
+                        UiText.Res(
                             R.string.message_routine_edit_confirm
                         ),
                         TimeRoutineEditUiIntent.SaveConfirm,
@@ -91,7 +94,7 @@ internal class TimeRoutineEditViewModel @Inject constructor(
             is TimeRoutineEditUiIntent.Cancel -> {
                 _uiEvent.emit(
                     ShowConfirm(
-                        Res(
+                        UiText.Res(
                             R.string.message_routine_edit_cancel
                         ),
                         TimeRoutineEditUiIntent.Exit,
@@ -110,48 +113,82 @@ internal class TimeRoutineEditViewModel @Inject constructor(
         }
     }
 
-
     private fun saveTimeRoutine() {
         viewModelScope.launch {
             val currentRoutineState = (uiState.value as? TimeRoutineEditUiState.Routine)
             if (currentRoutineState == null) {
                 _uiEvent.emit(
                     TimeRoutineEditUiEvent.ShowAlert(
-                        message = Res(id = CommonR.string.message_not_found_input_data),
+                        message = UiText.Res(id = CommonR.string.message_not_found_input_data),
                         confirmIntent = TimeRoutineEditUiIntent.Exit,
                     )
                 )
                 return@launch
             }
 
-            try {
-                setTimeRoutineUseCase(
-                    routine = TimeRoutineEntity.create(
-                        currentRoutineState.routineTitle
-                    ),
-                    dayOfWeeks = currentRoutineState.dayOfWeekList,
+            val result = setTimeRoutineUseCase(
+                routine = TimeRoutineEntity.create(
+                    currentRoutineState.routineTitle
+                ),
+                dayOfWeeks = currentRoutineState.dayOfWeekList,
+            )
+            val event = mapSaveResultToEvent(result)
+            _uiEvent.emit(event)
+        }
+    }
+
+    private fun DomainError.toUiText(): UiText = when (this) {
+        is DomainError.Validation -> {
+            when (this.code) {
+                ValidationCode.TimeRoutine.DayOfWeekEmpty -> UiText.Res(
+                    id = R.string.message_dayofweek_is_empty
                 )
-                _uiEvent.emit(
-                    TimeRoutineEditUiEvent.ShowAlert(
-                        message = Res(id = CommonR.string.message_success_save_data),
-                        confirmIntent = TimeRoutineEditUiIntent.Exit,
-                    )
-                )
-            } catch (e: Exception) {
-                _uiEvent.emit(
-                    TimeRoutineEditUiEvent.ShowAlert(
-                        message = Res(id = CommonR.string.message_failed_save_data),
-                        confirmIntent = TimeRoutineEditUiIntent.Exit,
-                    )
+
+                ValidationCode.TimeRoutine.Title -> UiText.Res(
+                    id = R.string.message_title_is_empty
                 )
             }
         }
+
+        is DomainError.Conflict -> {
+            when (this.code) {
+                ConflictCode.TimeRoutine.DayOfWeek -> UiText.Res(
+                    id = R.string.message_conflict_dayofweek
+                )
+
+                else -> {
+                    UiText.Res(
+                        id = CommonR.string.message_failed_save_data
+                    )
+                }
+            }
+        }
+
+        is DomainError.NotFound,
+        is DomainError.Technical -> UiText.Res(
+            id = CommonR.string.message_failed_save_data
+        )
     }
+
+    private fun mapSaveResultToEvent(result: DomainResult<*>): TimeRoutineEditUiEvent =
+        when (result) {
+            is DomainResult.Success -> TimeRoutineEditUiEvent.ShowAlert(
+                message = UiText.Res(id = CommonR.string.message_success_save_data),
+                confirmIntent = TimeRoutineEditUiIntent.Exit
+            )
+
+            is DomainResult.Failure -> TimeRoutineEditUiEvent.ShowAlert(
+                message = result.error.toUiText(),
+                confirmIntent = null
+            )
+        }
 
     private fun onCollectedTimeRoutine(domainResult: DomainResult<TimeRoutineComposition>) {
         when (domainResult) {
             is DomainResult.Failure -> {
-                _uiState.value = TimeRoutineEditUiState.Routine()
+                _uiState.value = TimeRoutineEditUiState.Routine(
+                    currentDayOfWeek = route.dayOfWeek
+                )
             }
 
             is DomainResult.Success -> {
@@ -180,6 +217,13 @@ internal class TimeRoutineEditViewModel @Inject constructor(
             routineTitle = newTitle
         )
     }
+
+    fun sendIntent(intent: TimeRoutineEditUiIntent) {
+        viewModelScope.launch {
+            _uiIntent.emit(intent)
+        }
+    }
+
 }
 
 private data class TimeRoutineEditInternalState(

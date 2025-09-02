@@ -14,7 +14,7 @@ class SetTimeRoutineCompositionUseCase @Inject constructor(
         timeRoutineDomainService.checkCanAdd(timeRoutineComposition)
 
         val routineFromDB = timeRoutineRepositoryPort
-            .getTimeRoutineCompositionByUuid(timeRoutineComposition.timeRoutine.uuid)
+            .observeCompositionByUuidFlow(timeRoutineComposition.timeRoutine.uuid)
             .first()
 
         if (routineFromDB != null) {

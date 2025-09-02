@@ -14,6 +14,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import software.seriouschoi.timeisgold.feature.timeroutine.bar.R
+import software.seriouschoi.timeisgold.feature.timeroutine.page.TimeRoutineIntent.CreateRoutine
 import java.time.DayOfWeek
 import software.seriouschoi.timeisgold.core.common.ui.R as CommonR
 
@@ -26,7 +27,7 @@ fun TimeRoutinePageScreen(
     modifier: Modifier,
     dayOfWeek: DayOfWeek,
 ) {
-    val viewModel = hiltViewModel<TimeRoutinePageViewModel>()
+    val viewModel = hiltViewModel<TimeRoutinePageViewModel>(key = dayOfWeek.name)
 
     val title by remember {
         viewModel.uiState.map {
@@ -38,26 +39,27 @@ fun TimeRoutinePageScreen(
         viewModel.load(dayOfWeek)
     }
 
-    val stateType = remember {
-        viewModel.uiState.map {
-            it.javaClass
-        }.distinctUntilChanged()
-    }.collectAsState(TimeRoutineUiState.Empty::class.java)
 
-    when (stateType.value) {
-        TimeRoutineUiState.Loading::class.java -> {
+    val uiState by remember {
+        viewModel.uiState
+    }.collectAsState(TimeRoutineUiState.Empty)
+
+    val currentState = uiState
+
+    when (currentState) {
+        is TimeRoutineUiState.Loading -> {
             Column(modifier = modifier) {
                 Text(text = stringResource(R.string.message_routine_loading, dayOfWeek.name))
             }
         }
 
-        TimeRoutineUiState.Empty::class.java -> {
+        is TimeRoutineUiState.Empty -> {
             Column(modifier = modifier) {
                 Text(text = stringResource(R.string.message_routine_create_confirm, dayOfWeek.name))
                 Button(
                     onClick = {
                         viewModel.sendIntent(
-                            TimeRoutineIntent.CreateRoutine(dayOfWeek)
+                            CreateRoutine(dayOfWeek)
                         )
                     }
                 ) {
@@ -66,10 +68,16 @@ fun TimeRoutinePageScreen(
             }
         }
 
-        TimeRoutineUiState.Routine::class.java -> {
+        is TimeRoutineUiState.Routine -> {
             Column(modifier = modifier) {
                 Text(text = dayOfWeek.name)
                 Text(text = title)
+            }
+        }
+
+        TimeRoutineUiState.Error -> {
+            Column(modifier = modifier) {
+                Text(text = stringResource(CommonR.string.message_failed_load_data))
             }
         }
     }

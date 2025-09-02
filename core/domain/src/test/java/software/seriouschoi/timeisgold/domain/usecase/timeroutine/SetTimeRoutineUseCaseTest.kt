@@ -30,7 +30,7 @@ internal class SetTimeRoutineUseCaseTest {
         useCase = SetTimeRoutineCompositionUseCase(timeRoutineRepo, TimeRoutineDomainService(timeRoutineRepo))
 
         runTest {
-            whenever(timeRoutineRepo.getAllDayOfWeeks()).thenReturn(
+            whenever(timeRoutineRepo.observeAllRoutinesDayOfWeeks()).thenReturn(
                 flow {
                     emit(
                         listOf(

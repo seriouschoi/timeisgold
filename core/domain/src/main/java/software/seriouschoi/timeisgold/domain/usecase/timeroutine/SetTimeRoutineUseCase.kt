@@ -1,6 +1,6 @@
 package software.seriouschoi.timeisgold.domain.usecase.timeroutine
 
-import kotlinx.coroutines.flow.first
+import software.seriouschoi.timeisgold.domain.data.DomainResult
 import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineComposition
 import software.seriouschoi.timeisgold.domain.data.entities.TimeRoutineDayOfWeekEntity
 import software.seriouschoi.timeisgold.domain.data.entities.TimeRoutineEntity
@@ -14,10 +14,11 @@ class SetTimeRoutineUseCase @Inject constructor(
     private val timeRoutineDomainService: TimeRoutineDomainService,
 ) {
     // TODO: make test.
-    suspend operator fun invoke(routine: TimeRoutineEntity, dayOfWeeks: List<DayOfWeek>) {
-        val routineFromDB =
-            timeRoutineRepositoryPort.getTimeRoutineCompositionByUuid(routine.uuid)
-                .first()
+    suspend operator fun invoke(
+        routine: TimeRoutineEntity,
+        dayOfWeeks: List<DayOfWeek>
+    ): DomainResult<String> {
+        val routineFromDB = timeRoutineRepositoryPort.getCompositionByUuid(routine.uuid)
 
         val newRoutineCompo = TimeRoutineComposition(
             timeRoutine = routine,
@@ -29,12 +30,9 @@ class SetTimeRoutineUseCase @Inject constructor(
             timeSlots = routineFromDB?.timeSlots ?: emptyList()
         )
 
-        timeRoutineDomainService.checkCanAdd(newRoutineCompo)
+        val validCheck = timeRoutineDomainService.isValidForAdd(newRoutineCompo)
+        if (validCheck is DomainResult.Failure) return validCheck
 
-        if (routineFromDB != null) {
-            timeRoutineRepositoryPort.setTimeRoutineComposition(newRoutineCompo)
-        } else {
-            timeRoutineRepositoryPort.addTimeRoutineComposition(newRoutineCompo)
-        }
+        return timeRoutineRepositoryPort.saveTimeRoutineComposition(newRoutineCompo)
     }
 }

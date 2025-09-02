@@ -38,7 +38,7 @@ internal class AddTimeRoutineUseCaseTest {
         )
 
         runTest {
-            whenever(timeRoutineRepo.getAllDayOfWeeks()).thenReturn(
+            whenever(timeRoutineRepo.observeAllRoutinesDayOfWeeks()).thenReturn(
                 flow {
                     emit(
                         listOf(

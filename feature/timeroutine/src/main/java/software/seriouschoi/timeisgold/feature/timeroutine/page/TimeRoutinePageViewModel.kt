@@ -10,8 +10,8 @@ import kotlinx.coroutines.launch
 import software.seriouschoi.navigator.DestNavigatorPort
 import software.seriouschoi.timeisgold.core.common.ui.ResultState
 import software.seriouschoi.timeisgold.core.common.ui.asResultState
+import software.seriouschoi.timeisgold.domain.data.DomainResult
 import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineComposition
-import software.seriouschoi.timeisgold.domain.data.entities.DomainResult
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.GetTimeRoutineUseCase
 import software.seriouschoi.timeisgold.feature.timeroutine.edit.TimeRoutineEditScreenRoute
 import java.time.DayOfWeek
@@ -50,7 +50,6 @@ internal class TimeRoutinePageViewModel @Inject constructor(
 
                     is ResultState.Success -> {
                         onCollectedTimeRoutine(it.data)
-
                     }
 
                     is ResultState.Error -> {
@@ -70,14 +69,14 @@ internal class TimeRoutinePageViewModel @Inject constructor(
     }
 
     private fun onCollectedTimeRoutine(domainResult: DomainResult<TimeRoutineComposition>) {
-        when (domainResult) {
+        _uiState.value = when (domainResult) {
             is DomainResult.Failure -> {
                 TimeRoutineUiState.Empty
             }
 
             is DomainResult.Success -> {
                 val data = domainResult.value
-                _uiState.value = TimeRoutineUiState.Routine(
+                TimeRoutineUiState.Routine(
                     title = data.timeRoutine.title,
                     slotItemList = data.timeSlots.map {
                         TimeSlotItemUiState(

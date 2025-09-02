@@ -21,6 +21,7 @@ class TimeSlotDomainService @Inject constructor(
                     || timeSlotDataForAdd.endTime in (it.startTime..it.endTime)
         }
         if (isDuplicateTime) {
+            // TODO: jhchoi 2025. 9. 2. domain의 오류는 예측 가능한 오류이므로, throw하지 않는다.
             throw TIGException.TimeSlotConflict(timeSlotDataForAdd)
         }
     }

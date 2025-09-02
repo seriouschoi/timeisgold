@@ -162,3 +162,6 @@ sealed class UiState {
 로딩 플래그는 작은 실수로도 “계속 로딩이 남아있는 화면”을 만들 수 있다.  
 그럴 바에는 UX를 다시 점검해서, 굳이 기존 입력 요소를 흐리게 보여줄 필요가 없다면 sealed class로 Loading을 별도 상태로 정의하는 것이 더 안전하다.
 
+
+# rememberSaveable??
+
