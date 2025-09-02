@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
@@ -18,34 +19,44 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import software.seriouschoi.timeisgold.core.common.ui.asString
+import java.time.DayOfWeek
+import java.time.format.TextStyle
+import java.util.Locale
 import software.seriouschoi.timeisgold.core.common.ui.R as CommonR
 
 @Composable
 internal fun TimeRoutineEditScreen() {
 
-    val viewModel = hiltViewModel<TimeRoutineEditViewModel>()
     Column {
         Box {
             Loading()
             Edit()
         }
-        Row {
-            Button(
-                onClick = {
-                    viewModel.sendIntent(TimeRoutineEditUiIntent.Save)
-                },
-            ) {
-                Text(text = stringResource(CommonR.string.text_save))
-            }
-        }
+        BottomButtons()
+
     }
 
     Alert()
     Confirm()
+}
+
+@Composable
+private fun BottomButtons() {
+    val viewModel = hiltViewModel<TimeRoutineEditViewModel>()
+    Row {
+        Button(
+            onClick = {
+                viewModel.sendIntent(TimeRoutineEditUiIntent.Save)
+            },
+        ) {
+            Text(text = stringResource(CommonR.string.text_save))
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -175,5 +186,20 @@ private fun Edit() {
                 viewModel.updateRoutineTitle(it)
             }
         )
+
+        Row {
+            DayOfWeek.entries.forEach { dayOfWeek ->
+                val isChecked = currentRoutine?.dayOfWeekList?.contains(dayOfWeek) == true
+                Column {
+                    Checkbox(
+                        onCheckedChange = {
+                            viewModel.checkDayOfWeek(dayOfWeek, it)
+                        },
+                        checked = isChecked,
+                    )
+                    Text(text = dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault()))
+                }
+            }
+        }
     }
 }

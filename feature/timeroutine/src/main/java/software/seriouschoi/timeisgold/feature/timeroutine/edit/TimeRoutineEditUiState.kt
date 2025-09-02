@@ -5,7 +5,7 @@ import java.time.DayOfWeek
 internal sealed interface TimeRoutineEditUiState {
     data class Routine(
         val routineTitle: String = "",
-        val dayOfWeekList: List<DayOfWeek> = emptyList(),
+        val dayOfWeekList: Set<DayOfWeek> = emptySet(),
         val currentDayOfWeek: DayOfWeek? = null,
     ) : TimeRoutineEditUiState
 

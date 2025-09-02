@@ -1,38 +1,11 @@
 # TODOs
+- [x] 루틴 저장 프로세스 구현.
+- [ ] 루틴 저장 프로세스를 만든뒤 feature ui test방법 찾아서 적용.
 - [ ] 현재까지 만들어진 모든 뷰모델을 SavedStateHandle을 사용하여 초기화할 값 전달.
 - [ ] 테스트 커버리지 도구 도입.
 - [ ] 루틴 페이저 하단에 인디케이터 추가.
-- [ ] 개인용/공개용 앱으로 빌드 구성 분리.
-  - 목적: 클라우드 기능을 서비스로 제공할 경우, 지속적인 비용 부담. 개인용으로만 사용.
-  - [ ] :app 모듈을 :app-public, :app-personal 모듈로 분리.
-  - [ ] 기존 :app 모듈의 내용을 :presentation 모듈로 분리.
-  - [ ] :app-public, :app-personal은 각 빌드 구성에 필요한 모듈만 포함.
-    - :app-public은 data-room-adapter만 제공.
-    - :app-personal은 data-cloud-adapter를 제공.
 
-- [x] 정책에 dayOfWeek설정 안하고 저장 못하게, 막기.
-- [x] 타임슬롯 저장 정책을 Policy가 아닌 서비스로 전환.
-- ~~[ ] TimeRoutineEditScreen 여기 DayOfWeek파라미터가 아니라, routine uuid로 가야지.~~
-  - 아 근데.. 둘다 있어야 하는구나..
-- [x] TimeRoutineEditScreenDest 이거 이름 이상하다. 바꾸자. TimeRoutineEditScreenRoute로.
-
-- [ ] 루틴 저장.
-  - 요일에서 루틴 추가 버튼.
-  - 요일의 루틴 불러오기.
-    - 루틴이 있으면, 
-      - 루틴 수정.
-    - 루틴이 없으면 
-      - 루틴 저장.
-
-# TimeRoutine Pager
-
-- 좌우 스와이프
-  - [x] 좌우 스와이프로(페이징으로) 요일 이동. 인피니티 스와이프로 금 -> 토 -> 일 -> 월...-> 금 구조로 구현.
-  - *전날/다음날 루틴을 일부 노출시키기.(연속된 뷰라는 느낌을 줌)*
-    - *당일 루틴을 스크롤할때, 전일/익일 루틴도 함께 스크롤.*
-      - *뷰페이저가 아님. 학습 필요.*
-      - *향후 구현*
-
+## Routine Page.
 - 상단
   - [ ] 타임 루틴 이름, 요일
   - [ ] 루틴이 없을 때는 요일만 표시.
@@ -63,3 +36,21 @@
 
 ## github action.
 - [x] android-connect에 적용된 mac 환경 제거.
+
+
+## 개인용/공개용 앱으로 빌드 구성 분리.
+- 목적: 클라우드 기능을 서비스로 제공할 경우, 지속적인 비용 부담. 개인용으로만 사용.
+- [ ] :app 모듈을 :app-public, :app-personal 모듈로 분리.
+- [ ] 기존 :app 모듈의 내용을 :presentation 모듈로 분리.
+- [ ] :app-public, :app-personal은 각 빌드 구성에 필요한 모듈만 포함.
+  - :app-public은 data-room-adapter만 제공.
+  - :app-personal은 data-cloud-adapter를 제공.
+
+
+# TimeRoutine Pager
+- 좌우 스와이프
+  - [x] 좌우 스와이프로(페이징으로) 요일 이동. 인피니티 스와이프로 금 -> 토 -> 일 -> 월...-> 금 구조로 구현.
+  - *전날/다음날 루틴을 일부 노출시키기.(연속된 뷰라는 느낌을 줌)*
+    - *당일 루틴을 스크롤할때, 전일/익일 루틴도 함께 스크롤.*
+      - *뷰페이저가 아님. 학습 필요.*
+      - *향후 구현*
