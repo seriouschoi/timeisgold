@@ -2,7 +2,14 @@
 - [ ] 현재까지 만들어진 모든 뷰모델을 SavedStateHandle을 사용하여 초기화할 값 전달.
 - [ ] 테스트 커버리지 도구 도입.
 - [ ] 루틴 페이저 하단에 인디케이터 추가.
-- [ ] :presentation 모듈 삭제.
+- [ ] 개인용/공개용 앱으로 빌드 구성 분리.
+  - 목적: 클라우드 기능을 서비스로 제공할 경우, 지속적인 비용 부담. 개인용으로만 사용.
+  - [ ] :app 모듈을 :app-public, :app-personal 모듈로 분리.
+  - [ ] 기존 :app 모듈의 내용을 :presentation 모듈로 분리.
+  - [ ] :app-public, :app-personal은 각 빌드 구성에 필요한 모듈만 포함.
+    - :app-public은 data-room-adapter만 제공.
+    - :app-personal은 data-cloud-adapter를 제공.
+
 - [x] 정책에 dayOfWeek설정 안하고 저장 못하게, 막기.
 - [x] 타임슬롯 저장 정책을 Policy가 아닌 서비스로 전환.
 - ~~[ ] TimeRoutineEditScreen 여기 DayOfWeek파라미터가 아니라, routine uuid로 가야지.~~
