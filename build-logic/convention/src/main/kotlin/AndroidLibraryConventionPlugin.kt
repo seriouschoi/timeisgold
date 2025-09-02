@@ -35,6 +35,8 @@ class AndroidLibraryConventionPlugin : Plugin<Project> {
                     sourceCompatibility = TigConstJava.JavaVersion
                     targetCompatibility = TigConstJava.JavaVersion
                 }
+
+                lint.sarifReport = true
             }
 
             setJvmToolchain(TigConstJava.JVM_TOOL_CHAIN)
