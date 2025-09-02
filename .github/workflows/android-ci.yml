@@ -65,15 +65,9 @@ jobs:
           path: app/build/outputs/apk/debug/**
           retention-days: 7
 
-      - name: Upload Lint report
+      - name: Upload all Lint reports
         uses: actions/upload-artifact@v4
         with:
-          name: lint-report
-          path: app/build/reports/lint-results-debug.html
+          name: lint-reports
+          path: '**/build/reports/lint-results-*.html'
           retention-days: 7
-
-      - name: Publish Lint Report Summary
-        if: always()
-        run: |
-          echo "## Android Lint Report" >> $GITHUB_STEP_SUMMARY
-          echo "[다운로드 없이 보기](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_STEP_SUMMARY
