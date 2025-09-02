@@ -1,0 +1,3 @@
+package software.seriouschoi.navigator
+
+interface NavigatorRoute

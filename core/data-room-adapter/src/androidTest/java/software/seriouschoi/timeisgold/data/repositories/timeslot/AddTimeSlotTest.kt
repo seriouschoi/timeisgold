@@ -10,9 +10,9 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import software.seriouschoi.timeisgold.data.BaseRoomTest
 import software.seriouschoi.timeisgold.data.mapper.toTimeRoutineDayOfWeekEntity
-import software.seriouschoi.timeisgold.domain.composition.TimeRoutineComposition
-import software.seriouschoi.timeisgold.domain.composition.TimeSlotComposition
-import software.seriouschoi.timeisgold.domain.entities.TimeSlotEntity
+import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineComposition
+import software.seriouschoi.timeisgold.domain.data.composition.TimeSlotComposition
+import software.seriouschoi.timeisgold.domain.data.entities.TimeSlotEntity
 import java.time.DayOfWeek
 
 @RunWith(AndroidJUnit4::class)

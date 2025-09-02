@@ -1,7 +1,7 @@
 package software.seriouschoi.timeisgold.domain.usecase.timeslot
 
 import kotlinx.coroutines.flow.Flow
-import software.seriouschoi.timeisgold.domain.composition.TimeSlotComposition
+import software.seriouschoi.timeisgold.domain.data.composition.TimeSlotComposition
 import software.seriouschoi.timeisgold.domain.port.TimeSlotRepositoryPort
 import javax.inject.Inject
 

@@ -8,8 +8,8 @@ import kotlinx.coroutines.flow.map
 import software.seriouschoi.timeisgold.data.database.AppDatabase
 import software.seriouschoi.timeisgold.data.mapper.toTimeSlotEntity
 import software.seriouschoi.timeisgold.data.mapper.toTimeSlotSchema
-import software.seriouschoi.timeisgold.domain.composition.TimeSlotComposition
-import software.seriouschoi.timeisgold.domain.entities.TimeSlotEntity
+import software.seriouschoi.timeisgold.domain.data.composition.TimeSlotComposition
+import software.seriouschoi.timeisgold.domain.data.entities.TimeSlotEntity
 import software.seriouschoi.timeisgold.domain.port.TimeSlotRepositoryPort
 import javax.inject.Inject
 
@@ -18,7 +18,7 @@ internal class TimeSlotRepositoryAdapter @Inject constructor(
 ) : TimeSlotRepositoryPort {
     override suspend fun addTimeSlot(timeSlotData: TimeSlotComposition, timeRoutineUuid: String) {
         database.withTransaction {
-            val timeRoutine = database.TimeRoutineDao().get(timeRoutineUuid).first()
+            val timeRoutine = database.TimeRoutineDao().observe(timeRoutineUuid).first()
             val timeRoutineId =
                 timeRoutine?.id ?: throw IllegalStateException("time routine is null")
 
@@ -43,7 +43,7 @@ internal class TimeSlotRepositoryAdapter @Inject constructor(
 
     override suspend fun getTimeSlotList(timeRoutineUuid: String): Flow<List<TimeSlotEntity>> {
         val dao = database.TimeRoutineJoinTimeSlotViewDao()
-        return dao.getTimeSlotsByTimeRoutine(timeRoutineUuid).distinctUntilChanged().map {
+        return dao.observeTimeSlotsByTimeRoutine(timeRoutineUuid).distinctUntilChanged().map {
             it.map { it.toTimeSlotEntity() }
         }
     }

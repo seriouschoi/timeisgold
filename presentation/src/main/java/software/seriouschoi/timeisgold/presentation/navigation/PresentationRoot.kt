@@ -3,8 +3,8 @@ package software.seriouschoi.timeisgold.presentation.navigation
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.navigation
 import kotlinx.serialization.Serializable
-import software.seriouschoi.navigator.NavigatorDest
-import software.seriouschoi.timeisgold.presentation.feature.home.HomePresentationDest
+import software.seriouschoi.navigator.NavigatorRoute
+import software.seriouschoi.timeisgold.presentation.feature.home.HomePresentationRoute
 import software.seriouschoi.timeisgold.presentation.feature.home.home
 import software.seriouschoi.timeisgold.presentation.feature.splash.splash
 import software.seriouschoi.timeisgold.presentation.feature.timeroutine.set.setTimeRoutine
@@ -14,11 +14,11 @@ import software.seriouschoi.timeisgold.presentation.feature.timeroutine.set.setT
  * jhchoi
  */
 @Serializable
-data object PresentationRoot : NavigatorDest
+data object PresentationRoot : NavigatorRoute
 
 fun NavGraphBuilder.presentationSection() {
     navigation<PresentationRoot>(
-        startDestination = HomePresentationDest,
+        startDestination = HomePresentationRoute,
     ) {
         splash()
         home()

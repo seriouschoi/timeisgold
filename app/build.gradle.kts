@@ -17,7 +17,7 @@ android {
 
 dependencies {
     implementation(project(":presentation"))
-    implementation(project(":feature:timeroutine-bar"))
+    implementation(project(":feature:timeroutine"))
     implementation(project(":core:domain"))
     implementation(project(":core:data-room-adapter"))
     implementation(project(":core:logger"))

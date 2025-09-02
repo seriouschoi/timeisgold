@@ -1,6 +1,6 @@
 package software.seriouschoi.timeisgold.data.mapper
 
-import software.seriouschoi.timeisgold.domain.entities.TimeRoutineDayOfWeekEntity
+import software.seriouschoi.timeisgold.domain.data.entities.TimeRoutineDayOfWeekEntity
 import java.time.DayOfWeek
 
 /**

@@ -11,8 +11,8 @@ import org.mockito.junit.MockitoJUnitRunner
 import org.mockito.kotlin.whenever
 import software.seriouschoi.timeisgold.domain.exception.TIGException
 import software.seriouschoi.timeisgold.domain.fixture.TimeRoutineDataFixture
-import software.seriouschoi.timeisgold.domain.policy.TimeRoutinePolicy
 import software.seriouschoi.timeisgold.domain.port.TimeRoutineRepositoryPort
+import software.seriouschoi.timeisgold.domain.services.TimeRoutineDomainService
 import java.time.DayOfWeek
 
 /**
@@ -31,10 +31,14 @@ internal class AddTimeRoutineUseCaseTest {
     @Before
     fun setup() {
         MockitoAnnotations.openMocks(this)
-        useCase = AddTimeRoutineCompositionUseCase(timeRoutineRepo, TimeRoutinePolicy())
+        useCase = AddTimeRoutineCompositionUseCase(
+            timeRoutineRepo, TimeRoutineDomainService(
+                timeRoutineRepo
+            )
+        )
 
         runTest {
-            whenever(timeRoutineRepo.getAllDayOfWeeks()).thenReturn(
+            whenever(timeRoutineRepo.observeAllRoutinesDayOfWeeks()).thenReturn(
                 flow {
                     emit(
                         listOf(

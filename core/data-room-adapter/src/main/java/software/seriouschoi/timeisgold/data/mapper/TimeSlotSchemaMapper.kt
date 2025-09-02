@@ -1,7 +1,7 @@
 package software.seriouschoi.timeisgold.data.mapper
 
 import software.seriouschoi.timeisgold.data.database.schema.TimeSlotSchema
-import software.seriouschoi.timeisgold.domain.entities.TimeSlotEntity
+import software.seriouschoi.timeisgold.domain.data.entities.TimeSlotEntity
 
 internal fun TimeSlotEntity.toTimeSlotSchema(
     timeRoutineId: Long,

@@ -7,16 +7,16 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import kotlinx.serialization.Serializable
-import software.seriouschoi.navigator.NavigatorDest
+import software.seriouschoi.navigator.NavigatorRoute
 
 @Serializable
-internal data class SetTimeRoutinePresentationDest(
+internal data class SetTimeRoutinePresentationRoute(
     val timeRoutineId: String?
-) : NavigatorDest
+) : NavigatorRoute
 
 internal fun NavGraphBuilder.setTimeRoutine() {
-    composable<SetTimeRoutinePresentationDest> {
-        val routineId = it.toRoute<SetTimeRoutinePresentationDest>().timeRoutineId
+    composable<SetTimeRoutinePresentationRoute> {
+        val routineId = it.toRoute<SetTimeRoutinePresentationRoute>().timeRoutineId
         SetTimeRoutineRoute(routineId)
     }
 }

@@ -16,11 +16,11 @@ class DestNavigatorPortAdapter @Inject constructor(
     }
 
     override fun navigate(
-        presentationDest: NavigatorDest,
+        route: NavigatorRoute,
         opts: NavOptionsBuilder.() -> Unit
     ) {
         val navController = provider?.invoke()
-        navController?.navigate(presentationDest) {
+        navController?.navigate(route) {
             opts(this)
         }
     }

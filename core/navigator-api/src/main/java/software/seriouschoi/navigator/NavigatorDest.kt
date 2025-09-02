@@ -1,3 +1,0 @@
-package software.seriouschoi.navigator
-
-interface NavigatorDest

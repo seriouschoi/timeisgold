@@ -1,8 +1,8 @@
 package software.seriouschoi.timeisgold.domain.port
 
 import kotlinx.coroutines.flow.Flow
-import software.seriouschoi.timeisgold.domain.composition.TimeSlotComposition
-import software.seriouschoi.timeisgold.domain.entities.TimeSlotEntity
+import software.seriouschoi.timeisgold.domain.data.composition.TimeSlotComposition
+import software.seriouschoi.timeisgold.domain.data.entities.TimeSlotEntity
 
 interface TimeSlotRepositoryPort {
     suspend fun addTimeSlot(timeSlotData: TimeSlotComposition, timeRoutineUuid: String)

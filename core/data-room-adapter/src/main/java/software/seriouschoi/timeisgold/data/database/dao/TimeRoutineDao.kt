@@ -7,8 +7,8 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import software.seriouschoi.timeisgold.data.database.schema.TimeRoutineSchema
-import java.time.DayOfWeek
 
 @Dao
 internal abstract class TimeRoutineDao {
@@ -17,7 +17,11 @@ internal abstract class TimeRoutineDao {
     abstract fun add(entity: TimeRoutineSchema): Long
 
     @Query("SELECT * FROM TimeRoutineSchema WHERE uuid = :uuid")
-    abstract fun get(uuid: String): Flow<TimeRoutineSchema?>
+    abstract fun observe(uuid: String): Flow<TimeRoutineSchema?>
+
+    suspend fun get(uuid: String) : TimeRoutineSchema? {
+        return observe(uuid).first()
+    }
 
     @Update
     abstract fun update(timeRoutineSchema: TimeRoutineSchema)

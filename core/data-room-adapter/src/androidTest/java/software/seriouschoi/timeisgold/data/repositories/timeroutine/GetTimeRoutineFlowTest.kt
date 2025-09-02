@@ -20,7 +20,7 @@ internal class GetTimeRoutineFlowTest : BaseRoomTest() {
     fun givenEmptyRepo_whenQuery_thenReturnNull() {
         runTest {
             val testDay = DayOfWeek.MONDAY
-            val testDayRoutineFlow = timeRoutineRepo.getTimeRoutineByDayOfWeek(testDay)
+            val testDayRoutineFlow = timeRoutineRepo.observeTimeRoutineByDayOfWeek(testDay)
             val emitted = testDayRoutineFlow.first()
             assertNull(emitted)
         }
@@ -32,7 +32,7 @@ internal class GetTimeRoutineFlowTest : BaseRoomTest() {
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun givenRoutine_whenQuery_returnRoutine() = runTest {
-        val mondayFlow = timeRoutineRepo.getTimeRoutineCompositionByDayOfWeek(DayOfWeek.MONDAY)
+        val mondayFlow = timeRoutineRepo.observeCompositionByDayOfWeek(DayOfWeek.MONDAY)
 
         val routineCompoMonTue = testFixtures.routineCompoMonTue
         timeRoutineRepo.addTimeRoutineComposition(routineCompoMonTue)
@@ -55,7 +55,7 @@ internal class GetTimeRoutineFlowTest : BaseRoomTest() {
         )
 
         val mondayRoutineFlow = timeRoutineRepo
-            .getTimeRoutineCompositionByDayOfWeek(DayOfWeek.MONDAY)
+            .observeCompositionByDayOfWeek(DayOfWeek.MONDAY)
 
         timeRoutineRepo.addTimeRoutineComposition(routineCompoMonTue)
         assert(mondayRoutineFlow.first() == routineCompoMonTue)
@@ -79,11 +79,11 @@ internal class GetTimeRoutineFlowTest : BaseRoomTest() {
         val sunDay = routineCompoSun.dayOfWeeks.map { it.dayOfWeek }
 
         val monRoutineFlow = timeRoutineRepo
-            .getTimeRoutineCompositionByDayOfWeek(monTueDay.first())
+            .observeCompositionByDayOfWeek(monTueDay.first())
         val wedRoutineFlow = timeRoutineRepo
-            .getTimeRoutineCompositionByDayOfWeek(wedThuDay.first())
+            .observeCompositionByDayOfWeek(wedThuDay.first())
         val sundayRoutineFlow = timeRoutineRepo
-            .getTimeRoutineCompositionByDayOfWeek(sunDay.first())
+            .observeCompositionByDayOfWeek(sunDay.first())
 
         timeRoutineRepo.addTimeRoutineComposition(routineCompoMonTue)
         timeRoutineRepo.addTimeRoutineComposition(routineCompoWedThu)

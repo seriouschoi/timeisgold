@@ -11,9 +11,8 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import software.seriouschoi.timeisgold.data.BaseRoomTest
 import software.seriouschoi.timeisgold.data.mapper.toTimeRoutineDayOfWeekEntity
-import software.seriouschoi.timeisgold.domain.composition.TimeRoutineComposition
+import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineComposition
 import java.time.DayOfWeek
-import kotlin.test.todo
 
 /**
  * Created by jhchoi on 2025. 8. 7.
@@ -35,7 +34,7 @@ internal class SetTimeRoutineTest : BaseRoomTest() {
     fun setTimeRoutine_changeTitleTimeslotDayOfWeek_shouldCollectChanged() = runTest {
         val routineCompoMonTue = savedRoutineCompoMonTue
         val routineFlow = timeRoutineRepo
-            .getTimeRoutineCompositionByUuid(routineCompoMonTue.timeRoutine.uuid)
+            .observeCompositionByUuidFlow(routineCompoMonTue.timeRoutine.uuid)
 
         val routineCompoForUpdate = routineCompoMonTue.copy(
             timeRoutine = routineCompoMonTue.timeRoutine.copy(

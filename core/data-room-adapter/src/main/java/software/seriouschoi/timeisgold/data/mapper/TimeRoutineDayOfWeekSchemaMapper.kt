@@ -1,7 +1,7 @@
 package software.seriouschoi.timeisgold.data.mapper
 
 import software.seriouschoi.timeisgold.data.database.schema.TimeRoutineDayOfWeekSchema
-import software.seriouschoi.timeisgold.domain.entities.TimeRoutineDayOfWeekEntity
+import software.seriouschoi.timeisgold.domain.data.entities.TimeRoutineDayOfWeekEntity
 
 internal fun TimeRoutineDayOfWeekEntity.toTimeRoutineDayOfWeekSchema(
     timeRoutineId: Long,

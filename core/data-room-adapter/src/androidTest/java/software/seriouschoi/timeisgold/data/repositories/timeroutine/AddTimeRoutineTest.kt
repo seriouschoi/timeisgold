@@ -9,7 +9,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import software.seriouschoi.timeisgold.data.BaseRoomTest
 import software.seriouschoi.timeisgold.data.mapper.toTimeRoutineDayOfWeekEntity
-import software.seriouschoi.timeisgold.domain.composition.TimeRoutineComposition
+import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineComposition
 import java.time.DayOfWeek
 
 @RunWith(AndroidJUnit4::class)
@@ -22,7 +22,7 @@ internal class AddTimeRoutineTest : BaseRoomTest() {
     fun addTimeRoutine_whenQueriedOnCorrectDay_shouldReturnEntity() = runTest {
         val routineForAdd: TimeRoutineComposition = testFixtures.routineCompoMonTue
         val routineFlow = timeRoutineRepo
-            .getTimeRoutineCompositionByUuid(routineForAdd.timeRoutine.uuid)
+            .observeCompositionByUuidFlow(routineForAdd.timeRoutine.uuid)
 
         timeRoutineRepo.addTimeRoutineComposition(routineForAdd)
         assert(routineForAdd == routineFlow.first())
@@ -83,7 +83,7 @@ internal class AddTimeRoutineTest : BaseRoomTest() {
 
 
         val testDayFlow = timeRoutineRepo
-            .getTimeRoutineCompositionByDayOfWeek(testDay)
+            .observeCompositionByDayOfWeek(testDay)
         assert(testDayFlow.first() == routine2Compo)
     }
 
