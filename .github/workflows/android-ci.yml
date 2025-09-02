@@ -43,12 +43,14 @@ jobs:
       - uses: ./.github/actions/setup
 
       # 스모크 + 정적체크 (빠르게 실패하도록)
-      - name: Assemble & static checks
+      - name: Static checks
         run: |
-          ./gradlew \
-            assembleDebug \
-            lintDebug \
-            --stacktrace
+          ./gradlew lintDebug --stacktrace
+            
+
+      - name: Assemble
+        run: |
+          ./gradlew assembleDebug --stacktrace
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
