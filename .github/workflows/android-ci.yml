@@ -61,7 +61,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: lint-reports
-          path: '**/build/reports/lint-results-*.html'
+          path: '**/build/reports/*.html'
           retention-days: 7
       - name: Upload lint SARIF
         uses: github/codeql-action/upload-sarif@v3
