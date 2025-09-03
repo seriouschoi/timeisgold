@@ -1,4 +1,4 @@
-name: Android CI
+name: TestResultPublishTest
 
 on:
   push:
@@ -13,28 +13,7 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-permissions:
-  contents: read
-  security-events: write
-
 jobs:
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/setup
-
-      - name: Run lint and collect SARIF
-        run: ./gradlew lintDebug mergeLintSarif
-
-      - name: Upload lint reports
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: lint-report
-          path: |
-            **/build/reports/merged-lint/**
-
   unit:
     runs-on: ubuntu-latest
     steps:
@@ -54,6 +33,14 @@ jobs:
           path: |
             **/build/reports/tests/testDebugUnitTest/**
             **/build/test-results/testDebugUnitTest/**
+
+      - name: Publish Test Results
+        if: always()
+        uses: mikepenz/action-junit-report@v4
+        with:
+          report_paths: |
+            **/build/reports/tests/testDebugUnitTest/TEST*.xml
+            **/build/test-results/testDebugUnitTest/TEST*.xml
   build:
     runs-on: ubuntu-latest
 
@@ -63,9 +50,13 @@ jobs:
 
       - uses: ./.github/actions/setup
 
-      - name: Assemble
+      # 스모크 + 정적체크 (빠르게 실패하도록)
+      - name: Assemble & static checks
         run: |
-          ./gradlew assembleDebug --stacktrace
+          ./gradlew \
+            assembleDebug \
+            lintDebug \
+            --stacktrace
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
@@ -73,3 +64,16 @@ jobs:
           name: app-debug
           path: app/build/outputs/apk/debug/**
           retention-days: 7
+
+      - name: Upload Lint report
+        uses: actions/upload-artifact@v4
+        with:
+          name: lint-report
+          path: app/build/reports/lint-results-debug.html
+          retention-days: 7
+
+      - name: Publish Lint Report Summary
+        if: always()
+        run: |
+          echo "## Android Lint Report" >> $GITHUB_STEP_SUMMARY
+          echo "[다운로드 없이 보기](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_STEP_SUMMARY

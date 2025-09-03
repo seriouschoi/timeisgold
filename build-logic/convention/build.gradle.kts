@@ -28,6 +28,7 @@ dependencies {
     implementation(libs.kotlin.gradlePlugin)
     implementation(libs.ksp.gradlePlugin)
     implementation(libs.truth)
+    implementation(libs.gson)
 
     //for kotlin.serialization
     implementation(libs.kotlin.serialization.plugin.artifact)
@@ -68,6 +69,11 @@ gradlePlugin {
             //timeisgold-android-compose
             id = libs.plugins.timeisgold.coroutine.get().pluginId
             implementationClass = "CoroutineConventionPlugin"
+        }
+        register("mergeLintSarif") {
+            //timeisgold-android-compose
+            id = libs.plugins.timeisgold.merge.lint.sarif.get().pluginId
+            implementationClass = "MergeLintSarifPlugin"
         }
     }
 }

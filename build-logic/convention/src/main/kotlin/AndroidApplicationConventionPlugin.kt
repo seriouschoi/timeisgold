@@ -40,6 +40,8 @@ class AndroidApplicationConventionPlugin : Plugin<Project> {
                     targetCompatibility = TigConstJava.JavaVersion
                 }
 
+                lint.sarifReport = true
+
 
                 buildTypes {
                     debug {

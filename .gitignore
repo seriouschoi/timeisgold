@@ -18,3 +18,4 @@ data/schemas/
 *.salive
 build/
 core/data-room-adapter/schemas/**
+.java-version

@@ -6,4 +6,6 @@ plugins {
     alias(libs.plugins.android.library) apply false
     alias(libs.plugins.ksp) apply false
     alias(libs.plugins.hilt.gradle) apply false
+    alias(libs.plugins.timeisgold.merge.lint.sarif) apply true
 }
+
