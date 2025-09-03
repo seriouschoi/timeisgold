@@ -32,8 +32,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: lint-report
-          path: |
-            **/build/reports/merged-lint/**
+          path: build/reports/merged-lint/**
 
   unit:
     runs-on: ubuntu-latest
