@@ -12,7 +12,6 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import software.seriouschoi.timeisgold.data.database.AppDatabase
-import software.seriouschoi.timeisgold.data.database.schema.TimeRoutineSchema
 import software.seriouschoi.timeisgold.data.mapper.toTimeRoutineDayOfWeekEntity
 import software.seriouschoi.timeisgold.data.mapper.toTimeRoutineDayOfWeekSchema
 import software.seriouschoi.timeisgold.data.mapper.toTimeRoutineEntity
@@ -52,7 +51,7 @@ internal class TimeRoutineRepositoryPortAdapter @Inject constructor(
                     )
                 }
 
-                updateTimeSlot(
+                updateTimeSlots(
                     incomingSlots = composition.timeSlots,
                     routineUuid = composition.timeRoutine.uuid
                 )
@@ -61,7 +60,7 @@ internal class TimeRoutineRepositoryPortAdapter @Inject constructor(
             return DomainResult.Success(routineUuid)
         } catch (_: SQLiteConstraintException) {
             return DomainResult.Failure(DomainError.Conflict(ConflictCode.TimeRoutine.Data))
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             return DomainResult.Failure(DomainError.Technical(TechCode.Data))
         } catch (e: CancellationException) {
             throw e
@@ -104,7 +103,7 @@ internal class TimeRoutineRepositoryPortAdapter @Inject constructor(
             )
 
             //slots delete
-            updateTimeSlot(
+            updateTimeSlots(
                 incomingSlots = composition.timeSlots,
                 routineUuid = composition.timeRoutine.uuid,
             )
@@ -171,7 +170,7 @@ internal class TimeRoutineRepositoryPortAdapter @Inject constructor(
         }.distinctUntilChanged()
     }
 
-    private suspend fun updateTimeSlot(
+    private suspend fun updateTimeSlots(
         incomingSlots: List<TimeSlotEntity>,
         routineUuid: String,
     ) {
@@ -185,7 +184,7 @@ internal class TimeRoutineRepositoryPortAdapter @Inject constructor(
                     ?: throw IllegalStateException("time routine is null")
 
             val existingSlots = slotJoinRoutineDao
-                .getTImeSlotsByTimeRoutine(routineUuid).associateBy { it.timeSlotUuid }
+                .getTimeSlotsByTimeRoutine(routineUuid).associateBy { it.timeSlotUuid }
 
             //delete
             val incomingSlotsUuids = incomingSlots.map { it.uuid }.toSet()

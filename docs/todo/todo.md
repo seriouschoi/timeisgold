@@ -3,6 +3,10 @@
 - [ ] 현재까지 만들어진 모든 뷰모델을 SavedStateHandle을 사용하여 초기화할 값 전달.
 - [ ] 테스트 커버리지 도구 도입.
 - [ ] 루틴 페이저 하단에 인디케이터 추가.
+- [x] @Upsert사용 제거.
+  - upsert사용시, onConflict 발생하면, throw를 일으키지 않음.
+- [ ] DomainResult간소화.
+  - 어차피 규모가 커지면, 도메인을 쪼개되 되므로, 불필요하게 리턴 코드를 늘리지 말자.
 - [ ] nia로 부터 ci lint 참고해서 적용.
 
 ## Routine Page.

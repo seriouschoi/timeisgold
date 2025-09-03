@@ -18,19 +18,19 @@ sealed class DomainResult<out T> {
 
 sealed interface ValidationCode {
     sealed interface TimeRoutine: ValidationCode {
-        object Title: TimeRoutine
-        object DayOfWeekEmpty: TimeRoutine
+        data object Title: TimeRoutine
+        data object DayOfWeekEmpty: TimeRoutine
     }
 }
 sealed interface ConflictCode {
     sealed interface TimeRoutine: ConflictCode {
-        object DayOfWeek: TimeRoutine
-        object Data: TimeRoutine
+        data object DayOfWeek: TimeRoutine
+        data object Data: TimeRoutine
     }
 }
 sealed interface NotFoundCode {
-    object TimeRoutine: NotFoundCode
+    data object TimeRoutine: NotFoundCode
 }
 interface TechCode {
-    object Data: TechCode
+    data object Data: TechCode
 }

@@ -165,3 +165,8 @@ sealed class UiState {
 
 # rememberSaveable??
 
+# @Upsert
+room에서 insert or update를 해주는 어노테이션이다.  
+편리해보이지만, conflict발생시, 기존 중복 row를 삭제하고,   
+새 row를 추가하므로, 예상치 못한 덮어쓰는 일이 발생하므로,  
+사용을 지양하는 것이 옳다고 본다.

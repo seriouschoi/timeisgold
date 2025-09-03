@@ -1,27 +1,27 @@
 package software.seriouschoi.timeisgold.data.database.dao
 
 import androidx.room.Dao
-import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import androidx.room.Upsert
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import software.seriouschoi.timeisgold.data.database.schema.TimeSlotSchema
 
 @Dao
 internal abstract class TimeSlotDao {
-    @Deprecated("use upsert")
     @Insert(onConflict = OnConflictStrategy.ABORT)
     abstract fun insert(timeSlot: TimeSlotSchema): Long
 
-    @Deprecated("use upsert")
     @Update
     abstract fun update(timeSlots: TimeSlotSchema)
 
-    @Upsert
-    abstract fun upsert(timeSlot: TimeSlotSchema)
+    fun upsert(timeSlot: TimeSlotSchema) {
+        if(timeSlot.id == null) { insert(timeSlot) }
+        else { update(timeSlot) }
+    }
 
     @Query("""
         DELETE FROM TimeSlotSchema 
@@ -32,5 +32,9 @@ internal abstract class TimeSlotDao {
     @Query("""
         SELECT * FROM TimeSlotSchema WHERE uuid = :timeslotUuid
     """)
-    abstract fun get(timeslotUuid: String): Flow<TimeSlotSchema?>
+    abstract fun observe(timeslotUuid: String): Flow<TimeSlotSchema?>
+
+    suspend fun get(timeslotUuid: String): TimeSlotSchema? {
+        return observe(timeslotUuid).first()
+    }
 }
