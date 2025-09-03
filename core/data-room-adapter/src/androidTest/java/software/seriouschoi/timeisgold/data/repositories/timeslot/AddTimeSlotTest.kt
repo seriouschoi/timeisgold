@@ -34,7 +34,7 @@ internal class AddTimeSlotTest : BaseRoomTest() {
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun addTimeSlot_should_PersistEntityCorrectly() = runTest {
-        val slotListFlow = timeSlotRepo.getTimeSlotList(
+        val slotListFlow = timeSlotRepo.observeTimeSlotList(
             timeRoutineAdded.timeRoutine.uuid
         )
 

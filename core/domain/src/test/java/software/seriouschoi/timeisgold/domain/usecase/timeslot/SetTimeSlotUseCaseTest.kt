@@ -50,7 +50,7 @@ class SetTimeSlotUseCaseTest {
                 )
             )
             val routineUuid = routineCompo.timeRoutine.uuid
-            whenever(timeSlotRepo.getTimeSlotList(routineUuid)).thenReturn(
+            whenever(timeSlotRepo.observeTimeSlotList(routineUuid)).thenReturn(
                 flow {
                     emit(testFixture.routineCompoMonTue.timeSlots)
                 }
@@ -80,7 +80,7 @@ class SetTimeSlotUseCaseTest {
                 )
             )
             val routineUuid = routineCompo.timeRoutine.uuid
-            whenever(timeSlotRepo.getTimeSlotList(routineUuid)).thenReturn(
+            whenever(timeSlotRepo.observeTimeSlotList(routineUuid)).thenReturn(
                 flow {
                     emit(testFixture.routineCompoMonTue.timeSlots)
                 }

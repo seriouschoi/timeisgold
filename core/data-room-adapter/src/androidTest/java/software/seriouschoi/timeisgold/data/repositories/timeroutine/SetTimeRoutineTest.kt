@@ -11,8 +11,14 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import software.seriouschoi.timeisgold.data.BaseRoomTest
 import software.seriouschoi.timeisgold.data.mapper.toTimeRoutineDayOfWeekEntity
+import software.seriouschoi.timeisgold.domain.data.ConflictCode
+import software.seriouschoi.timeisgold.domain.data.DomainError
+import software.seriouschoi.timeisgold.domain.data.DomainResult
+import software.seriouschoi.timeisgold.domain.data.TechCode
 import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineComposition
+import timber.log.Timber
 import java.time.DayOfWeek
+import kotlin.test.todo
 
 /**
  * Created by jhchoi on 2025. 8. 7.
@@ -25,7 +31,7 @@ internal class SetTimeRoutineTest : BaseRoomTest() {
     @Before
     fun setup() {
         runTest {
-            timeRoutineRepo.addTimeRoutineComposition(savedRoutineCompoMonTue)
+            timeRoutineRepo.saveTimeRoutineComposition(savedRoutineCompoMonTue)
         }
     }
 
@@ -69,23 +75,25 @@ internal class SetTimeRoutineTest : BaseRoomTest() {
      * 루틴2 컴포지션도 있는 상태.
      * 이 상태에 루틴2의 슬롯에 루틴1의 슬롯의 일부 요소를 넣어서 저장하려고 하면 오류가 나야함.
      */
-    @Test(expected = SQLiteConstraintException::class)
+    @Test
     fun setTimeSlot_duplicateUuid_shouldThrowException() = runTest {
         val routineCompoWedThu = testFixtures.routineCompoWedThu
-        timeRoutineRepo.addTimeRoutineComposition(routineCompoWedThu)
+        timeRoutineRepo.saveTimeRoutineComposition(routineCompoWedThu)
 
         //루틴1과 중복된 요소가 있는 슬롯 목록을 생성.
         val newSlots = routineCompoWedThu.timeSlots.toMutableList().apply {
             this.add(savedRoutineCompoMonTue.timeSlots.first())
         }.toList()
-
         //루틴2에 중복 요소가 있는 슬롯을 저장.
         val routine2ForUpdate = routineCompoWedThu.copy(
             timeSlots = newSlots
         )
 
         //Excpetion발생.
-        timeRoutineRepo.setTimeRoutineComposition(routine2ForUpdate)
+        val result = timeRoutineRepo.saveTimeRoutineComposition(routine2ForUpdate)
+        Timber.d("result: $result")
+
+        assert(((result as? DomainResult.Failure)?.error as? DomainError.Conflict)?.code == ConflictCode.TimeRoutine.Data)
     }
 
     @Test

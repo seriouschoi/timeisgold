@@ -14,7 +14,7 @@ class TimeSlotDomainService @Inject constructor(
         routineUuid: String,
         timeSlotDataForAdd: TimeSlotEntity,
     ) {
-        val allTimeSlotList = timeSlotRepository.getTimeSlotList(routineUuid).first()
+        val allTimeSlotList = timeSlotRepository.observeTimeSlotList(routineUuid).first()
         //timeslot의 시간이 겹치는지 확인하는 로직.
         val isDuplicateTime = allTimeSlotList.any {
             timeSlotDataForAdd.startTime in (it.startTime..it.endTime)

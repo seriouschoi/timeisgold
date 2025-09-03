@@ -30,7 +30,7 @@ internal class TimeSlotRepositoryAdapter @Inject constructor(
 
     override suspend fun getTimeSlotDetail(timeslotUuid: String): Flow<TimeSlotComposition?> {
         return database.TimeSlotDao()
-            .get(timeslotUuid)
+            .observe(timeslotUuid)
             .distinctUntilChanged()
             .map {
                 it?.toTimeSlotEntity()?.let {
@@ -41,11 +41,16 @@ internal class TimeSlotRepositoryAdapter @Inject constructor(
             }
     }
 
-    override suspend fun getTimeSlotList(timeRoutineUuid: String): Flow<List<TimeSlotEntity>> {
+    override suspend fun observeTimeSlotList(timeRoutineUuid: String): Flow<List<TimeSlotEntity>> {
         val dao = database.TimeRoutineJoinTimeSlotViewDao()
         return dao.observeTimeSlotsByTimeRoutine(timeRoutineUuid).distinctUntilChanged().map {
             it.map { it.toTimeSlotEntity() }
         }
+    }
+
+    override suspend fun getTimeSlotList(timeRoutineUuid: String): List<TimeSlotEntity> {
+        val dao = database.TimeRoutineJoinTimeSlotViewDao()
+        return dao.getTimeSlotsByTimeRoutine(timeRoutineUuid).map { it.toTimeSlotEntity() }
     }
 
     override suspend fun setTimeSlot(timeSlotData: TimeSlotComposition) {
@@ -62,7 +67,7 @@ internal class TimeSlotRepositoryAdapter @Inject constructor(
 
     private suspend fun updateTimeSlot(timeSlotData: TimeSlotEntity) {
         database.withTransaction {
-            val timeSlotEntity = database.TimeSlotDao().get(timeSlotData.uuid).first()
+            val timeSlotEntity = database.TimeSlotDao().observe(timeSlotData.uuid).first()
                 ?: throw IllegalStateException("time slot is null")
 
             timeSlotData.toTimeSlotSchema(

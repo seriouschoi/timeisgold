@@ -26,7 +26,7 @@ internal class DeleteTimeSlotTest : BaseRoomTest() {
     @Test
     fun deleteTimeSlot_should_DeletedTimeSlotAndMemo() = runTest {
         val timeSlotsFlow = timeSlotRepo
-            .getTimeSlotList(timeRoutine1Saved.timeRoutine.uuid)
+            .observeTimeSlotList(timeRoutine1Saved.timeRoutine.uuid)
 
         val slotForDelete = timeRoutine1Saved.timeSlots.first()
         val slotForNotDelete = timeRoutine1Saved.timeSlots.last()
