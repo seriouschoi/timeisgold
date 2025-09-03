@@ -19,9 +19,10 @@ class MergeLintSarifPlugin : Plugin<Project> {
         // 루트 프로젝트에만 task 등록
         if (project != project.rootProject) return
 
-        project.tasks.register("mergeLintSarif") {
+        project.tasks.register("mergeLint") {
             mergeHtmlsToSingleDir()
         }
+
     }
 
     private fun Task.mergeToSingleDir() {
@@ -54,27 +55,32 @@ class MergeLintSarifPlugin : Plugin<Project> {
 
     private fun Task.mergeHtmlsToSingleDir() {
         group = "verification"
-        description = "Collect all SARIF reports from subprojects into one directory"
+        description = "Collect all lint reports from subprojects into one directory"
 
         val outputDir = project.layout.buildDirectory.dir("reports/merged-lint")
         outputs.dir(outputDir)
 
         doLast {
+            println("mergeHtmlsToSingleDir")
             val outDir = outputDir.get().asFile
+            outDir.takeIf { it.exists() }?.deleteRecursively()
             outDir.mkdirs()
+            println("outDir.exists(): ${outDir.exists()}")
 
             project.rootProject.allprojects.forEach { sub ->
-                val sarifFile =
+                val sourceFile =
                     sub.layout.buildDirectory.file("reports/lint-results-debug.html")
                         .get().asFile
-                if (sarifFile.exists()) {
+                println("${sourceFile.path}: exists=${sourceFile.exists()}")
+                if (sourceFile.exists()) {
                     val target = outDir.resolve("${sub.name}-lint-results-debug.html")
+                    println("copy from ${sourceFile.path} to ${target.path}")
                     Files.copy(
-                        sarifFile.toPath(),
+                        sourceFile.toPath(),
                         target.toPath(),
                         StandardCopyOption.REPLACE_EXISTING
                     )
-                    println("Collected SARIF from ${sub.path}")
+                    println("Collected Html from ${sub.path}")
                 }
             }
         }

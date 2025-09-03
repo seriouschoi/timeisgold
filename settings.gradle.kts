@@ -24,7 +24,6 @@ rootProject.name = "timeisgold"
 include(":app")
 include(":core:domain")
 include(":core:data-room-adapter")
-include(":core:logger")
 include(":core:navigator-api")
 include(":core:navigator-adapter")
 include(":core:common-ui")

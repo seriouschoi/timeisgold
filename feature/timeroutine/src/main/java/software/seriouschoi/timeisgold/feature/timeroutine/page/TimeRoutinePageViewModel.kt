@@ -63,7 +63,7 @@ internal class TimeRoutinePageViewModel @Inject constructor(
     private fun onCollectedIntent(intent: TimeRoutineIntent) {
         when (intent) {
             is TimeRoutineIntent.CreateRoutine -> {
-                navigator.navigate(TimeRoutineEditScreenRoute(intent.dayOfWeek))
+                navigator.navigate(TimeRoutineEditScreenRoute(intent.dayOfWeek.ordinal))
             }
         }
     }
