@@ -1,7 +1,7 @@
 #libs.versions.toml
 
 [versions]
-agp = "8.12.1"
+agp = "8.12.2"
 androidTools = "31.12.1"
 gson = "2.13.1"
 hiltNavigationCompose = "1.2.0"
