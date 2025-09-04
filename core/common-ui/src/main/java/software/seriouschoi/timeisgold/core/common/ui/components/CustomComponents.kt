@@ -4,11 +4,18 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
@@ -23,7 +30,7 @@ private fun Preview() {
     Column {
         TigText("test")
         TigTextField(value = "test", onValueChange = {})
-        TigVerticalCheckBox(label = "test", checked = true, onCheckedChange = {})
+        TigCheckButton(label = "test", checked = true, onCheckedChange = {})
         TigLabelButton(
             onClick = {},
             label = "button"
@@ -33,7 +40,73 @@ private fun Preview() {
                 TigText("button")
             }
         }
+        TigCircleProgress()
     }
+}
+
+@Preview
+@Composable
+private fun TigAlertPreview() {
+    TigAlert(
+        message = "message",
+        confirmButtonText = "confirm",
+        onClickConfirm = {},
+        cancelButtonText = "cancel",
+        onClickCancel = {},
+        alertId = "alertId"
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TigAlert(
+    alertId: String,
+    message: String,
+    confirmButtonText: String,
+    onClickConfirm: () -> Unit,
+    cancelButtonText: String? = null,
+    onClickCancel: (() -> Unit)? = null
+) {
+    var show by remember(alertId) { mutableStateOf(true) }
+
+    if (!show) {
+        return
+    }
+
+    BasicAlertDialog(
+        onDismissRequest = {
+            show = false
+        }
+    ) {
+        Column {
+            TigText(text = message)
+
+            TigBottomBar {
+                if (onClickCancel != null && cancelButtonText != null) {
+                    TigLabelButton(
+                        onClick = {
+                            onClickCancel()
+                            show = false
+                        },
+                        label = cancelButtonText,
+                    )
+                }
+
+                TigLabelButton(
+                    onClick = {
+                        onClickConfirm()
+                        show = false
+                    },
+                    label = confirmButtonText,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun TigCircleProgress() {
+    CircularProgressIndicator()
 }
 
 @Composable
@@ -71,7 +144,7 @@ fun TigBottomBar(modifier: Modifier = Modifier, content: @Composable () -> Unit)
 fun TigText(text: String, modifier: Modifier = Modifier) {
     Text(
         text = text,
-        modifier = modifier
+        modifier = modifier,
     )
 }
 
@@ -84,12 +157,12 @@ fun TigTextField(
     TextField(
         value = value,
         onValueChange = onValueChange,
-        modifier = modifier
+        modifier = modifier,
     )
 }
 
 @Composable
-fun TigVerticalCheckBox(
+fun TigCheckButton(
     modifier: Modifier = Modifier,
     label: String,
     checked: Boolean,
