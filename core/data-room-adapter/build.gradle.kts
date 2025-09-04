@@ -17,6 +17,7 @@ ksp {
 
 dependencies {
     implementation(project(":core:domain"))
+    implementation(project(":core:domain-data"))
     implementation(project(":core:localtime-util"))
 
     implementation(libs.androidx.room.runtime)
