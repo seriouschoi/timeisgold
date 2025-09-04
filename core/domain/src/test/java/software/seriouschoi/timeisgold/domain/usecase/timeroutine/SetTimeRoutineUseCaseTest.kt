@@ -6,9 +6,9 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.MockitoAnnotations
 import org.mockito.junit.MockitoJUnitRunner
+import software.seriouschoi.timeisgold.core.test.util.FakeTimeRoutineRepositoryAdapter
+import software.seriouschoi.timeisgold.core.test.util.TimeRoutineTestFixtures
 import software.seriouschoi.timeisgold.domain.data.DomainResult
-import software.seriouschoi.timeisgold.domain.fixture.FakeTimeRoutineRepositoryPort
-import software.seriouschoi.timeisgold.domain.fixture.TimeRoutineDataFixture
 import software.seriouschoi.timeisgold.domain.port.TimeRoutineRepositoryPort
 import software.seriouschoi.timeisgold.domain.services.TimeRoutineDomainService
 import java.time.DayOfWeek
@@ -19,9 +19,9 @@ import java.time.DayOfWeek
  */
 @RunWith(MockitoJUnitRunner::class)
 class SetTimeRoutineUseCaseTest {
-    private val testFixture = TimeRoutineDataFixture()
+    private val testFixture = TimeRoutineTestFixtures()
 
-    private val timeRoutineRepo: TimeRoutineRepositoryPort = FakeTimeRoutineRepositoryPort(
+    private val timeRoutineRepo: TimeRoutineRepositoryPort = FakeTimeRoutineRepositoryAdapter(
         listOf(
             testFixture.routineCompoMonTue
         )

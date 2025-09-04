@@ -1,4 +1,4 @@
-package software.seriouschoi.timeisgold.domain.fixture
+package software.seriouschoi.timeisgold.core.test.util
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -12,7 +12,7 @@ import java.time.DayOfWeek
  * Created by jhchoi on 2025. 9. 4.
  * jhchoi
  */
-class FakeTimeRoutineRepositoryPort(
+class FakeTimeRoutineRepositoryAdapter(
     private val mockTimeRoutines: List<TimeRoutineComposition>
 ): TimeRoutineRepositoryPort {
     @Deprecated("use upsert")

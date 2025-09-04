@@ -9,5 +9,6 @@ plugins {
 dependencies {
     implementation(project(":core:domain-data"))
     implementation(project(":core:localtime-util"))
+    implementation(project(":core:test-util"))
 }
 
