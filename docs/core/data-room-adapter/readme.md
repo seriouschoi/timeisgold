@@ -63,4 +63,11 @@ Room의 @Relation은 쿼리 로직이 숨겨짐.
 auto increment pkey = id:Int //내부 성능 최적화용(Join, FK)  
 domain identifier id = uuid:String //도메인/동기화용, 외부 노출 식별자.
 - `id`는 **성능이 필요한 작업 (예: Join)**에서만 사용하고 data 모듈 바깥에는 노출하지 않는다.
-- `uuid`는 **리모트와 동기화**할 때 사용한다.  
+- `uuid`는 **리모트와 동기화**할 때 사용한다.
+
+
+# @Upsert
+room에서 insert or update를 해주는 어노테이션이다.  
+편리해보이지만, conflict발생시, 기존 중복 row를 삭제하고,   
+새 row를 추가하므로, 예상치 못한 덮어쓰는 일이 발생하므로,  
+사용을 지양하는 것이 옳다고 본다.

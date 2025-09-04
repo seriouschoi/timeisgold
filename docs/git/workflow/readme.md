@@ -1,7 +1,7 @@
 # github action workflow
 
 # CI, UnitTest
-시점
+정책
 - 모든 브랜치의 push, pull request에서 확인.
 
 역할
@@ -10,9 +10,9 @@
 - 유닛테스트
 
 # Andorid Test
-시점
-- 무거우므로, 실제 로직의 변경시에만 실행.(app, core, feature, presentation, 의존 변경시.)
-- master브랜치의 변경시에만 실행.
+정책
+- 무거우므로, 문서를 제외한 실제 로직의 변경시 실행.
+- master 브랜치의 변경시에만 실행.
 
 역할
-- 에뮬레이터 환경에서 동작 테스트.
+- 에뮬 환경에서 통합 테스트.
