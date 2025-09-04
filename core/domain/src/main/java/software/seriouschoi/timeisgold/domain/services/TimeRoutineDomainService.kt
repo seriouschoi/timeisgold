@@ -1,11 +1,9 @@
 package software.seriouschoi.timeisgold.domain.services
 
 import kotlinx.coroutines.flow.first
-import software.seriouschoi.timeisgold.domain.data.ConflictCode
-import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineComposition
 import software.seriouschoi.timeisgold.domain.data.DomainError
 import software.seriouschoi.timeisgold.domain.data.DomainResult
-import software.seriouschoi.timeisgold.domain.data.ValidationCode
+import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineComposition
 import software.seriouschoi.timeisgold.domain.exception.TIGException
 import software.seriouschoi.timeisgold.domain.port.TimeRoutineRepositoryPort
 import javax.inject.Inject
@@ -36,11 +34,11 @@ class TimeRoutineDomainService @Inject constructor(
 
     suspend fun isValidForAdd(newRoutine: TimeRoutineComposition): DomainResult<Boolean> {
         if(newRoutine.timeRoutine.title.isEmpty()) {
-            return DomainResult.Failure(DomainError.Validation(ValidationCode.Title))
+            return DomainResult.Failure(DomainError.Validation.Title)
         }
         val newDays = newRoutine.dayOfWeeks.map { it.dayOfWeek }
         if(newDays.isEmpty()) {
-            return DomainResult.Failure(DomainError.Validation(ValidationCode.NoSelectedDayOfWeek))
+            return DomainResult.Failure(DomainError.Validation.NoSelectedDayOfWeek)
         }
 
         val existingDays = timeRoutineRepository.observeAllRoutinesDayOfWeeks().first()
@@ -48,7 +46,7 @@ class TimeRoutineDomainService @Inject constructor(
             newDays.contains(it)
         }
         if (conflictDays.isNotEmpty()) {
-            return DomainResult.Failure(DomainError.Conflict(ConflictCode.DayOfWeek))
+            return DomainResult.Failure(DomainError.Conflict.DayOfWeek)
         }
 
         return DomainResult.Success(true)

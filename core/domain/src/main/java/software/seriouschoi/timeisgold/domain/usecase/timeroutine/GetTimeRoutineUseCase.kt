@@ -4,11 +4,9 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
-import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineComposition
 import software.seriouschoi.timeisgold.domain.data.DomainError
 import software.seriouschoi.timeisgold.domain.data.DomainResult
-import software.seriouschoi.timeisgold.domain.data.NotFoundCode
-import software.seriouschoi.timeisgold.domain.data.ValidationCode
+import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineComposition
 import software.seriouschoi.timeisgold.domain.port.TimeRoutineRepositoryPort
 import java.time.DayOfWeek
 import javax.inject.Inject
@@ -20,7 +18,7 @@ class GetTimeRoutineUseCase @Inject constructor(
     operator fun invoke(dayOfWeek: DayOfWeek): Flow<DomainResult<TimeRoutineComposition>> {
         return timeRoutineRepositoryPort.observeCompositionByDayOfWeek(dayOfWeek).flatMapLatest {
             if(it == null) {
-                flowOf(DomainResult.Failure(DomainError.NotFound(NotFoundCode.TimeRoutine)))
+                flowOf(DomainResult.Failure(DomainError.NotFound.TimeRoutine))
             } else {
                 flowOf(DomainResult.Success(it))
             }

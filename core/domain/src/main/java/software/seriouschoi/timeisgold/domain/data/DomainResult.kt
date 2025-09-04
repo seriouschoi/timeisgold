@@ -10,26 +10,19 @@ sealed class DomainResult<out T> {
 }
 
 sealed interface DomainError {
-    data class Validation(val code: ValidationCode) : DomainError
-    data class Conflict(val code: ConflictCode) : DomainError
-    data class NotFound(val code: NotFoundCode) : DomainError
-    data class Technical(val code: TechCode) : DomainError
-}
+    sealed interface Validation : DomainError {
+        data object Title: Validation
+        data object NoSelectedDayOfWeek: Validation
+    }
 
-sealed interface ValidationCode {
-    data object Title : ValidationCode
-    data object NoSelectedDayOfWeek : ValidationCode
-}
-
-sealed interface ConflictCode {
-    data object DayOfWeek : ConflictCode
-    data object Data : ConflictCode
-}
-
-sealed interface NotFoundCode {
-    data object TimeRoutine : NotFoundCode
-}
-
-interface TechCode {
-    data object Data : TechCode
+    sealed interface Conflict : DomainError {
+        data object DayOfWeek : Conflict
+        data object Data : Conflict
+    }
+    sealed interface NotFound : DomainError {
+        data object TimeRoutine : NotFound
+    }
+    sealed interface Technical : DomainError {
+        data object Unknown : Technical
+    }
 }
