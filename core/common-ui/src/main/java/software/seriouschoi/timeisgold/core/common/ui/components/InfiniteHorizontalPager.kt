@@ -1,4 +1,4 @@
-package software.seriouschoi.timeisgold.core.common.ui
+package software.seriouschoi.timeisgold.core.common.ui.components
 
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
