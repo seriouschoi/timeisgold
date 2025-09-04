@@ -8,6 +8,8 @@
 - [ ] DomainResult간소화.
   - 어차피 규모가 커지면, 도메인을 쪼개되 되므로, 불필요하게 리턴 코드를 늘리지 말자.
 - [ ] nia로 부터 ci lint 참고해서 적용.
+- [ ] domain unit test에 @mock 대신 FakeRepositoryPort사용하기.
+  - 테스트 환경에서 데이터와 함수 동작의 일관성을 위해서 필요.
 
 ## Routine Page.
 - 상단

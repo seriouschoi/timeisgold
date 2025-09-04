@@ -19,3 +19,4 @@ data/schemas/
 build/
 core/data-room-adapter/schemas/**
 .java-version
+**/.kotlin/*
