@@ -1,5 +1,10 @@
 # TODOs
 
+- [ ] 테스트에 필요한 FakeRepo, TestFixture등은 공통으로 사용하므로, 공통 모듈 정의해야함.
+  - 공통 모듈에 main에 정의하고, 블러올때, testImpl로 불러와야함.
+  - domain에서도 이 모듈을 써야하므로, domain의 usecase, service를 제외하고 전부 이관 해야함. 
+  - 이건..점진적으로 안됨.
+
 - [ ] 루틴 저장 프로세스를 만든뒤 feature ui test방법 찾아서 적용.
 
 - [ ] TimeRoutineRepositoryPort가 너무 큼. Composition과 Routine을 나눠야 함.
