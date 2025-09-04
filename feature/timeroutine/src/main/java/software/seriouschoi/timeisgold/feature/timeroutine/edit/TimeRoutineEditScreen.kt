@@ -9,6 +9,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import software.seriouschoi.timeisgold.core.common.ui.asString
 import software.seriouschoi.timeisgold.core.common.ui.components.TigAlert
@@ -27,12 +28,44 @@ import software.seriouschoi.timeisgold.core.common.ui.R as CommonR
 internal fun TimeRoutineEditScreen() {
     val viewModel = hiltViewModel<TimeRoutineEditViewModel>()
     val uiState by viewModel.uiState.collectAsState()
+    Screen(
+        uiState
+    ) {
+        viewModel.sendIntent(it)
+    }
+
+
+    val uiEvent by viewModel.uiEvent.collectAsState(
+        initial = null
+    )
+    ShowEvent(uiEvent) {
+        viewModel.sendIntent(it)
+    }
+}
+
+@Preview
+@Composable
+private fun Preview() {
+    Screen(
+        uiState = TimeRoutineEditUiState.Routine(
+            currentDayOfWeek = DayOfWeek.MONDAY,
+            dayOfWeekList = setOf(DayOfWeek.MONDAY),
+            routineTitle = "title"
+        )
+    ) { }
+}
+
+@Composable
+private fun Screen(
+    uiState: TimeRoutineEditUiState,
+    sendIntent: (TimeRoutineEditUiIntent) -> Unit
+) {
     Column {
         Box {
             when (val state = uiState) {
                 is TimeRoutineEditUiState.Routine -> {
                     Routine(state) {
-                        viewModel.sendIntent(it)
+                        sendIntent(it)
                     }
                 }
 
@@ -42,15 +75,8 @@ internal fun TimeRoutineEditScreen() {
             }
         }
         BottomButtons({
-            viewModel.sendIntent(it)
+            sendIntent(it)
         })
-    }
-
-    val uiEvent by viewModel.uiEvent.collectAsState(
-        initial = null
-    )
-    ShowEvent(uiEvent) {
-        viewModel.sendIntent(it)
     }
 }
 
