@@ -11,10 +11,8 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import software.seriouschoi.timeisgold.data.BaseRoomTest
 import software.seriouschoi.timeisgold.data.mapper.toTimeRoutineDayOfWeekEntity
-import software.seriouschoi.timeisgold.domain.data.ConflictCode
 import software.seriouschoi.timeisgold.domain.data.DomainError
 import software.seriouschoi.timeisgold.domain.data.DomainResult
-import software.seriouschoi.timeisgold.domain.data.TechCode
 import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineComposition
 import timber.log.Timber
 import java.time.DayOfWeek
@@ -93,7 +91,7 @@ internal class SetTimeRoutineTest : BaseRoomTest() {
         val result = timeRoutineRepo.saveTimeRoutineComposition(routine2ForUpdate)
         Timber.d("result: $result")
 
-        assert(((result as? DomainResult.Failure)?.error as? DomainError.Conflict)?.code == ConflictCode.TimeRoutine.Data)
+        assert((result as? DomainResult.Failure)?.error == DomainError.Conflict.Data)
     }
 
     @Test

@@ -18,10 +18,8 @@ import software.seriouschoi.timeisgold.data.mapper.toTimeRoutineEntity
 import software.seriouschoi.timeisgold.data.mapper.toTimeRoutineSchema
 import software.seriouschoi.timeisgold.data.mapper.toTimeSlotEntity
 import software.seriouschoi.timeisgold.data.mapper.toTimeSlotSchema
-import software.seriouschoi.timeisgold.domain.data.ConflictCode
 import software.seriouschoi.timeisgold.domain.data.DomainError
 import software.seriouschoi.timeisgold.domain.data.DomainResult
-import software.seriouschoi.timeisgold.domain.data.TechCode
 import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineComposition
 import software.seriouschoi.timeisgold.domain.data.entities.TimeRoutineDayOfWeekEntity
 import software.seriouschoi.timeisgold.domain.data.entities.TimeRoutineEntity
@@ -59,9 +57,9 @@ internal class TimeRoutineRepositoryPortAdapter @Inject constructor(
             }
             return DomainResult.Success(routineUuid)
         } catch (_: SQLiteConstraintException) {
-            return DomainResult.Failure(DomainError.Conflict(ConflictCode.TimeRoutine.Data))
+            return DomainResult.Failure(DomainError.Conflict.Data)
         } catch (_: Exception) {
-            return DomainResult.Failure(DomainError.Technical(TechCode.Data))
+            return DomainResult.Failure(DomainError.Technical.Unknown)
         } catch (e: CancellationException) {
             throw e
         }

@@ -14,10 +14,8 @@ import software.seriouschoi.navigator.DestNavigatorPort
 import software.seriouschoi.timeisgold.core.common.ui.ResultState
 import software.seriouschoi.timeisgold.core.common.ui.UiText
 import software.seriouschoi.timeisgold.core.common.ui.asResultState
-import software.seriouschoi.timeisgold.domain.data.ConflictCode
 import software.seriouschoi.timeisgold.domain.data.DomainError
 import software.seriouschoi.timeisgold.domain.data.DomainResult
-import software.seriouschoi.timeisgold.domain.data.ValidationCode
 import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineComposition
 import software.seriouschoi.timeisgold.domain.data.entities.TimeRoutineEntity
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.GetTimeRoutineUseCase
@@ -143,20 +141,20 @@ internal class TimeRoutineEditViewModel @Inject constructor(
 
     private fun DomainError.toUiText(): UiText = when (this) {
         is DomainError.Validation -> {
-            when (this.code) {
-                ValidationCode.TimeRoutine.DayOfWeekEmpty -> UiText.Res(
+            when (this) {
+                DomainError.Validation.NoSelectedDayOfWeek -> UiText.Res(
                     id = R.string.message_dayofweek_is_empty
                 )
 
-                ValidationCode.TimeRoutine.Title -> UiText.Res(
+                DomainError.Validation.Title -> UiText.Res(
                     id = R.string.message_title_is_empty
                 )
             }
         }
 
         is DomainError.Conflict -> {
-            when (this.code) {
-                ConflictCode.TimeRoutine.DayOfWeek -> UiText.Res(
+            when (this) {
+                DomainError.Conflict.DayOfWeek -> UiText.Res(
                     id = R.string.message_conflict_dayofweek
                 )
 
