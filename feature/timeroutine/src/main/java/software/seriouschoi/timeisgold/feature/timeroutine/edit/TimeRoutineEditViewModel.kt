@@ -13,6 +13,7 @@ import kotlinx.coroutines.launch
 import software.seriouschoi.navigator.DestNavigatorPort
 import software.seriouschoi.timeisgold.core.common.ui.ResultState
 import software.seriouschoi.timeisgold.core.common.ui.UiText
+import software.seriouschoi.timeisgold.core.common.ui.UiText.Res
 import software.seriouschoi.timeisgold.core.common.ui.asResultState
 import software.seriouschoi.timeisgold.domain.data.DomainError
 import software.seriouschoi.timeisgold.domain.data.DomainResult
@@ -84,7 +85,7 @@ internal class TimeRoutineEditViewModel @Inject constructor(
             is TimeRoutineEditUiIntent.Save -> {
                 _uiEvent.emit(
                     ShowConfirm(
-                        UiText.Res(
+                        Res(
                             R.string.message_routine_edit_confirm
                         ),
                         TimeRoutineEditUiIntent.SaveConfirm,
@@ -96,7 +97,7 @@ internal class TimeRoutineEditViewModel @Inject constructor(
             is TimeRoutineEditUiIntent.Cancel -> {
                 _uiEvent.emit(
                     ShowConfirm(
-                        UiText.Res(
+                        Res(
                             R.string.message_routine_edit_cancel
                         ),
                         TimeRoutineEditUiIntent.Exit,
@@ -111,6 +112,14 @@ internal class TimeRoutineEditViewModel @Inject constructor(
 
             TimeRoutineEditUiIntent.SaveConfirm -> {
                 saveTimeRoutine()
+            }
+
+            is TimeRoutineEditUiIntent.UpdateDayOfWeek -> {
+                checkDayOfWeek(intent.dayOfWeek, intent.checked)
+            }
+
+            is TimeRoutineEditUiIntent.UpdateRoutineTitle -> {
+                updateRoutineTitle(intent.title)
             }
         }
     }
@@ -216,7 +225,7 @@ internal class TimeRoutineEditViewModel @Inject constructor(
         }
     }
 
-    fun updateRoutineTitle(newTitle: String) {
+    private fun updateRoutineTitle(newTitle: String) {
         val currentRoutineState = (uiState.value as? TimeRoutineEditUiState.Routine)
         if (currentRoutineState == null) {
             return
@@ -232,20 +241,18 @@ internal class TimeRoutineEditViewModel @Inject constructor(
         }
     }
 
-    fun checkDayOfWeek(dayOfWeek: DayOfWeek, check: Boolean) {
-        viewModelScope.launch {
-            val routineState = uiState.value as? TimeRoutineEditUiState.Routine ?: return@launch
+    private fun checkDayOfWeek(dayOfWeek: DayOfWeek, check: Boolean) {
+        val routineState = uiState.value as? TimeRoutineEditUiState.Routine ?: return
 
-            val newDayOfWeeks = routineState.dayOfWeekList.toMutableSet()
-            if(check) {
-                newDayOfWeeks.add(dayOfWeek)
-            } else {
-                newDayOfWeeks.remove(dayOfWeek)
-            }
-            _uiState.value = routineState.copy(
-                dayOfWeekList = newDayOfWeeks
-            )
+        val newDayOfWeeks = routineState.dayOfWeekList.toMutableSet()
+        if (check) {
+            newDayOfWeeks.add(dayOfWeek)
+        } else {
+            newDayOfWeeks.remove(dayOfWeek)
         }
+        _uiState.value = routineState.copy(
+            dayOfWeekList = newDayOfWeeks
+        )
     }
 
 }

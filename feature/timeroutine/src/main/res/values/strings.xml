@@ -5,5 +5,5 @@
     <string name="message_routine_edit_confirm">입력하신 루틴을 저장하시겠습니까?</string>
     <string name="message_title_is_empty">제목을 작성해주세요.</string>
     <string name="message_dayofweek_is_empty">요일을 선택해주세요.</string>
-    <string name="message_conflict_dayofweek">날짜가 중복됩니다. 다시 선택해주세요.</string>
+    <string name="message_conflict_dayofweek">요일이 중복됩니다. 다시 선택해주세요.</string>
 </resources>
