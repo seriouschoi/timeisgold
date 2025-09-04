@@ -1,6 +1,5 @@
 package software.seriouschoi.timeisgold.data.repositories.timeroutine
 
-import android.database.sqlite.SQLiteConstraintException
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.gson.Gson
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -16,7 +15,6 @@ import software.seriouschoi.timeisgold.domain.data.DomainResult
 import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineComposition
 import timber.log.Timber
 import java.time.DayOfWeek
-import kotlin.test.todo
 
 /**
  * Created by jhchoi on 2025. 8. 7.
