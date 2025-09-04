@@ -1,4 +1,4 @@
-package software.seriouschoi.timeisgold.data.fixture
+package software.seriouschoi.timeisgold.core.test.util
 
 import software.seriouschoi.software.seriouschoi.util.localtime.toEpochMillis
 import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineComposition
@@ -15,7 +15,7 @@ import java.util.UUID
  * Created by jhchoi on 2025. 8. 28.
  * jhchoi
  */
-internal class TimeRoutineTestFixtures {
+class TimeRoutineTestFixtures {
     val routineCompoMonTue: TimeRoutineComposition = TimeRoutineComposition(
         timeRoutine = generateTimeRoutine(
             routineTitle = "routine1",
