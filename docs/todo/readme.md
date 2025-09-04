@@ -2,6 +2,10 @@
 
 - [ ] 루틴 저장 프로세스를 만든뒤 feature ui test방법 찾아서 적용.
 
+- [ ] TimeRoutineRepositoryPort가 너무 큼. Composition과 Routine을 나눠야 함.
+
+- [ ] 중복되는 테스트요소들을 :core:test-utils같은 모듈에 모으자.(FakeRepository등..)
+
 - [ ] 현재까지 만들어진 모든 뷰모델을 SavedStateHandle을 사용하여 초기화할 값 전달.
 - [ ] 테스트 커버리지 도구 도입.
 - [ ] 루틴 페이저 하단에 인디케이터 추가.

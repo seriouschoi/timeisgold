@@ -12,4 +12,6 @@ dependencies {
     implementation(project(":core:domain"))
     implementation(project(":core:navigator-api"))
     implementation(project(":core:common-ui"))
+
+    implementation(libs.kotlinx.serialization.json)
 }
