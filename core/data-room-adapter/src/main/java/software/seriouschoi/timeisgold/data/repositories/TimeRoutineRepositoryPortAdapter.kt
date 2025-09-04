@@ -59,7 +59,7 @@ internal class TimeRoutineRepositoryPortAdapter @Inject constructor(
             }
             return DomainResult.Success(routineUuid)
         } catch (_: SQLiteConstraintException) {
-            return DomainResult.Failure(DomainError.Conflict(ConflictCode.TimeRoutine.Data))
+            return DomainResult.Failure(DomainError.Conflict(ConflictCode.Data))
         } catch (_: Exception) {
             return DomainResult.Failure(DomainError.Technical(TechCode.Data))
         } catch (e: CancellationException) {

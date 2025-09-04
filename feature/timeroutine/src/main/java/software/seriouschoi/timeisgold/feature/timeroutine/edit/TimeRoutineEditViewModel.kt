@@ -144,11 +144,11 @@ internal class TimeRoutineEditViewModel @Inject constructor(
     private fun DomainError.toUiText(): UiText = when (this) {
         is DomainError.Validation -> {
             when (this.code) {
-                ValidationCode.TimeRoutine.DayOfWeekEmpty -> UiText.Res(
+                ValidationCode.NoSelectedDayOfWeek -> UiText.Res(
                     id = R.string.message_dayofweek_is_empty
                 )
 
-                ValidationCode.TimeRoutine.Title -> UiText.Res(
+                ValidationCode.Title -> UiText.Res(
                     id = R.string.message_title_is_empty
                 )
             }
@@ -156,7 +156,7 @@ internal class TimeRoutineEditViewModel @Inject constructor(
 
         is DomainError.Conflict -> {
             when (this.code) {
-                ConflictCode.TimeRoutine.DayOfWeek -> UiText.Res(
+                ConflictCode.DayOfWeek -> UiText.Res(
                     id = R.string.message_conflict_dayofweek
                 )
 

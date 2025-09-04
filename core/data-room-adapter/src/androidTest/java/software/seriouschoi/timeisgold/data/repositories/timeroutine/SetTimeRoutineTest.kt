@@ -93,7 +93,7 @@ internal class SetTimeRoutineTest : BaseRoomTest() {
         val result = timeRoutineRepo.saveTimeRoutineComposition(routine2ForUpdate)
         Timber.d("result: $result")
 
-        assert(((result as? DomainResult.Failure)?.error as? DomainError.Conflict)?.code == ConflictCode.TimeRoutine.Data)
+        assert(((result as? DomainResult.Failure)?.error as? DomainError.Conflict)?.code == ConflictCode.Data)
     }
 
     @Test

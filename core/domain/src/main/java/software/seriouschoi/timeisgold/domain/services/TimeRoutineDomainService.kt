@@ -36,11 +36,11 @@ class TimeRoutineDomainService @Inject constructor(
 
     suspend fun isValidForAdd(newRoutine: TimeRoutineComposition): DomainResult<Boolean> {
         if(newRoutine.timeRoutine.title.isEmpty()) {
-            return DomainResult.Failure(DomainError.Validation(ValidationCode.TimeRoutine.Title))
+            return DomainResult.Failure(DomainError.Validation(ValidationCode.Title))
         }
         val newDays = newRoutine.dayOfWeeks.map { it.dayOfWeek }
         if(newDays.isEmpty()) {
-            return DomainResult.Failure(DomainError.Validation(ValidationCode.TimeRoutine.DayOfWeekEmpty))
+            return DomainResult.Failure(DomainError.Validation(ValidationCode.NoSelectedDayOfWeek))
         }
 
         val existingDays = timeRoutineRepository.observeAllRoutinesDayOfWeeks().first()
@@ -48,7 +48,7 @@ class TimeRoutineDomainService @Inject constructor(
             newDays.contains(it)
         }
         if (conflictDays.isNotEmpty()) {
-            return DomainResult.Failure(DomainError.Conflict(ConflictCode.TimeRoutine.DayOfWeek))
+            return DomainResult.Failure(DomainError.Conflict(ConflictCode.DayOfWeek))
         }
 
         return DomainResult.Success(true)

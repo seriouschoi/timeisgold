@@ -5,32 +5,31 @@ package software.seriouschoi.timeisgold.domain.data
  * jhchoi
  */
 sealed class DomainResult<out T> {
-    data class Success<T>(val value: T): DomainResult<T>()
-    data class Failure(val error: DomainError): DomainResult<Nothing>()
+    data class Success<T>(val value: T) : DomainResult<T>()
+    data class Failure(val error: DomainError) : DomainResult<Nothing>()
 }
 
 sealed interface DomainError {
-    data class Validation(val code: ValidationCode): DomainError
-    data class Conflict(val code: ConflictCode): DomainError
-    data class NotFound(val code: NotFoundCode): DomainError
-    data class Technical(val code: TechCode): DomainError
+    data class Validation(val code: ValidationCode) : DomainError
+    data class Conflict(val code: ConflictCode) : DomainError
+    data class NotFound(val code: NotFoundCode) : DomainError
+    data class Technical(val code: TechCode) : DomainError
 }
 
 sealed interface ValidationCode {
-    sealed interface TimeRoutine: ValidationCode {
-        data object Title: TimeRoutine
-        data object DayOfWeekEmpty: TimeRoutine
-    }
+    data object Title : ValidationCode
+    data object NoSelectedDayOfWeek : ValidationCode
 }
+
 sealed interface ConflictCode {
-    sealed interface TimeRoutine: ConflictCode {
-        data object DayOfWeek: TimeRoutine
-        data object Data: TimeRoutine
-    }
+    data object DayOfWeek : ConflictCode
+    data object Data : ConflictCode
 }
+
 sealed interface NotFoundCode {
-    data object TimeRoutine: NotFoundCode
+    data object TimeRoutine : NotFoundCode
 }
+
 interface TechCode {
-    data object Data: TechCode
+    data object Data : TechCode
 }
