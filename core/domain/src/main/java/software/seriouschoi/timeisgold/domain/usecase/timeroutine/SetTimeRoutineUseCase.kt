@@ -13,7 +13,6 @@ class SetTimeRoutineUseCase @Inject constructor(
     private val timeRoutineRepositoryPort: TimeRoutineRepositoryPort,
     private val timeRoutineDomainService: TimeRoutineDomainService,
 ) {
-    // TODO: make test.
     suspend operator fun invoke(
         routine: TimeRoutineEntity,
         dayOfWeeks: List<DayOfWeek>
