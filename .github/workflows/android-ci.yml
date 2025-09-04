@@ -2,7 +2,7 @@ name: Android CI
 
 on:
   push:
-    branches-ignore: ["stash/**"]
+    branches: [ "master" ]
     paths-ignore: [ '**.md', 'docs/**' ]
   pull_request:
     branches: [ "master" ]
@@ -18,44 +18,6 @@ permissions:
   security-events: write
 
 jobs:
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/setup
-
-      - name: Run lint
-        run: ./gradlew lintDebug
-
-      - name: collect lint report
-        run: ./gradlew mergeLint
-
-      - name: Upload lint reports
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: lint-report
-          path: build/reports/merged-lint/**
-
-  unit:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - uses: ./.github/actions/setup
-
-      - name: Unit Test
-        run: ./gradlew testDebugUnitTest --stacktrace
-
-      - name: Upload unit test reports
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: unit-test-report
-          path: |
-            **/build/reports/tests/testDebugUnitTest/**
-            **/build/test-results/testDebugUnitTest/**
   build:
     runs-on: ubuntu-latest
 
@@ -75,3 +37,28 @@ jobs:
           name: app-debug
           path: app/build/outputs/apk/debug/**
           retention-days: 7
+
+      - name: Run lint
+        run: ./gradlew lintDebug
+
+      - name: collect lint report
+        run: ./gradlew mergeLint
+
+      - name: Upload lint reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lint-report
+          path: build/reports/merged-lint/**
+
+      - name: Unit Test
+        run: ./gradlew testDebugUnitTest --stacktrace
+
+      - name: Upload unit test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-report
+          path: |
+            **/build/reports/tests/testDebugUnitTest/**
+            **/build/test-results/testDebugUnitTest/**
