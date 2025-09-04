@@ -5,11 +5,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -19,24 +17,33 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import software.seriouschoi.timeisgold.core.common.ui.asString
+import software.seriouschoi.timeisgold.core.common.ui.components.TigBottomBar
+import software.seriouschoi.timeisgold.core.common.ui.components.TigLabelButton
+import software.seriouschoi.timeisgold.core.common.ui.components.TigText
+import software.seriouschoi.timeisgold.core.common.ui.components.TigTextField
+import software.seriouschoi.timeisgold.core.common.ui.components.TigVerticalCheckBox
 import java.time.DayOfWeek
 import java.time.format.TextStyle
 import java.util.Locale
 import software.seriouschoi.timeisgold.core.common.ui.R as CommonR
 
+@Preview
 @Composable
 internal fun TimeRoutineEditScreen() {
-
+    val viewModel = hiltViewModel<TimeRoutineEditViewModel>()
     Column {
         Box {
             Loading()
             Edit()
         }
-        BottomButtons()
+        BottomButtons({
+            viewModel.sendIntent(it)
+        })
 
     }
 
@@ -45,16 +52,16 @@ internal fun TimeRoutineEditScreen() {
 }
 
 @Composable
-private fun BottomButtons() {
-    val viewModel = hiltViewModel<TimeRoutineEditViewModel>()
-    Row {
-        Button(
+private fun BottomButtons(
+    sendIntent: (TimeRoutineEditUiIntent) -> Unit
+) {
+    TigBottomBar {
+        TigLabelButton(
             onClick = {
-                viewModel.sendIntent(TimeRoutineEditUiIntent.Save)
+                sendIntent(TimeRoutineEditUiIntent.Save)
             },
-        ) {
-            Text(text = stringResource(CommonR.string.text_save))
-        }
+            label = stringResource(CommonR.string.text_save)
+        )
     }
 }
 
@@ -152,7 +159,6 @@ private fun Alert() {
 @Composable
 private fun Loading() {
     val viewModel = hiltViewModel<TimeRoutineEditViewModel>()
-
     val loading by remember(viewModel) {
         viewModel.uiState.map { it: TimeRoutineEditUiState ->
             it is TimeRoutineEditUiState.Loading
@@ -178,8 +184,8 @@ private fun Edit() {
     currentRoutine ?: return
 
     Column {
-        Text("timeRoutineEditScreen. ${currentRoutine?.currentDayOfWeek}")
-        TextField(
+        TigText("timeRoutineEditScreen. ${currentRoutine?.currentDayOfWeek}")
+        TigTextField(
             value = currentRoutine?.routineTitle ?: "",
             onValueChange = {
                 viewModel.updateRoutineTitle(it)
@@ -189,15 +195,13 @@ private fun Edit() {
         Row {
             DayOfWeek.entries.forEach { dayOfWeek ->
                 val isChecked = currentRoutine?.dayOfWeekList?.contains(dayOfWeek) == true
-                Column {
-                    Checkbox(
-                        onCheckedChange = {
-                            viewModel.checkDayOfWeek(dayOfWeek, it)
-                        },
-                        checked = isChecked,
-                    )
-                    Text(text = dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault()))
-                }
+                TigVerticalCheckBox(
+                    label = dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault()),
+                    checked = isChecked,
+                    onCheckedChange = {
+                        viewModel.checkDayOfWeek(dayOfWeek, it)
+                    }
+                )
             }
         }
     }

@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.Serializable
 import software.seriouschoi.navigator.NavigatorRoute
-import software.seriouschoi.timeisgold.core.common.ui.InfiniteHorizontalPager
+import software.seriouschoi.timeisgold.core.common.ui.components.InfiniteHorizontalPager
 import software.seriouschoi.timeisgold.feature.timeroutine.page.TimeRoutinePageScreen
 
 /**

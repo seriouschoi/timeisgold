@@ -37,7 +37,9 @@ internal class TimeRoutineEditViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val route get() = savedStateHandle.toRoute<TimeRoutineEditScreenRoute>()
-    private val currentDayOfWeek: DayOfWeek = route.dayOfWeekOrdinal.let { DayOfWeek.of(it) }
+    private val currentDayOfWeek: DayOfWeek = route.dayOfWeekOrdinal.let {
+        DayOfWeek.entries[it]
+    }
 
     private val _uiState = MutableStateFlow<TimeRoutineEditUiState>(TimeRoutineEditUiState.Loading)
     val uiState = _uiState.asStateFlow()
@@ -50,7 +52,7 @@ internal class TimeRoutineEditViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            getTimeRoutineUseCase(DayOfWeek.of(route.dayOfWeekOrdinal)).asResultState().collect {
+            getTimeRoutineUseCase(currentDayOfWeek).asResultState().collect {
                 when (it) {
                     is ResultState.Loading -> {
                         _uiState.value = TimeRoutineEditUiState.Loading
