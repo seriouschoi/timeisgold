@@ -4,6 +4,10 @@
 
 Turbine은 Flow의 테스트를 제공하는 라이브러리.
 
+뷰모델 테스트할때 유용하다. 
+뷰모델의 동작은 viewModelScope.launch로 실행되는 경우가 많이 있으며,
+이를 테스트 하기 위해선, flow가 갱신될때 까지 기다릴수 있는 turbine은 꽤 유용하다.   
+
 
 ## Turbine 주요 API
 - awaitItem()

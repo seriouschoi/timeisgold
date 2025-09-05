@@ -15,6 +15,12 @@ import java.time.DayOfWeek
 class FakeTimeRoutineRepositoryAdapter(
     private val mockTimeRoutines: List<TimeRoutineComposition>
 ) : TimeRoutineRepositoryPort {
+    var flags: Flags = Flags()
+
+    data class Flags(
+        val readRoutine: Boolean = true,
+        val readDayOfWeek: Boolean = true
+    )
 
     @Deprecated("use upsert")
     override suspend fun addTimeRoutineComposition(timeRoutine: TimeRoutineComposition) {
@@ -32,35 +38,46 @@ class FakeTimeRoutineRepositoryAdapter(
     }
 
     override fun observeCompositionByDayOfWeek(dayOfWeek: DayOfWeek): Flow<TimeRoutineComposition?> {
-        return flow {
-            val forEmit = mockTimeRoutines.find {
-                it.dayOfWeeks.any {
-                    it.dayOfWeek == dayOfWeek
+        return if (!flags.readRoutine) {
+            flow { emit(null) }
+        }  else {
+            flow {
+                val forEmit = mockTimeRoutines.find {
+                    it.dayOfWeeks.any {
+                        it.dayOfWeek == dayOfWeek
+                    }
                 }
+                emit(forEmit)
             }
-            emit(forEmit)
         }
     }
 
     override suspend fun getCompositionByUuid(timeRoutineUuid: String): TimeRoutineComposition? {
+        if (!flags.readRoutine) null
         return mockTimeRoutines.find { it.timeRoutine.uuid == timeRoutineUuid }
     }
 
     override fun observeCompositionByUuidFlow(timeRoutineUuid: String): Flow<TimeRoutineComposition?> {
         return flow {
-            val forEmit = getCompositionByUuid(timeRoutineUuid)
-            emit(forEmit)
+            if (!flags.readRoutine) emit(null)
+            else {
+                val forEmit = getCompositionByUuid(timeRoutineUuid)
+                emit(forEmit)
+            }
         }
     }
 
     override fun observeTimeRoutineByDayOfWeek(day: DayOfWeek): Flow<TimeRoutineEntity?> {
         return flow {
-            val forEmit = mockTimeRoutines.find {
-                it.dayOfWeeks.any {
-                    it.dayOfWeek == day
-                }
-            }?.timeRoutine
-            emit(forEmit)
+            if (!flags.readRoutine) emit(null)
+            else {
+                val forEmit = mockTimeRoutines.find {
+                    it.dayOfWeeks.any {
+                        it.dayOfWeek == day
+                    }
+                }?.timeRoutine
+                emit(forEmit)
+            }
         }
     }
 
@@ -69,8 +86,11 @@ class FakeTimeRoutineRepositoryAdapter(
 
     override fun observeAllRoutinesDayOfWeeks(): Flow<List<DayOfWeek>> {
         return flow {
-            val forEmit = mockTimeRoutines.map { it.dayOfWeeks.map { it.dayOfWeek } }.flatten()
-            emit(forEmit)
+            if (!flags.readDayOfWeek) emit(emptyList())
+            else {
+                val forEmit = mockTimeRoutines.map { it.dayOfWeeks.map { it.dayOfWeek } }.flatten()
+                emit(forEmit)
+            }
         }
     }
 }

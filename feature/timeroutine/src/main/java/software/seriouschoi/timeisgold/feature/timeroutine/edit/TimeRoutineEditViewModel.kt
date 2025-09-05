@@ -22,6 +22,7 @@ import software.seriouschoi.timeisgold.domain.data.entities.TimeRoutineEntity
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.GetTimeRoutineUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.SetTimeRoutineUseCase
 import software.seriouschoi.timeisgold.feature.timeroutine.bar.R
+import timber.log.Timber
 import java.time.DayOfWeek
 import java.util.UUID
 import javax.inject.Inject
@@ -46,7 +47,7 @@ internal class TimeRoutineEditViewModel @Inject constructor(
     private val _uiEvent = MutableSharedFlow<TimeRoutineEditUiEvent>()
     val uiEvent = _uiEvent.asSharedFlow()
 
-    init {
+    fun init() {
         viewModelScope.launch {
             getTimeRoutineUseCase(currentDayOfWeek).asResultState()
                 .collect { resultState: ResultState<DomainResult<TimeRoutineComposition>> ->
@@ -95,6 +96,7 @@ internal class TimeRoutineEditViewModel @Inject constructor(
     private fun createRoutineState(
         data: DomainResult<TimeRoutineComposition>
     ): TimeRoutineEditUiState {
+        Timber.d("createRoutineState data=$data")
         val routineState = TimeRoutineEditUiState.Routine(
             currentDayOfWeek = currentDayOfWeek,
             dayOfWeekList = setOf(currentDayOfWeek),

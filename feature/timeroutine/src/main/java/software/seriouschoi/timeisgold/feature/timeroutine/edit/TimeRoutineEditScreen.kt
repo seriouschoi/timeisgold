@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -30,14 +31,17 @@ import software.seriouschoi.timeisgold.core.common.ui.R as CommonR
 internal fun TimeRoutineEditScreen() {
     val viewModel = hiltViewModel<TimeRoutineEditViewModel>()
 
+    LaunchedEffect(viewModel) {
+        viewModel.init()
+    }
+
+    //show uiState.
     val uiState by viewModel.uiState.collectAsState()
-    Screen(
-        uiState
-    ) {
+    Screen(uiState) {
         viewModel.sendIntent(it)
     }
 
-
+    //show uiEvent
     val uiEvent by viewModel.uiEvent.collectAsState(
         initial = null
     )
