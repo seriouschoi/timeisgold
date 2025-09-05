@@ -9,11 +9,11 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import software.seriouschoi.navigator.DestNavigatorPort
 import software.seriouschoi.timeisgold.core.common.ui.ResultState
 import software.seriouschoi.timeisgold.core.common.ui.UiText
-import software.seriouschoi.timeisgold.core.common.ui.UiText.Res
 import software.seriouschoi.timeisgold.core.common.ui.asResultState
 import software.seriouschoi.timeisgold.domain.data.DomainError
 import software.seriouschoi.timeisgold.domain.data.DomainResult
@@ -22,7 +22,6 @@ import software.seriouschoi.timeisgold.domain.data.entities.TimeRoutineEntity
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.GetTimeRoutineUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.SetTimeRoutineUseCase
 import software.seriouschoi.timeisgold.feature.timeroutine.bar.R
-import software.seriouschoi.timeisgold.feature.timeroutine.edit.TimeRoutineEditUiEvent.ShowConfirm
 import java.time.DayOfWeek
 import javax.inject.Inject
 import software.seriouschoi.timeisgold.core.common.ui.R as CommonR
@@ -43,7 +42,6 @@ internal class TimeRoutineEditViewModel @Inject constructor(
     private val _uiState = MutableStateFlow<TimeRoutineEditUiState>(TimeRoutineEditUiState.Loading)
     val uiState = _uiState.asStateFlow()
 
-    private val _uiIntent = MutableSharedFlow<TimeRoutineEditUiIntent>()
     private val _uiEvent = MutableSharedFlow<TimeRoutineEditUiEvent>()
     val uiEvent = _uiEvent.asSharedFlow()
 
@@ -71,55 +69,6 @@ internal class TimeRoutineEditViewModel @Inject constructor(
                         )
                     }
                 }
-            }
-        }
-        viewModelScope.launch {
-            _uiIntent.collect {
-                onCollectedIntent(it)
-            }
-        }
-    }
-
-    private suspend fun onCollectedIntent(intent: TimeRoutineEditUiIntent) {
-        when (intent) {
-            is TimeRoutineEditUiIntent.Save -> {
-                _uiEvent.emit(
-                    ShowConfirm(
-                        Res(
-                            R.string.message_routine_edit_confirm
-                        ),
-                        TimeRoutineEditUiIntent.SaveConfirm,
-                        null
-                    )
-                )
-            }
-
-            is TimeRoutineEditUiIntent.Cancel -> {
-                _uiEvent.emit(
-                    ShowConfirm(
-                        Res(
-                            R.string.message_routine_edit_cancel
-                        ),
-                        TimeRoutineEditUiIntent.Exit,
-                        null
-                    )
-                )
-            }
-
-            TimeRoutineEditUiIntent.Exit -> {
-                navigator.back()
-            }
-
-            TimeRoutineEditUiIntent.SaveConfirm -> {
-                saveTimeRoutine()
-            }
-
-            is TimeRoutineEditUiIntent.UpdateDayOfWeek -> {
-                checkDayOfWeek(intent.dayOfWeek, intent.checked)
-            }
-
-            is TimeRoutineEditUiIntent.UpdateRoutineTitle -> {
-                updateRoutineTitle(intent.title)
             }
         }
     }
@@ -225,32 +174,89 @@ internal class TimeRoutineEditViewModel @Inject constructor(
         }
     }
 
-    private fun updateRoutineTitle(newTitle: String) {
-        val currentRoutineState = (uiState.value as? TimeRoutineEditUiState.Routine)
-        if (currentRoutineState == null) {
-            return
+    fun sendIntent(intent: TimeRoutineEditUiIntent) {
+        viewModelScope.launch {
+            _uiState.update {
+                reduce(it, intent)
+            }
+            handleSideEffect(intent)
         }
-        _uiState.value = currentRoutineState.copy(
-            routineTitle = newTitle
+    }
+
+    private suspend fun handleSideEffect(intent: TimeRoutineEditUiIntent) {
+        when (intent) {
+            is TimeRoutineEditUiIntent.Save -> {
+                _uiEvent.emit(
+                    TimeRoutineEditUiEvent.ShowConfirm(
+                        UiText.Res(
+                            R.string.message_routine_edit_confirm
+                        ),
+                        TimeRoutineEditUiIntent.SaveConfirm,
+                        null
+                    )
+                )
+            }
+
+            is TimeRoutineEditUiIntent.Cancel -> {
+                _uiEvent.emit(
+                    TimeRoutineEditUiEvent.ShowConfirm(
+                        UiText.Res(
+                            R.string.message_routine_edit_cancel
+                        ),
+                        TimeRoutineEditUiIntent.Exit,
+                        null
+                    )
+                )
+            }
+
+            TimeRoutineEditUiIntent.Exit -> {
+                navigator.back()
+            }
+
+            TimeRoutineEditUiIntent.SaveConfirm -> {
+                saveTimeRoutine()
+            }
+            else -> {}
+        }
+    }
+
+    private fun reduce(
+        state: TimeRoutineEditUiState,
+        intent: TimeRoutineEditUiIntent
+    ): TimeRoutineEditUiState {
+        return when (intent) {
+            is TimeRoutineEditUiIntent.UpdateDayOfWeek -> reduce(state, intent)
+            is TimeRoutineEditUiIntent.UpdateRoutineTitle -> reduce(state, intent)
+            else -> state
+        }
+    }
+
+    private fun reduce(
+        state: TimeRoutineEditUiState,
+        intent: TimeRoutineEditUiIntent.UpdateRoutineTitle
+    ): TimeRoutineEditUiState {
+        val currentRoutineState = (state as? TimeRoutineEditUiState.Routine)
+        if (currentRoutineState == null) {
+            return state
+        }
+        return currentRoutineState.copy(
+            routineTitle = intent.title
         )
     }
 
-    fun sendIntent(intent: TimeRoutineEditUiIntent) {
-        viewModelScope.launch {
-            _uiIntent.emit(intent)
-        }
-    }
-
-    private fun checkDayOfWeek(dayOfWeek: DayOfWeek, check: Boolean) {
-        val routineState = uiState.value as? TimeRoutineEditUiState.Routine ?: return
+    private fun reduce(
+        state: TimeRoutineEditUiState,
+        intent: TimeRoutineEditUiIntent.UpdateDayOfWeek
+    ): TimeRoutineEditUiState {
+        val routineState = state as? TimeRoutineEditUiState.Routine ?: return state
 
         val newDayOfWeeks = routineState.dayOfWeekList.toMutableSet()
-        if (check) {
-            newDayOfWeeks.add(dayOfWeek)
+        if (intent.checked) {
+            newDayOfWeeks.add(intent.dayOfWeek)
         } else {
-            newDayOfWeeks.remove(dayOfWeek)
+            newDayOfWeeks.remove(intent.dayOfWeek)
         }
-        _uiState.value = routineState.copy(
+        return routineState.copy(
             dayOfWeekList = newDayOfWeeks
         )
     }
