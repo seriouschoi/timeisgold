@@ -1,5 +1,7 @@
 package software.seriouschoi.timeisgold.feature.timeroutine.edit
 
+import kotlinx.coroutines.test.runTest
+import org.junit.Before
 import software.seriouschoi.timeisgold.core.android.test.util.toSavedStateHandle
 import software.seriouschoi.timeisgold.core.test.util.FakeTimeRoutineRepositoryAdapter
 import software.seriouschoi.timeisgold.core.test.util.TimeRoutineTestFixtures
@@ -16,36 +18,43 @@ import kotlin.test.Test
  */
 class TimeRoutineEditViewModelTest {
 
-    private val testDayOfWeek = DayOfWeek.MONDAY
+    private lateinit var testDayOfWeek: DayOfWeek
+    private lateinit var viewModel: TimeRoutineEditViewModel
 
-    private val testFixture = listOf(
-        TimeRoutineTestFixtures().routineCompoMonTue
-    )
-    private val routineAdapter = FakeTimeRoutineRepositoryAdapter(
-        mockTimeRoutines = testFixture
-    )
+    @Before
+    fun setup() {
+        testDayOfWeek = TimeRoutineTestFixtures().routineCompoMonTue.dayOfWeeks.first().dayOfWeek
 
-    private val viewModel = TimeRoutineEditViewModel(
-        navigator = FakeDestNavigatorPortAdapter,
-        getTimeRoutineUseCase = GetTimeRoutineUseCase(
-            timeRoutineRepositoryPort = routineAdapter,
-        ),
-        setTimeRoutineUseCase = SetTimeRoutineUseCase(
-            timeRoutineRepositoryPort = routineAdapter,
-            timeRoutineDomainService = TimeRoutineDomainService(
-                timeRoutineRepository = routineAdapter
+        val testFixture = listOf(
+            TimeRoutineTestFixtures().routineCompoMonTue
+        )
+        val routineAdapter = FakeTimeRoutineRepositoryAdapter(
+            mockTimeRoutines = testFixture
+        )
+
+        viewModel = TimeRoutineEditViewModel(
+            navigator = FakeDestNavigatorPortAdapter,
+            getTimeRoutineUseCase = GetTimeRoutineUseCase(
+                timeRoutineRepositoryPort = routineAdapter,
             ),
-        ),
-        savedStateHandle = TimeRoutineEditScreenRoute(
-            testDayOfWeek.ordinal
-        ).toSavedStateHandle()
-    )
+            setTimeRoutineUseCase = SetTimeRoutineUseCase(
+                timeRoutineRepositoryPort = routineAdapter,
+                timeRoutineDomainService = TimeRoutineDomainService(
+                    timeRoutineRepository = routineAdapter
+                ),
+            ),
+            savedStateHandle = TimeRoutineEditScreenRoute(
+                testDayOfWeek.ordinal
+            ).toSavedStateHandle()
+        )
+
+    }
 
     /**
      * 뷰모델 초기화 확인.
      */
     @Test
-    fun test() {
+    fun test() = runTest {
         //todo 이거 테스트 해봐야함.
         val state = viewModel.uiState.value as? TimeRoutineEditUiState.Routine
         assert(state?.currentDayOfWeek == testDayOfWeek)
