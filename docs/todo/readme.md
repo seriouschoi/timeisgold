@@ -1,6 +1,8 @@
 # TODOs
 
 - [ ] 루틴 저장 프로세스를 만든뒤 feature ui test방법 찾아서 적용.
+- [ ] uuid생성 규칙 일원화를 위해 도메인에 접근자 정의하기.
+  - UUID.randomUUID().toString() 이걸 일일히 하다보면, 다른곳에서 다른 규칙을 쓸 우려가 있음.
 
 - [ ] TimeRoutineRepositoryPort가 너무 큼. Composition과 Routine을 나눠야 함.
 
