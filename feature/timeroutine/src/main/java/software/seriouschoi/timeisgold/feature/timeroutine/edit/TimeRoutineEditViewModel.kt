@@ -23,6 +23,7 @@ import software.seriouschoi.timeisgold.domain.usecase.timeroutine.GetTimeRoutine
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.SetTimeRoutineUseCase
 import software.seriouschoi.timeisgold.feature.timeroutine.bar.R
 import java.time.DayOfWeek
+import java.util.UUID
 import javax.inject.Inject
 import software.seriouschoi.timeisgold.core.common.ui.R as CommonR
 
@@ -45,33 +46,68 @@ internal class TimeRoutineEditViewModel @Inject constructor(
     private val _uiEvent = MutableSharedFlow<TimeRoutineEditUiEvent>()
     val uiEvent = _uiEvent.asSharedFlow()
 
-    private var internalState = TimeRoutineEditInternalState()
-
     init {
         viewModelScope.launch {
-            getTimeRoutineUseCase(currentDayOfWeek).asResultState().collect {
-                when (it) {
-                    is ResultState.Loading -> {
-                        _uiState.value = TimeRoutineEditUiState.Loading
+            getTimeRoutineUseCase(currentDayOfWeek).asResultState()
+                .collect { resultState: ResultState<DomainResult<TimeRoutineComposition>> ->
+                    _uiState.update {
+                        uiState.value.reduceResultState(resultState)
                     }
-
-                    is ResultState.Success -> {
-                        onCollectedTimeRoutine(it.data)
-
-                    }
-
-                    is ResultState.Error -> {
-                        _uiEvent.emit(
-                            TimeRoutineEditUiEvent.ShowAlert(
-                                message = UiText.Res(id = CommonR.string.message_failed_load_data),
-                                confirmIntent = TimeRoutineEditUiIntent.Exit,
-                            )
-                        )
-                    }
+                    handleGetRoutineSideEffect(resultState)
                 }
+        }
+    }
+
+    private suspend fun handleGetRoutineSideEffect(
+        state: ResultState<DomainResult<TimeRoutineComposition>>
+    ) {
+        when (state) {
+            is ResultState.Error -> {
+                _uiEvent.emit(
+                    TimeRoutineEditUiEvent.ShowAlert(
+                        message = UiText.Res(id = CommonR.string.message_failed_load_data),
+                        confirmIntent = TimeRoutineEditUiIntent.Exit,
+                    )
+                )
+            }
+
+            else -> {
             }
         }
     }
+
+    private fun TimeRoutineEditUiState.reduceResultState(
+        resultState: ResultState<DomainResult<TimeRoutineComposition>>
+    ): TimeRoutineEditUiState {
+        return when (resultState) {
+            is ResultState.Loading -> {
+                TimeRoutineEditUiState.Loading
+            }
+
+            is ResultState.Success -> {
+                createRoutineState(resultState.data)
+            }
+
+            else -> this
+        }
+    }
+
+    private fun createRoutineState(
+        data: DomainResult<TimeRoutineComposition>
+    ): TimeRoutineEditUiState {
+        val routineState = TimeRoutineEditUiState.Routine(
+            currentDayOfWeek = currentDayOfWeek,
+            dayOfWeekList = setOf(currentDayOfWeek),
+        )
+        return when (data) {
+            is DomainResult.Failure -> routineState
+            is DomainResult.Success -> {
+                val domainResult: TimeRoutineComposition = data.value
+                routineState.reduceRoutineComposition(domainResult)
+            }
+        }
+    }
+
 
     private fun saveTimeRoutine() {
         viewModelScope.launch {
@@ -86,10 +122,14 @@ internal class TimeRoutineEditViewModel @Inject constructor(
                 return@launch
             }
 
+            val routineFronState = TimeRoutineEntity.create(
+                currentRoutineState.routineTitle,
+            ).copy(
+                uuid = currentRoutineState.routineUuid ?: UUID.randomUUID().toString()
+            )
+
             val result = setTimeRoutineUseCase(
-                routine = TimeRoutineEntity.create(
-                    currentRoutineState.routineTitle
-                ),
+                routine = routineFronState,
                 dayOfWeeks = currentRoutineState.dayOfWeekList.toList(),
             )
             val event = mapSaveResultToEvent(result)
@@ -144,46 +184,32 @@ internal class TimeRoutineEditViewModel @Inject constructor(
             )
         }
 
-    private fun onCollectedTimeRoutine(domainResult: DomainResult<TimeRoutineComposition>) {
-        val routineState = TimeRoutineEditUiState.Routine(
-            currentDayOfWeek = currentDayOfWeek,
-            dayOfWeekList = setOf(currentDayOfWeek)
-        )
-        _uiState.value = when (domainResult) {
-            is DomainResult.Failure -> {
-                routineState
-            }
-
-            is DomainResult.Success -> {
-                val composition = domainResult.value
-                internalState = internalState.copy(
-                    routineUuid = composition.timeRoutine.uuid
-                )
-
-                val newDayOfWeekList = composition.dayOfWeeks.map {
-                    it.dayOfWeek
-                }
-                routineState.copy(
-                    dayOfWeekList = listOf(
-                        newDayOfWeekList,
-                        routineState.dayOfWeekList
-                    ).flatten().toSet(),
-                    routineTitle = composition.timeRoutine.title
-                )
-            }
+    private fun TimeRoutineEditUiState.Routine.reduceRoutineComposition(
+        routineComposition: TimeRoutineComposition
+    ): TimeRoutineEditUiState {
+        val newDayOfWeekList = routineComposition.dayOfWeeks.map {
+            it.dayOfWeek
         }
+        return this.copy(
+            dayOfWeekList = listOf(
+                newDayOfWeekList,
+                this.dayOfWeekList
+            ).flatten().toSet(),
+            routineTitle = routineComposition.timeRoutine.title,
+            routineUuid = routineComposition.timeRoutine.uuid
+        )
     }
 
     fun sendIntent(intent: TimeRoutineEditUiIntent) {
         viewModelScope.launch {
             _uiState.update {
-                reduce(it, intent)
+                it.reduceIntent(intent)
             }
-            handleSideEffect(intent)
+            handleIntentSideEffect(intent)
         }
     }
 
-    private suspend fun handleSideEffect(intent: TimeRoutineEditUiIntent) {
+    private suspend fun handleIntentSideEffect(intent: TimeRoutineEditUiIntent) {
         when (intent) {
             is TimeRoutineEditUiIntent.Save -> {
                 _uiEvent.emit(
@@ -216,39 +242,34 @@ internal class TimeRoutineEditViewModel @Inject constructor(
             TimeRoutineEditUiIntent.SaveConfirm -> {
                 saveTimeRoutine()
             }
+
             else -> {}
         }
     }
 
-    private fun reduce(
-        state: TimeRoutineEditUiState,
+    private fun TimeRoutineEditUiState.reduceIntent(
         intent: TimeRoutineEditUiIntent
     ): TimeRoutineEditUiState {
         return when (intent) {
-            is TimeRoutineEditUiIntent.UpdateDayOfWeek -> reduce(state, intent)
-            is TimeRoutineEditUiIntent.UpdateRoutineTitle -> reduce(state, intent)
-            else -> state
+            is TimeRoutineEditUiIntent.UpdateDayOfWeek -> this.reduceIntentDayOfWeek(intent)
+            is TimeRoutineEditUiIntent.UpdateRoutineTitle -> this.reduceIntentTitle(intent)
+            else -> this
         }
     }
 
-    private fun reduce(
-        state: TimeRoutineEditUiState,
+    private fun TimeRoutineEditUiState.reduceIntentTitle(
         intent: TimeRoutineEditUiIntent.UpdateRoutineTitle
     ): TimeRoutineEditUiState {
-        val currentRoutineState = (state as? TimeRoutineEditUiState.Routine)
-        if (currentRoutineState == null) {
-            return state
-        }
-        return currentRoutineState.copy(
+        val currentRoutineState = (this as? TimeRoutineEditUiState.Routine)
+        return currentRoutineState?.copy(
             routineTitle = intent.title
-        )
+        ) ?: this
     }
 
-    private fun reduce(
-        state: TimeRoutineEditUiState,
+    private fun TimeRoutineEditUiState.reduceIntentDayOfWeek(
         intent: TimeRoutineEditUiIntent.UpdateDayOfWeek
     ): TimeRoutineEditUiState {
-        val routineState = state as? TimeRoutineEditUiState.Routine ?: return state
+        val routineState = this as? TimeRoutineEditUiState.Routine ?: return this
 
         val newDayOfWeeks = routineState.dayOfWeekList.toMutableSet()
         if (intent.checked) {
@@ -260,9 +281,4 @@ internal class TimeRoutineEditViewModel @Inject constructor(
             dayOfWeekList = newDayOfWeeks
         )
     }
-
 }
-
-private data class TimeRoutineEditInternalState(
-    val routineUuid: String? = null,
-)
