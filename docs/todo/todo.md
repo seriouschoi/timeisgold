@@ -1,17 +1,10 @@
 # TODOs
 
-
 - [ ] uuid생성 규칙 일원화를 위해 도메인에 접근자 정의하기.
   - UUID.randomUUID().toString() 이걸 일일히 하다보면, 다른곳에서 다른 규칙을 쓸 우려가 있음.
-
 - [ ] TimeRoutineRepositoryPort가 너무 큼. Composition과 Routine을 나눠야 함.
-
-
 - [ ] 현재까지 만들어진 모든 뷰모델을 SavedStateHandle을 사용하여 초기화할 값 전달.
 - [ ] 테스트 커버리지 도구 도입.
-- [ ] 루틴 페이저 하단에 인디케이터 추가.
-- [ ] nia로부터 ci lint 참고해서 적용.
-
 
 
 ## Routine Page.
