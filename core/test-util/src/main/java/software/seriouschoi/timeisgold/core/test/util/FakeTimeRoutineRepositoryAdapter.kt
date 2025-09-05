@@ -14,29 +14,31 @@ import java.time.DayOfWeek
  */
 class FakeTimeRoutineRepositoryAdapter(
     private val mockTimeRoutines: List<TimeRoutineComposition>
-): TimeRoutineRepositoryPort {
+) : TimeRoutineRepositoryPort {
+
     @Deprecated("use upsert")
     override suspend fun addTimeRoutineComposition(timeRoutine: TimeRoutineComposition) {
-        TODO("Not yet implemented")
     }
 
     @Deprecated("use upsert")
     override suspend fun setTimeRoutineComposition(composition: TimeRoutineComposition) {
-        TODO("Not yet implemented")
     }
 
     override suspend fun saveTimeRoutineComposition(composition: TimeRoutineComposition): DomainResult<String> {
+        // Fake Adapter는 adapter의 동작을 검증하지 않으므로, 구현하지 않는다.
+        // 구현할 경우, 불필요현 유지보수와 결합이 생기게 됨.
+
         return DomainResult.Success(composition.timeRoutine.uuid)
     }
 
     override fun observeCompositionByDayOfWeek(dayOfWeek: DayOfWeek): Flow<TimeRoutineComposition?> {
         return flow {
-            val compo = mockTimeRoutines.find {
+            val forEmit = mockTimeRoutines.find {
                 it.dayOfWeeks.any {
                     it.dayOfWeek == dayOfWeek
                 }
             }
-            emit(compo)
+            emit(forEmit)
         }
     }
 
@@ -45,21 +47,30 @@ class FakeTimeRoutineRepositoryAdapter(
     }
 
     override fun observeCompositionByUuidFlow(timeRoutineUuid: String): Flow<TimeRoutineComposition?> {
-        TODO("Not yet implemented")
+        return flow {
+            val forEmit = getCompositionByUuid(timeRoutineUuid)
+            emit(forEmit)
+        }
     }
 
     override fun observeTimeRoutineByDayOfWeek(day: DayOfWeek): Flow<TimeRoutineEntity?> {
-        TODO("Not yet implemented")
+        return flow {
+            val forEmit = mockTimeRoutines.find {
+                it.dayOfWeeks.any {
+                    it.dayOfWeek == day
+                }
+            }?.timeRoutine
+            emit(forEmit)
+        }
     }
 
     override suspend fun deleteTimeRoutine(timeRoutineUuid: String) {
-        TODO("Not yet implemented")
     }
 
     override fun observeAllRoutinesDayOfWeeks(): Flow<List<DayOfWeek>> {
         return flow {
-            val dayOfWeeks = mockTimeRoutines.map { it.dayOfWeeks.map { it.dayOfWeek } }.flatten()
-            emit(dayOfWeeks)
+            val forEmit = mockTimeRoutines.map { it.dayOfWeeks.map { it.dayOfWeek } }.flatten()
+            emit(forEmit)
         }
     }
 }

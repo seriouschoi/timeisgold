@@ -1,4 +1,4 @@
-package software.seriouschoi.timeisgold.feature.timeroutine.fake
+package software.seriouschoi.timeisgold.core.android.test.util
 
 import androidx.lifecycle.SavedStateHandle
 import kotlinx.serialization.json.Json

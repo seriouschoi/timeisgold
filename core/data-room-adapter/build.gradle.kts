@@ -19,7 +19,8 @@ dependencies {
     implementation(project(":core:domain"))
     implementation(project(":core:domain-data"))
     implementation(project(":core:localtime-util"))
-    implementation(project(":core:test-util"))
+    testImplementation(project(":core:test-util"))
+    androidTestImplementation(project(":core:test-util"))
 
     implementation(libs.androidx.room.runtime)
     ksp(libs.androidx.room.compiler)

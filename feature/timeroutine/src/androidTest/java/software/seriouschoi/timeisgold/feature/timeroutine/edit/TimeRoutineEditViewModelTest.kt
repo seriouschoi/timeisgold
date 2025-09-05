@@ -1,14 +1,14 @@
 package software.seriouschoi.timeisgold.feature.timeroutine.edit
 
+import software.seriouschoi.timeisgold.core.android.test.util.toSavedStateHandle
+import software.seriouschoi.timeisgold.core.test.util.FakeTimeRoutineRepositoryAdapter
+import software.seriouschoi.timeisgold.core.test.util.TimeRoutineTestFixtures
 import software.seriouschoi.timeisgold.domain.services.TimeRoutineDomainService
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.GetTimeRoutineUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.SetTimeRoutineUseCase
 import software.seriouschoi.timeisgold.feature.timeroutine.fake.FakeDestNavigatorPortAdapter
-import software.seriouschoi.timeisgold.feature.timeroutine.fake.FakeTimeRoutineRepositoryPortAdapter
-import software.seriouschoi.timeisgold.feature.timeroutine.fake.toSavedStateHandle
 import java.time.DayOfWeek
 import kotlin.test.Test
-import kotlin.test.todo
 
 /**
  * Created by jhchoi on 2025. 9. 4.
@@ -18,15 +18,22 @@ class TimeRoutineEditViewModelTest {
 
     private val testDayOfWeek = DayOfWeek.MONDAY
 
+    private val testFixture = listOf(
+        TimeRoutineTestFixtures().routineCompoMonTue
+    )
+    private val routineAdapter = FakeTimeRoutineRepositoryAdapter(
+        mockTimeRoutines = testFixture
+    )
+
     private val viewModel = TimeRoutineEditViewModel(
         navigator = FakeDestNavigatorPortAdapter,
         getTimeRoutineUseCase = GetTimeRoutineUseCase(
-            timeRoutineRepositoryPort = FakeTimeRoutineRepositoryPortAdapter
+            timeRoutineRepositoryPort = routineAdapter,
         ),
         setTimeRoutineUseCase = SetTimeRoutineUseCase(
-            timeRoutineRepositoryPort = FakeTimeRoutineRepositoryPortAdapter,
+            timeRoutineRepositoryPort = routineAdapter,
             timeRoutineDomainService = TimeRoutineDomainService(
-                timeRoutineRepository = FakeTimeRoutineRepositoryPortAdapter
+                timeRoutineRepository = routineAdapter
             ),
         ),
         savedStateHandle = TimeRoutineEditScreenRoute(
