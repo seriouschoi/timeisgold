@@ -11,5 +11,6 @@ android {
 
 dependencies {
     implementation(project(":core:domain"))
+    implementation(project(":core:domain-data"))
     implementation(project(":core:navigator-api"))
 }

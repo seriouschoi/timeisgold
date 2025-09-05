@@ -1,6 +1,12 @@
 # TODOs
 
 - [ ] 루틴 저장 프로세스를 만든뒤 feature ui test방법 찾아서 적용.
+- [ ] uuid생성 규칙 일원화를 위해 도메인에 접근자 정의하기.
+  - UUID.randomUUID().toString() 이걸 일일히 하다보면, 다른곳에서 다른 규칙을 쓸 우려가 있음.
+
+- [ ] TimeRoutineRepositoryPort가 너무 큼. Composition과 Routine을 나눠야 함.
+
+- [ ] 중복되는 테스트요소들을 :core:test-utils같은 모듈에 모으자.(FakeRepository등..)
 
 - [ ] 현재까지 만들어진 모든 뷰모델을 SavedStateHandle을 사용하여 초기화할 값 전달.
 - [ ] 테스트 커버리지 도구 도입.
@@ -8,6 +14,11 @@
 - [ ] nia로 부터 ci lint 참고해서 적용.
 - [ ] domain unit test에 @mock 대신 FakeRepositoryPort사용하기.
   - 테스트 환경에서 데이터와 함수 동작의 일관성을 위해서 필요.
+
+- [x] 테스트에 필요한 FakeRepo, TestFixture등은 공통으로 사용하므로, 공통 모듈 정의해야함.
+  - 공통 모듈에 main에 정의하고, 블러올때, testImpl로 불러와야함.
+  - domain에서도 이 모듈을 써야하므로, domain의 usecase, service를 제외하고 전부 이관 해야함.
+  - 이건..점진적으로 안됨.
 
 - [x] @Upsert사용 제거.
   - upsert사용시, onConflict 발생하면, throw를 일으키지 않음.

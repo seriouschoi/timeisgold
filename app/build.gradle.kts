@@ -19,6 +19,7 @@ dependencies {
     implementation(project(":presentation"))
     implementation(project(":feature:timeroutine"))
     implementation(project(":core:domain"))
+    implementation(project(":core:domain-data"))
     implementation(project(":core:data-room-adapter"))
     implementation(project(":core:navigator-api"))
     implementation(project(":core:navigator-adapter"))

@@ -5,10 +5,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import software.seriouschoi.timeisgold.core.common.ui.asString
@@ -27,14 +30,18 @@ import software.seriouschoi.timeisgold.core.common.ui.R as CommonR
 @Composable
 internal fun TimeRoutineEditScreen() {
     val viewModel = hiltViewModel<TimeRoutineEditViewModel>()
+
+    LaunchedEffect(viewModel) {
+        viewModel.init()
+    }
+
+    //show uiState.
     val uiState by viewModel.uiState.collectAsState()
-    Screen(
-        uiState
-    ) {
+    Screen(uiState) {
         viewModel.sendIntent(it)
     }
 
-
+    //show uiEvent
     val uiEvent by viewModel.uiEvent.collectAsState(
         initial = null
     )
@@ -60,7 +67,7 @@ private fun Screen(
     uiState: TimeRoutineEditUiState,
     sendIntent: (TimeRoutineEditUiIntent) -> Unit
 ) {
-    Column {
+    Column(modifier = Modifier.fillMaxSize()) {
         Box {
             when (val state = uiState) {
                 is TimeRoutineEditUiState.Routine -> {
@@ -167,7 +174,7 @@ private fun BottomButtons(
 
 @Composable
 private fun Loading() {
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         TigCircleProgress()
     }
 }

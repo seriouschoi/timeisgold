@@ -23,10 +23,13 @@ dependencyResolutionManagement {
 rootProject.name = "timeisgold"
 include(":app")
 include(":core:domain")
+include(":core:domain-data")
 include(":core:data-room-adapter")
 include(":core:navigator-api")
 include(":core:navigator-adapter")
 include(":core:common-ui")
 include(":core:localtime-util")
+include(":core:test-util")
+include(":core:android-test-util")
 include(":presentation")
 include(":feature:timeroutine")

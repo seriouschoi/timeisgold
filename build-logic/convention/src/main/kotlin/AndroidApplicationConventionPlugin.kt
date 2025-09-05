@@ -69,6 +69,9 @@ class AndroidApplicationConventionPlugin : Plugin<Project> {
                 testImplementation(target.libs, "junit")
                 androidTestImplementation(target.libs, "androidx.junit")
                 androidTestImplementation(target.libs, "androidx.espresso.core")
+
+                //for log.
+                implementation(target.libs, "timber")
             }
         }
     }

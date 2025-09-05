@@ -9,15 +9,15 @@ import org.mockito.Mock
 import org.mockito.MockitoAnnotations
 import org.mockito.junit.MockitoJUnitRunner
 import org.mockito.kotlin.whenever
+import software.seriouschoi.timeisgold.core.test.util.TimeRoutineTestFixtures
 import software.seriouschoi.timeisgold.domain.exception.TIGException
-import software.seriouschoi.timeisgold.domain.fixture.TimeRoutineDataFixture
 import software.seriouschoi.timeisgold.domain.port.TimeRoutineRepositoryPort
 import software.seriouschoi.timeisgold.domain.services.TimeRoutineDomainService
 import java.time.DayOfWeek
 
 @RunWith(MockitoJUnitRunner::class)
 internal class SetTimeRoutineCompositionUseCaseTest {
-    private val testFixture = TimeRoutineDataFixture()
+    private val testFixture = TimeRoutineTestFixtures()
 
     @Mock
     lateinit var timeRoutineRepo: TimeRoutineRepositoryPort

@@ -59,6 +59,10 @@ class AndroidLibraryConventionPlugin : Plugin<Project> {
                 implementation(target.libs, "timber")
 
                 implementation(target.libs, "gson")
+                implementation(target.libs, "kotlinx.serialization.json")
+
+                testImplementation(target.libs, "app.cash.turbine")
+                androidTestImplementation(target.libs, "app.cash.turbine")
 
             }
         }

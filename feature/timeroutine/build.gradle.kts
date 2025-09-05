@@ -10,6 +10,10 @@ android {
 
 dependencies {
     implementation(project(":core:domain"))
+    implementation(project(":core:domain-data"))
     implementation(project(":core:navigator-api"))
     implementation(project(":core:common-ui"))
+    testImplementation(project(":core:test-util"))
+    androidTestImplementation(project(":core:test-util"))
+    androidTestImplementation(project(":core:android-test-util"))
 }

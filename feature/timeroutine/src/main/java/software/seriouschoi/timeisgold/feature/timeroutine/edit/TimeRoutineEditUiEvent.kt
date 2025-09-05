@@ -1,10 +1,10 @@
 package software.seriouschoi.timeisgold.feature.timeroutine.edit
 
+import software.seriouschoi.timeisgold.core.common.ui.TigUiEvent
 import software.seriouschoi.timeisgold.core.common.ui.UiText
 import java.util.UUID
 
-internal sealed interface TimeRoutineEditUiEvent {
-    val uuid: UUID
+internal sealed interface TimeRoutineEditUiEvent : TigUiEvent {
     data class ShowConfirm(
         val message: UiText,
         val confirmIntent: TimeRoutineEditUiIntent,
