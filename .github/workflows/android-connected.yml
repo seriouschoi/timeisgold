@@ -33,9 +33,10 @@ jobs:
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 33
-          target: default
+          target: google_apis
           arch: x86_64
           profile: pixel_2
+          disk-size: 2G
           force-avd-creation: true
           emulator-options: >-
             -no-window -gpu swiftshader_indirect -no-boot-anim
@@ -46,6 +47,7 @@ jobs:
           script: |
             adb wait-for-device
             adb shell 'while [[ -z "$(getprop sys.boot_completed)" ]]; do sleep 1; done; input keyevent 82'
+            ./gradlew clean
             ./gradlew --stacktrace connectedDebugAndroidTest
 
       - name: Upload connected test reports
