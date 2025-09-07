@@ -11,17 +11,17 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import software.seriouschoi.timeisgold.core.common.ui.asString
+import software.seriouschoi.timeisgold.core.common.ui.components.TapGestureBox
 import software.seriouschoi.timeisgold.core.common.ui.components.TigAlert
 import software.seriouschoi.timeisgold.core.common.ui.components.TigBottomBar
 import software.seriouschoi.timeisgold.core.common.ui.components.TigCheckButton
 import software.seriouschoi.timeisgold.core.common.ui.components.TigCircleProgress
 import software.seriouschoi.timeisgold.core.common.ui.components.TigLabelButton
 import software.seriouschoi.timeisgold.core.common.ui.components.TigText
-import software.seriouschoi.timeisgold.core.common.ui.components.TigTextField
+import software.seriouschoi.timeisgold.core.common.ui.components.TigSingleLineTextField
 import java.time.DayOfWeek
 import java.time.format.TextStyle
 import java.util.Locale
@@ -37,17 +37,17 @@ internal fun TimeRoutineEditScreen() {
 
     //show uiState.
     val uiState by viewModel.uiState.collectAsState()
-    Screen(uiState) {
+    Screen(uiState = uiState, sendIntent = {
         viewModel.sendIntent(it)
-    }
+    })
 
     //show uiEvent
     val uiEvent by viewModel.uiEvent.collectAsState(
         initial = null
     )
-    ShowEvent(uiEvent) {
+    ShowEvent(uiEvent = uiEvent, sendIntent = {
         viewModel.sendIntent(it)
-    }
+    })
 }
 
 @Preview
@@ -65,36 +65,37 @@ private fun Preview() {
 @Composable
 private fun Screen(
     uiState: TimeRoutineEditUiState,
-    sendIntent: (TimeRoutineEditUiIntent) -> Unit
+    sendIntent: (TimeRoutineEditUiIntent) -> Unit,
 ) {
-    Column(modifier = Modifier.fillMaxSize()) {
-        Box {
-            when (val state = uiState) {
-                is TimeRoutineEditUiState.Routine -> {
-                    Routine(state) {
-                        sendIntent(it)
+    TapGestureBox(
+        modifier = Modifier.fillMaxSize()
+    ) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            Box {
+                when (val state = uiState) {
+                    is TimeRoutineEditUiState.Routine -> {
+                        Routine(state) {
+                            sendIntent(it)
+                        }
                     }
-                }
 
-                TimeRoutineEditUiState.Loading -> {
-                    Loading()
+                    TimeRoutineEditUiState.Loading -> {
+                        Loading()
+                    }
                 }
             }
         }
-        BottomButtons({
-            sendIntent(it)
-        })
     }
 }
 
 @Composable
 private fun Routine(
     currentRoutine: TimeRoutineEditUiState.Routine,
-    sendIntent: (TimeRoutineEditUiIntent) -> Unit
+    sendIntent: (TimeRoutineEditUiIntent) -> Unit,
 ) {
     Column {
         TigText("timeRoutineEditScreen. ${currentRoutine.currentDayOfWeek}")
-        TigTextField(
+        TigSingleLineTextField(
             value = currentRoutine.routineTitle,
             onValueChange = {
                 sendIntent(
@@ -116,13 +117,15 @@ private fun Routine(
                 )
             }
         }
+
+        BottomButtons(currentRoutine, sendIntent)
     }
 }
 
 @Composable
 private fun ShowEvent(
     uiEvent: TimeRoutineEditUiEvent?,
-    sendIntent: (TimeRoutineEditUiIntent) -> Unit
+    sendIntent: (TimeRoutineEditUiIntent) -> Unit,
 ) {
     when (val currentEvent = uiEvent) {
         is TimeRoutineEditUiEvent.ShowAlert -> {
@@ -159,14 +162,16 @@ private fun ShowEvent(
 
 @Composable
 private fun BottomButtons(
-    sendIntent: (TimeRoutineEditUiIntent) -> Unit
+    currentRoutine: TimeRoutineEditUiState.Routine,
+    sendIntent: (TimeRoutineEditUiIntent) -> Unit,
 ) {
     TigBottomBar {
         TigLabelButton(
             onClick = {
-                sendIntent(TimeRoutineEditUiIntent.Save)
+                sendIntent(TimeRoutineEditUiIntent.Save())
             },
-            label = stringResource(CommonR.string.text_save)
+            label = stringResource(CommonR.string.text_save),
+            enabled = currentRoutine.isValid
         )
     }
 }

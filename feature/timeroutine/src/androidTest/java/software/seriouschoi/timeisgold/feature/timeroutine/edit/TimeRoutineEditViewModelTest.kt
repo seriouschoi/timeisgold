@@ -8,13 +8,11 @@ import software.seriouschoi.timeisgold.core.android.test.util.toSavedStateHandle
 import software.seriouschoi.timeisgold.core.test.util.FakeTimeRoutineRepositoryAdapter
 import software.seriouschoi.timeisgold.core.test.util.TimeRoutineTestFixtures
 import software.seriouschoi.timeisgold.domain.services.TimeRoutineDomainService
-import software.seriouschoi.timeisgold.domain.usecase.timeroutine.GetTimeRoutineUseCase
+import software.seriouschoi.timeisgold.domain.usecase.timeroutine.GetTimeRoutineCompositionUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.SetTimeRoutineUseCase
 import software.seriouschoi.timeisgold.feature.timeroutine.fake.FakeDestNavigatorPortAdapter
-import timber.log.Timber
 import java.time.DayOfWeek
 import kotlin.test.Test
-import kotlin.test.assertEquals
 
 /**
  * Created by jhchoi on 2025. 9. 4.
@@ -37,7 +35,7 @@ class TimeRoutineEditViewModelTest {
 
         viewModel = TimeRoutineEditViewModel(
             navigator = FakeDestNavigatorPortAdapter,
-            getTimeRoutineUseCase = GetTimeRoutineUseCase(
+            getTimeRoutineCompositionUseCase = GetTimeRoutineCompositionUseCase(
                 timeRoutineRepositoryPort = routineAdapter,
             ),
             setTimeRoutineUseCase = SetTimeRoutineUseCase(
@@ -109,6 +107,6 @@ class TimeRoutineEditViewModelTest {
         }.test {
             assert(true)
         }
-
     }
+
 }

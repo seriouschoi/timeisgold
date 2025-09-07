@@ -89,7 +89,9 @@ internal class SetTimeRoutineTest : BaseRoomTest() {
         val result = timeRoutineRepo.saveTimeRoutineComposition(routine2ForUpdate)
         Timber.d("result: $result")
 
-        assert((result as? DomainResult.Failure)?.error == DomainError.Conflict.Data)
+        assert((result as? DomainResult.Failure)?.error == DomainError.Conflict.Data) {
+            "중복 데이터 예외처리가 발생하지 않습니다. $result"
+        }
     }
 
     @Test

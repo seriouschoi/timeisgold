@@ -4,6 +4,7 @@ import kotlinx.coroutines.flow.first
 import software.seriouschoi.timeisgold.domain.data.DomainError
 import software.seriouschoi.timeisgold.domain.data.DomainResult
 import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineComposition
+import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineDefinition
 import software.seriouschoi.timeisgold.domain.exception.TIGException
 import software.seriouschoi.timeisgold.domain.port.TimeRoutineRepositoryPort
 import javax.inject.Inject
@@ -32,7 +33,7 @@ class TimeRoutineDomainService @Inject constructor(
         }
     }
 
-    suspend fun isValidForAdd(newRoutine: TimeRoutineComposition): DomainResult<Boolean> {
+    suspend fun isValidForAdd(newRoutine: TimeRoutineDefinition): DomainResult<Boolean> {
         if(newRoutine.timeRoutine.title.isEmpty()) {
             return DomainResult.Failure(DomainError.Validation.Title)
         }

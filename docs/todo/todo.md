@@ -1,13 +1,25 @@
 # TODOs
 
+time routine edit
+- [ ] 테스트 커버리지 도구 도입.
+  - 
+- [x] 저장 유효성을 실시간으로 처리하기. intent flow로 구현. 
+  - [ ] 저장 불가능한 이유를 실시간으로 표시하기.
+- [ ] 수정 버튼 추가.
+- [ ] time routine edit viewmodel test 추가. (intent의 테스트 전부 작성.)
+
 - [ ] uuid생성 규칙 일원화를 위해 도메인에 접근자 정의하기.
   - UUID.randomUUID().toString() 이걸 일일히 하다보면, 다른곳에서 다른 규칙을 쓸 우려가 있음.
 - [ ] TimeRoutineRepositoryPort가 너무 큼. Composition과 Routine을 나눠야 함.
 - [ ] 현재까지 만들어진 모든 뷰모델을 SavedStateHandle을 사용하여 초기화할 값 전달.
-- [ ] 테스트 커버리지 도구 도입.
 
+# TimeRoutineComposition 남발로 인한 사이드이펙트 개선
+- [x] 아래의 내용을 진행.
+  - [x] TimeRoutine데이터의 경계를 확정하기.
+  - [x] 남용된 Composition대신 경계가 확정된 Definition을 사용.
+  - [x] Composition은 남용하지 않기.
 
-## Routine Page.
+# Routine Page.
 - 상단
   - [ ] 타임 루틴 이름, 요일
   - [ ] 루틴이 없을 때는 요일만 표시.
@@ -28,19 +40,19 @@
     - 다만 전날,다음날 루틴이 조금 보이면 좋음.
 
 
-## TimeSlot Tag.
+# TimeSlot Tag.
 - [ ] 타임슬롯에 태그 추가. 추후 리포트제공시 태그 기반으로 수행률 확인.
   - TimeSlotTag 추가.
 
-## TimeSlot Memo
+# TimeSlot Memo
 - [ ] 수행 기록제공을 할때, 사용자가 메모를 남기는 기능. 
   - 사진과 함께 다이어리 처럼 남기는 컨텐츠 제작도구 형태.
 
-## github action.
+# github action.
 - [x] android-connect에 적용된 mac 환경 제거.
 
 
-## 개인용/공개용 앱으로 빌드 구성 분리.
+# 개인용/공개용 앱으로 빌드 구성 분리.
 - 목적: 클라우드 기능을 서비스로 제공할 경우, 지속적인 비용 부담. 개인용으로만 사용.
 - [ ] :app 모듈을 :app-public, :app-personal 모듈로 분리.
 - [ ] 기존 :app 모듈의 내용을 :presentation 모듈로 분리.

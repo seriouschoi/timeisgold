@@ -1,8 +1,7 @@
 package software.seriouschoi.timeisgold.data.repositories
 
-import android.database.sqlite.SQLiteConstraintException
 import androidx.room.withTransaction
-import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -11,6 +10,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
+import software.seriouschoi.timeisgold.core.common.util.runSuspendCatching
 import software.seriouschoi.timeisgold.data.database.AppDatabase
 import software.seriouschoi.timeisgold.data.mapper.toTimeRoutineDayOfWeekEntity
 import software.seriouschoi.timeisgold.data.mapper.toTimeRoutineDayOfWeekSchema
@@ -18,9 +19,10 @@ import software.seriouschoi.timeisgold.data.mapper.toTimeRoutineEntity
 import software.seriouschoi.timeisgold.data.mapper.toTimeRoutineSchema
 import software.seriouschoi.timeisgold.data.mapper.toTimeSlotEntity
 import software.seriouschoi.timeisgold.data.mapper.toTimeSlotSchema
-import software.seriouschoi.timeisgold.domain.data.DomainError
+import software.seriouschoi.timeisgold.data.util.toDomainResult
 import software.seriouschoi.timeisgold.domain.data.DomainResult
 import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineComposition
+import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineDefinition
 import software.seriouschoi.timeisgold.domain.data.entities.TimeRoutineDayOfWeekEntity
 import software.seriouschoi.timeisgold.domain.data.entities.TimeRoutineEntity
 import software.seriouschoi.timeisgold.domain.data.entities.TimeSlotEntity
@@ -31,23 +33,13 @@ import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
 internal class TimeRoutineRepositoryPortAdapter @Inject constructor(
-    private val appDatabase: AppDatabase
+    private val appDatabase: AppDatabase,
 ) : TimeRoutineRepositoryPort {
 
     override suspend fun saveTimeRoutineComposition(composition: TimeRoutineComposition): DomainResult<String> {
-        try {
-            val routineUuid = composition.timeRoutine.uuid
+        return runSuspendCatching {
             appDatabase.withTransaction {
-                val routineId = appDatabase.TimeRoutineDao().get(routineUuid)?.id
-                if (routineId == null) {
-                    appDatabase.TimeRoutineDao().add(
-                        composition.timeRoutine.toTimeRoutineSchema(null)
-                    )
-                } else {
-                    appDatabase.TimeRoutineDao().update(
-                        composition.timeRoutine.toTimeRoutineSchema(routineId)
-                    )
-                }
+                appDatabase.TimeRoutineDao().upsert(composition.timeRoutine)
 
                 updateTimeSlots(
                     incomingSlots = composition.timeSlots,
@@ -55,14 +47,8 @@ internal class TimeRoutineRepositoryPortAdapter @Inject constructor(
                 )
                 updateDayOfWeekList(composition.dayOfWeeks, composition.timeRoutine.uuid)
             }
-            return DomainResult.Success(routineUuid)
-        } catch (_: SQLiteConstraintException) {
-            return DomainResult.Failure(DomainError.Conflict.Data)
-        } catch (_: Exception) {
-            return DomainResult.Failure(DomainError.Technical.Unknown)
-        } catch (e: CancellationException) {
-            throw e
-        }
+            composition.timeRoutine.uuid
+        }.toDomainResult()
     }
 
 
@@ -221,6 +207,15 @@ internal class TimeRoutineRepositoryPortAdapter @Inject constructor(
         return appDatabase.TimeRoutineJoinDayOfWeekViewDao().getAllDayOfWeeks()
     }
 
+    override suspend fun saveTimeRoutineDefinition(routine: TimeRoutineDefinition): DomainResult<String> {
+        return withContext(Dispatchers.IO) {
+            runSuspendCatching {
+                appDatabase.TimeRoutineDao().upsert(routine.timeRoutine)
+                updateDayOfWeekList(routine.dayOfWeeks, routine.timeRoutine.uuid)
+                routine.timeRoutine.uuid
+            }.toDomainResult()
+        }
+    }
 
     override fun observeCompositionByUuidFlow(timeRoutineUuid: String): Flow<TimeRoutineComposition?> {
         return appDatabase.TimeRoutineDao()
@@ -254,7 +249,7 @@ internal class TimeRoutineRepositoryPortAdapter @Inject constructor(
 
     private suspend fun updateDayOfWeekList(
         routineDayOfWeekList: Set<TimeRoutineDayOfWeekEntity>,
-        timeRoutineUuid: String
+        timeRoutineUuid: String,
     ) {
         appDatabase.withTransaction {
             val timeRoutine =
