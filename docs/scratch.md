@@ -2,10 +2,38 @@
 당장 떠오른 것들을 적는 공간이다.  
 이곳에 적은것들은 후에 정리과정에서 개별 문서로 이관된다.
 
-# reduce??
+# reduce
+사전적인 의미: 줄이다, 축소하다
 
+개발에선 보통 단순화하다라는 의미까지 포함해서 사용한다.
+예시로 kotlin의 collection에는 아래와 같이 사용되는 reduce함수가 있다.
+```kotlin
+val numbers = listOf(1, 2, 3, 4, 5)
+val sum = numbers.reduce { acc, value -> acc + value }
+println(sum) // 15
+```
+위 코드에서 reduce는 고차함수로서, 컬렉션을 단일값으로 축약하는 함수로 동작한다.
 
-# rememberSavable??
+그렇다면, 현행 TimeRoutineEditViewModel에서 reduce라는 이름으로 정의한 
+uiState갱신을 사실 잘못된 패턴일 수도 있나?
+
+*아니다. 연속된 intent에 의해 누적해서 하나의 현재 상태로 축약(reduce) 한다는 의미가 있기 때문이다.*
+
+중요한 건 reduce는 순수함수여야 하며,
+reduce과정에서 발생할 것으로 보이는 부수효과와 분리해야 한다는 것이다.
+
+이렇게, 말이다.
+```kotlin
+_uiIntent.distinctUntilChanged().collect { intent ->
+    _uiState.update {
+        it.reduceIntent(intent)
+    }
+    handleIntentSideEffect(intent)
+}
+```
+연속된 uiIntent에 의해 누적해서 하나의 uiState로 축약하고 있다.
+그리고 사이드이펙트, event를 발행하거나, usecase등을 호출하는 동작은 
+별개의 handleIntentSideEffect에서 수행하고 있다.
 
 # intent를 뷰모델에서 flow로 정의해서 받는 이유.
 간단하지만, intent를 뷰모델에서 받을때, sendIntent메소드로 받고,
@@ -40,14 +68,6 @@ val uiState = getDataUseCase().asResultState().map {
 내가 생각하는 UDF는 ui의 입력에 의해 직접 ui를 바꾸는게 아니라, 뷰모델에서 입력을 처리하고,
 그에 따른 uiState가 갱신되서 뷰는 uiState를 그리기만 할 뿐이라는 것이다.
 물론 이 흐름이 uiState갱신 흐름이 지저분해지긴 하는데...
-
-# SharedFlow, StateFlow, Flow???
-
-# build.gradle과 build.gradle.kts 차이???
-
-# Compose에서 쓰는 Unit은 뭐지?
-
-# focus??
 
 # Composition의 남용과 데이터 정의에 대한 고민.
 ## 부제: 데이터의 경계를 어떻게 할것인가?
@@ -89,3 +109,14 @@ TimeRoutineEntity와 TimeRoutineDayOfWeekEntity로만
 걱정 하는 것은 기우이기도 하다.
 그 경우에는 그 화면에 대한 정의로 타입을 새로 정의하면 된다.
 
+# rememberSavable??
+
+# SharedFlow, StateFlow, Flow???
+
+# build.gradle과 build.gradle.kts 차이???
+
+# Compose에서 쓰는 Unit은 뭐지?
+
+# focus??
+
+# someFlow.first() 와 someFlow.value의 차이는??

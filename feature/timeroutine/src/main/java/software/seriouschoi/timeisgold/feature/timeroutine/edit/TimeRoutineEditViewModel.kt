@@ -14,8 +14,9 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -62,23 +63,25 @@ internal class TimeRoutineEditViewModel @Inject constructor(
 
     private val _uiIntent = MutableSharedFlow<TimeRoutineEditUiIntent>()
 
-    private val timeRoutineState = uiState.mapNotNull {
+    private val timeRoutineState = uiState.map {
         uiState.value as? TimeRoutineEditUiState.Routine
-    }.map { currentRoutineState: TimeRoutineEditUiState.Routine ->
-        val routineFronState = TimeRoutineEntity.create(
-            currentRoutineState.routineTitle,
-        ).copy(
-            uuid = currentRoutineState.routineUuid ?: UUID.randomUUID().toString()
-        )
-        val currentDayOfWeeks = currentRoutineState.dayOfWeekList.map {
-            TimeRoutineDayOfWeekEntity(
-                dayOfWeek = it
+    }.map { routineUiState ->
+        routineUiState?.let {
+            val routine = TimeRoutineEntity.create(
+                it.routineTitle,
+            ).copy(
+                uuid = it.routineUuid ?: UUID.randomUUID().toString()
+            )
+            val dayOfWeeks = it.dayOfWeekList.map { d ->
+                TimeRoutineDayOfWeekEntity(
+                    dayOfWeek = d
+                )
+            }
+            TimeRoutineDefinition(
+                timeRoutine = routine,
+                dayOfWeeks = dayOfWeeks.toSet()
             )
         }
-        TimeRoutineDefinition(
-            timeRoutine = routineFronState,
-            dayOfWeeks = currentDayOfWeeks.toSet()
-        )
     }.stateIn(viewModelScope, SharingStarted.Lazily, null)
 
     @OptIn(FlowPreview::class)
@@ -96,14 +99,14 @@ internal class TimeRoutineEditViewModel @Inject constructor(
                 .asResultState()
                 .collect { resultState: ResultState<DomainResult<TimeRoutineComposition>> ->
                     _uiState.update {
-                        uiState.value.reduceResultState(resultState)
+                        it.reduceResultState(resultState)
                     }
                     handleGetRoutineSideEffect(resultState)
                 }
         }
 
         viewModelScope.launch {
-            _uiIntent.distinctUntilChanged().collect { intent ->
+            _uiIntent.collect { intent ->
                 _uiState.update {
                     it.reduceIntent(intent)
                 }
@@ -167,8 +170,7 @@ internal class TimeRoutineEditViewModel @Inject constructor(
             is DomainResult.Success -> {
                 if (validResult.value) {
                     TimeRoutineEditUiValidUiState(isValid = true)
-                }
-                else {
+                } else {
                     this.copy(isValid = false)
                 }
             }
@@ -229,7 +231,7 @@ internal class TimeRoutineEditViewModel @Inject constructor(
 
     private fun saveTimeRoutine() {
         viewModelScope.launch {
-            val timeRoutine = timeRoutineState.value ?: return@launch
+            val timeRoutine = timeRoutineState.firstOrNull() ?: return@launch
             val result = setTimeRoutineUseCase(
                 timeRoutine
             )
@@ -383,9 +385,4 @@ internal class TimeRoutineEditViewModel @Inject constructor(
             dayOfWeekList = newDayOfWeeks
         )
     }
-
-    data class SaveRequestData(
-        val title: String,
-        val dayOfWeeks: Set<DayOfWeek>,
-    )
 }
