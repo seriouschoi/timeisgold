@@ -19,6 +19,7 @@ dependencies {
     implementation(project(":core:domain"))
     implementation(project(":core:domain-data"))
     implementation(project(":core:localtime-util"))
+    implementation(project(":core:common-util"))
     testImplementation(project(":core:test-util"))
     androidTestImplementation(project(":core:test-util"))
 

@@ -1,9 +1,11 @@
 package software.seriouschoi.timeisgold.core.test.util
 
+import jdk.jfr.internal.OldObjectSample.emit
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import software.seriouschoi.timeisgold.domain.data.DomainResult
 import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineComposition
+import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineDefinition
 import software.seriouschoi.timeisgold.domain.data.entities.TimeRoutineEntity
 import software.seriouschoi.timeisgold.domain.port.TimeRoutineRepositoryPort
 import java.time.DayOfWeek
@@ -19,7 +21,8 @@ class FakeTimeRoutineRepositoryAdapter(
 
     data class Flags(
         val readRoutine: Boolean = true,
-        val readDayOfWeek: Boolean = true
+        val readDayOfWeek: Boolean = true,
+        val readThrow: Boolean = false
     )
 
     @Deprecated("use upsert")
@@ -37,28 +40,44 @@ class FakeTimeRoutineRepositoryAdapter(
         return DomainResult.Success(composition.timeRoutine.uuid)
     }
 
+
+
     override fun observeCompositionByDayOfWeek(dayOfWeek: DayOfWeek): Flow<TimeRoutineComposition?> {
-        return if (!flags.readRoutine) {
-            flow { emit(null) }
-        }  else {
-            flow {
-                val forEmit = mockTimeRoutines.find {
-                    it.dayOfWeeks.any {
-                        it.dayOfWeek == dayOfWeek
-                    }
-                }
-                emit(forEmit)
+        return flow {
+            if (flags.readThrow) {
+                throw Exception()
             }
+
+            if (!flags.readRoutine) {
+                emit(null)
+                return@flow
+            }
+
+            val forEmit = mockTimeRoutines.find {
+                it.dayOfWeeks.any {
+                    it.dayOfWeek == dayOfWeek
+                }
+            }
+            emit(forEmit)
         }
     }
 
     override suspend fun getCompositionByUuid(timeRoutineUuid: String): TimeRoutineComposition? {
-        if (!flags.readRoutine) null
+        if (flags.readThrow) {
+            throw Exception()
+        }
+        if (!flags.readRoutine) {
+            return null
+        }
+
         return mockTimeRoutines.find { it.timeRoutine.uuid == timeRoutineUuid }
     }
 
     override fun observeCompositionByUuidFlow(timeRoutineUuid: String): Flow<TimeRoutineComposition?> {
         return flow {
+            if (flags.readThrow) {
+                throw Exception()
+            }
             if (!flags.readRoutine) emit(null)
             else {
                 val forEmit = getCompositionByUuid(timeRoutineUuid)
@@ -69,6 +88,9 @@ class FakeTimeRoutineRepositoryAdapter(
 
     override fun observeTimeRoutineByDayOfWeek(day: DayOfWeek): Flow<TimeRoutineEntity?> {
         return flow {
+            if (flags.readThrow) {
+                throw Exception()
+            }
             if (!flags.readRoutine) emit(null)
             else {
                 val forEmit = mockTimeRoutines.find {
@@ -86,11 +108,18 @@ class FakeTimeRoutineRepositoryAdapter(
 
     override fun observeAllRoutinesDayOfWeeks(): Flow<List<DayOfWeek>> {
         return flow {
+            if (flags.readThrow) {
+                throw Exception()
+            }
             if (!flags.readDayOfWeek) emit(emptyList())
             else {
                 val forEmit = mockTimeRoutines.map { it.dayOfWeeks.map { it.dayOfWeek } }.flatten()
                 emit(forEmit)
             }
         }
+    }
+
+    override suspend fun saveTimeRoutineDefinition(routine: TimeRoutineDefinition): DomainResult<String> {
+        TODO("Not yet implemented")
     }
 }

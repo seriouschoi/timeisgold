@@ -1,12 +1,9 @@
 package software.seriouschoi.timeisgold.domain.usecase.timeroutine
 
 import software.seriouschoi.timeisgold.domain.data.DomainResult
-import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineComposition
-import software.seriouschoi.timeisgold.domain.data.entities.TimeRoutineDayOfWeekEntity
-import software.seriouschoi.timeisgold.domain.data.entities.TimeRoutineEntity
+import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineDefinition
 import software.seriouschoi.timeisgold.domain.port.TimeRoutineRepositoryPort
 import software.seriouschoi.timeisgold.domain.services.TimeRoutineDomainService
-import java.time.DayOfWeek
 import javax.inject.Inject
 
 class SetTimeRoutineUseCase @Inject constructor(
@@ -14,24 +11,11 @@ class SetTimeRoutineUseCase @Inject constructor(
     private val timeRoutineDomainService: TimeRoutineDomainService,
 ) {
     suspend operator fun invoke(
-        routine: TimeRoutineEntity,
-        dayOfWeeks: List<DayOfWeek>
+        timeRoutineDefinition: TimeRoutineDefinition
     ): DomainResult<String> {
-        val routineFromDB = timeRoutineRepositoryPort.getCompositionByUuid(routine.uuid)
-
-        val newRoutineCompo = TimeRoutineComposition(
-            timeRoutine = routine,
-            dayOfWeeks = dayOfWeeks.map {
-                TimeRoutineDayOfWeekEntity(
-                    dayOfWeek = it
-                )
-            }.toSet(),
-            timeSlots = routineFromDB?.timeSlots ?: emptyList()
-        )
-
-        val validCheck = timeRoutineDomainService.isValidForAdd(newRoutineCompo)
+        val validCheck = timeRoutineDomainService.isValidForAdd(timeRoutineDefinition)
         if (validCheck is DomainResult.Failure) return validCheck
 
-        return timeRoutineRepositoryPort.saveTimeRoutineComposition(newRoutineCompo)
+        return timeRoutineRepositoryPort.saveTimeRoutineDefinition(timeRoutineDefinition)
     }
 }

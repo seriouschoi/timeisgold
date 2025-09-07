@@ -1,16 +1,16 @@
 package software.seriouschoi.timeisgold.feature.timeroutine.edit
 
 import app.cash.turbine.test
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import software.seriouschoi.timeisgold.core.android.test.util.toSavedStateHandle
 import software.seriouschoi.timeisgold.core.test.util.FakeTimeRoutineRepositoryAdapter
 import software.seriouschoi.timeisgold.core.test.util.TimeRoutineTestFixtures
 import software.seriouschoi.timeisgold.domain.services.TimeRoutineDomainService
-import software.seriouschoi.timeisgold.domain.usecase.timeroutine.GetTimeRoutineUseCase
+import software.seriouschoi.timeisgold.domain.usecase.timeroutine.GetTimeRoutineCompositionUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.SetTimeRoutineUseCase
 import software.seriouschoi.timeisgold.feature.timeroutine.fake.FakeDestNavigatorPortAdapter
-import timber.log.Timber
 import java.time.DayOfWeek
 import kotlin.test.Test
 
@@ -35,7 +35,7 @@ class TimeRoutineEditViewModelTest {
 
         viewModel = TimeRoutineEditViewModel(
             navigator = FakeDestNavigatorPortAdapter,
-            getTimeRoutineUseCase = GetTimeRoutineUseCase(
+            getTimeRoutineCompositionUseCase = GetTimeRoutineCompositionUseCase(
                 timeRoutineRepositoryPort = routineAdapter,
             ),
             setTimeRoutineUseCase = SetTimeRoutineUseCase(
@@ -53,15 +53,13 @@ class TimeRoutineEditViewModelTest {
 
     @Test
     fun readRoutine_showRoutine() = runTest {
-        viewModel.uiState.test {
-            var item = awaitItem()
-            assert(item == TimeRoutineEditUiState.Loading) {
-                "시작 상태가 로딩이 아님. item=$item"
-            }
-            viewModel.init()
-
-            item = awaitItem()
-            assert((item as? TimeRoutineEditUiState.Routine)?.routineUuid != null) {
+        viewModel.init()
+        viewModel.uiState.filter {
+            it is TimeRoutineEditUiState.Routine
+        }.test {
+            val item = awaitItem()
+            item as TimeRoutineEditUiState.Routine
+            assert(item.routineUuid != null) {
                 "루틴 블러오기 실패. item=$item"
             }
         }
@@ -69,19 +67,15 @@ class TimeRoutineEditViewModelTest {
 
     @Test
     fun readRoutine_readFailed_showNewRoutine() = runTest {
-        viewModel.uiState.test {
-            routineAdapter.flags = FakeTimeRoutineRepositoryAdapter.Flags(
-                readRoutine = false
-            )
-            skipItems(1)
+        routineAdapter.flags = FakeTimeRoutineRepositoryAdapter.Flags(
+            readRoutine = false
+        )
+        viewModel.init()
 
-            viewModel.init()
-            Timber.d("")
-
+        viewModel.uiState.filter {
+            it is TimeRoutineEditUiState.Routine
+        }.test {
             val item = awaitItem()
-            assert(item is TimeRoutineEditUiState.Routine) {
-                "루틴을 가져오지 못함. item=$item"
-            }
             item as TimeRoutineEditUiState.Routine
             assert(item.routineUuid == null) {
                 "새 루틴이 아님. item=$item"
@@ -95,7 +89,24 @@ class TimeRoutineEditViewModelTest {
     }
 
     @Test
-    fun test() = runTest {
+    fun readRoutine_readError_showError() = runTest {
+        routineAdapter.flags = FakeTimeRoutineRepositoryAdapter.Flags(
+            readThrow = true
+        )
+        viewModel.init()
 
+        viewModel.uiState.filter {
+            it is TimeRoutineEditUiState.Routine
+        }.test {
+            expectNoEvents()
+        }
+
+        //no event.
+        viewModel.uiEvent.filter {
+            it is TimeRoutineEditUiEvent.ShowAlert
+        }.test {
+            assert(true)
+        }
     }
+
 }

@@ -12,7 +12,7 @@ import software.seriouschoi.timeisgold.core.common.ui.ResultState
 import software.seriouschoi.timeisgold.core.common.ui.asResultState
 import software.seriouschoi.timeisgold.domain.data.DomainResult
 import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineComposition
-import software.seriouschoi.timeisgold.domain.usecase.timeroutine.GetTimeRoutineUseCase
+import software.seriouschoi.timeisgold.domain.usecase.timeroutine.GetTimeRoutineCompositionUseCase
 import software.seriouschoi.timeisgold.feature.timeroutine.edit.TimeRoutineEditScreenRoute
 import java.time.DayOfWeek
 import java.time.LocalTime
@@ -24,7 +24,7 @@ import javax.inject.Inject
  */
 @HiltViewModel
 internal class TimeRoutinePageViewModel @Inject constructor(
-    val getTimeRoutineUseCase: GetTimeRoutineUseCase,
+    val getTimeRoutineCompositionUseCase: GetTimeRoutineCompositionUseCase,
     val navigator: DestNavigatorPort,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow<TimeRoutineUiState>(TimeRoutineUiState.Loading)
@@ -42,7 +42,7 @@ internal class TimeRoutinePageViewModel @Inject constructor(
 
     fun load(dayOfWeek: DayOfWeek) {
         viewModelScope.launch {
-            getTimeRoutineUseCase(dayOfWeek).asResultState().collect {
+            getTimeRoutineCompositionUseCase(dayOfWeek).asResultState().collect {
                 when (it) {
                     is ResultState.Loading -> {
                         _uiState.value = TimeRoutineUiState.Loading

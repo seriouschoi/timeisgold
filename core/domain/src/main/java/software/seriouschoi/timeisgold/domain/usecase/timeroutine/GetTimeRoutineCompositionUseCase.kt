@@ -11,7 +11,7 @@ import software.seriouschoi.timeisgold.domain.port.TimeRoutineRepositoryPort
 import java.time.DayOfWeek
 import javax.inject.Inject
 
-class GetTimeRoutineUseCase @Inject constructor(
+class GetTimeRoutineCompositionUseCase @Inject constructor(
     private val timeRoutineRepositoryPort: TimeRoutineRepositoryPort,
 ) {
     @OptIn(ExperimentalCoroutinesApi::class)
