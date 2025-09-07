@@ -27,6 +27,7 @@ fun TimeRoutinePageScreen(
     modifier: Modifier,
     dayOfWeek: DayOfWeek,
 ) {
+    // TODO: dayOfWeek를 파라미터로 들고 있지 말고, 뷰모델에서 상태로 가져오자.
     val viewModel = hiltViewModel<TimeRoutinePageViewModel>(key = dayOfWeek.name)
 
     val title by remember {

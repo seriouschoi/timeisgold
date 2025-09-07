@@ -10,7 +10,7 @@ class SetTimeRoutineUseCase @Inject constructor(
     private val timeRoutineRepositoryPort: TimeRoutineRepositoryPort,
     private val timeRoutineDomainService: TimeRoutineDomainService,
 ) {
-    suspend operator fun invoke(
+    suspend fun invoke(
         timeRoutineDefinition: TimeRoutineDefinition
     ): DomainResult<String> {
         val validCheck = timeRoutineDomainService.isValidForAdd(timeRoutineDefinition)
