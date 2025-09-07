@@ -8,6 +8,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -20,8 +22,8 @@ import software.seriouschoi.timeisgold.core.common.ui.components.TigBottomBar
 import software.seriouschoi.timeisgold.core.common.ui.components.TigCheckButton
 import software.seriouschoi.timeisgold.core.common.ui.components.TigCircleProgress
 import software.seriouschoi.timeisgold.core.common.ui.components.TigLabelButton
-import software.seriouschoi.timeisgold.core.common.ui.components.TigText
 import software.seriouschoi.timeisgold.core.common.ui.components.TigSingleLineTextField
+import software.seriouschoi.timeisgold.core.common.ui.components.TigText
 import java.time.DayOfWeek
 import java.time.format.TextStyle
 import java.util.Locale
@@ -101,9 +103,15 @@ private fun Routine(
                 sendIntent(
                     TimeRoutineEditUiIntent.UpdateRoutineTitle(it)
                 )
+            },
+            placeHolder = {
+                TigText(stringResource(CommonR.string.text_routine_title))
             }
         )
 
+        TigText(
+            text = currentRoutine.validState?.invalidTitleMessage?.asString() ?: "",
+        )
         Row {
             DayOfWeek.entries.forEach { dayOfWeek ->
                 TigCheckButton(
@@ -117,6 +125,9 @@ private fun Routine(
                 )
             }
         }
+        TigText(
+            text = currentRoutine.validState?.invalidDayOfWeekMessage?.asString() ?: "",
+        )
 
         BottomButtons(currentRoutine, sendIntent)
     }
@@ -171,7 +182,7 @@ private fun BottomButtons(
                 sendIntent(TimeRoutineEditUiIntent.Save())
             },
             label = stringResource(CommonR.string.text_save),
-            enabled = currentRoutine.isValid
+            enabled = currentRoutine.validState.isValid
         )
     }
 }

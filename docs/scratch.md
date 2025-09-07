@@ -47,6 +47,8 @@ val uiState = getDataUseCase().asResultState().map {
 
 # Compose에서 쓰는 Unit은 뭐지?
 
+# focus??
+
 # Composition의 남용과 데이터 정의에 대한 고민.
 ## 부제: 데이터의 경계를 어떻게 할것인가?
 

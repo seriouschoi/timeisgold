@@ -21,6 +21,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.tooling.preview.Preview
@@ -59,12 +60,16 @@ private fun Preview() {
 @Composable
 fun TapGestureBox(modifier: Modifier, composable: @Composable () -> Unit) {
     val focusManager = LocalFocusManager.current
-    Box(modifier.pointerInput(Unit) {
+    Box(modifier.tapClearFocus(focusManager)) {
+        composable()
+    }
+}
+
+fun Modifier.tapClearFocus(focusManager: FocusManager): Modifier {
+    return this.pointerInput(Unit) {
         detectTapGestures {
             focusManager.clearFocus(force = true)
         }
-    }) {
-        composable()
     }
 }
 
@@ -184,6 +189,7 @@ fun TigSingleLineTextField(
     modifier: Modifier = Modifier,
     value: String,
     onValueChange: (String) -> Unit,
+    placeHolder: @Composable () -> Unit = {},
 ) {
     val focusManager = LocalFocusManager.current
     TextField(
@@ -196,7 +202,10 @@ fun TigSingleLineTextField(
             onDone = {
                 focusManager.clearFocus(force = true)
             }
-        )
+        ),
+        placeholder = {
+            placeHolder()
+        }
     )
 }
 
@@ -211,7 +220,10 @@ fun TigCheckButton(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Checkbox(checked = checked, onCheckedChange = onCheckedChange)
+        Checkbox(
+            checked = checked,
+            onCheckedChange = onCheckedChange,
+        )
         TigText(text = label)
     }
 }

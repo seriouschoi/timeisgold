@@ -114,22 +114,65 @@ internal class TimeRoutineEditViewModel @Inject constructor(
         viewModelScope.launch {
             validFlow.distinctUntilChanged().collect { valid ->
                 _uiState.update {
-                    it.reduceValidState(valid)
+                    it.reduceValidResultState(valid)
                 }
             }
         }
     }
 
-    private fun TimeRoutineEditUiState.reduceValidState(
+    private fun TimeRoutineEditUiState.reduceValidResultState(
         validResult: ResultState<DomainResult<Boolean>>,
     ): TimeRoutineEditUiState {
         if (this !is TimeRoutineEditUiState.Routine) return this
 
-        val isValid =
-            ((validResult as? ResultState.Success)?.data as? DomainResult.Success)?.value ?: false
-        return this.copy(
-            isValid = isValid
-        )
+        return when (validResult) {
+            is ResultState.Success -> {
+                val domainResult = validResult.data
+                val newState = this.validState.reduceValidDomainResult(domainResult)
+                this.copy(validState = newState)
+            }
+
+            else -> return this
+        }
+    }
+
+    private fun TimeRoutineEditUiValidUiState.reduceValidDomainResult(validResult: DomainResult<Boolean>): TimeRoutineEditUiValidUiState {
+        return when (validResult) {
+            is DomainResult.Failure -> {
+                val error = validResult.error
+                val newState = this.copy(
+                    isValid = false
+                )
+                when (error) {
+                    DomainError.Validation.Title -> {
+                        newState.copy(
+                            invalidTitleMessage = error.toUiText()
+                        )
+                    }
+
+                    DomainError.Validation.NoSelectedDayOfWeek,
+                    DomainError.Conflict.DayOfWeek,
+                        -> {
+                        newState.copy(
+                            invalidDayOfWeekMessage = error.toUiText()
+                        )
+                    }
+
+                    else -> {
+                        newState
+                    }
+                }
+            }
+
+            is DomainResult.Success -> {
+                if (validResult.value) {
+                    TimeRoutineEditUiValidUiState(isValid = true)
+                }
+                else {
+                    this.copy(isValid = false)
+                }
+            }
+        }
     }
 
     private suspend fun handleGetRoutineSideEffect(
