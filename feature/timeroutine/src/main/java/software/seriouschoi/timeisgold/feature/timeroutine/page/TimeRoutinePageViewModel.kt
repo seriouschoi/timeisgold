@@ -1,22 +1,29 @@
 package software.seriouschoi.timeisgold.feature.timeroutine.page
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import software.seriouschoi.navigator.DestNavigatorPort
 import software.seriouschoi.timeisgold.core.common.ui.ResultState
+import software.seriouschoi.timeisgold.core.common.ui.UiText
 import software.seriouschoi.timeisgold.core.common.ui.asResultState
+import software.seriouschoi.timeisgold.core.common.util.Envelope
 import software.seriouschoi.timeisgold.domain.data.DomainResult
 import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineComposition
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.GetTimeRoutineCompositionUseCase
+import software.seriouschoi.timeisgold.feature.timeroutine.bar.R
 import software.seriouschoi.timeisgold.feature.timeroutine.edit.TimeRoutineEditScreenRoute
 import java.time.DayOfWeek
-import java.time.LocalTime
+import java.time.format.TextStyle
+import java.util.Locale
 import javax.inject.Inject
+import software.seriouschoi.timeisgold.core.common.ui.R as CommonR
 
 /**
  * Created by jhchoi on 2025. 8. 26.
@@ -26,99 +33,131 @@ import javax.inject.Inject
 internal class TimeRoutinePageViewModel @Inject constructor(
     val getTimeRoutineCompositionUseCase: GetTimeRoutineCompositionUseCase,
     val navigator: DestNavigatorPort,
+    val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
-    private val _uiState = MutableStateFlow<TimeRoutineUiState>(TimeRoutineUiState.Loading)
+
+    private data class ViewModelData(
+        val dayOfWeekOrdinal: Int,
+    ) : java.io.Serializable
+
+    private val _uiState = MutableStateFlow<TimeRoutinePageUiState>(
+        TimeRoutinePageUiState.Loading(
+            UiText.Res.create(CommonR.string.message_loading)
+        )
+    )
     val uiState = _uiState.asStateFlow()
 
-    private val _intent = MutableSharedFlow<TimeRoutineIntent>()
+    private val _intent = MutableSharedFlow< Envelope<TimeRoutinePageUiIntent>>()
+
+    private val viewModelData
+        get() = savedStateHandle.get<ViewModelData>("data")
 
     init {
         viewModelScope.launch {
             _intent.collect {
-                onCollectedIntent(it)
+                handleIntentSideEffect(it.payload)
             }
         }
     }
 
     fun load(dayOfWeek: DayOfWeek) {
         viewModelScope.launch {
-            getTimeRoutineCompositionUseCase(dayOfWeek).asResultState().collect {
-                when (it) {
-                    is ResultState.Loading -> {
-                        _uiState.value = TimeRoutineUiState.Loading
-                    }
-
-                    is ResultState.Success -> {
-                        onCollectedTimeRoutine(it.data)
-                    }
-
-                    is ResultState.Error -> {
-                        _uiState.value = TimeRoutineUiState.Error
-                    }
+            savedStateHandle["data"] = ViewModelData(
+                dayOfWeekOrdinal = dayOfWeek.ordinal
+            )
+            getTimeRoutineCompositionUseCase(dayOfWeek).asResultState().collect { resultState ->
+                _uiState.update {
+                    it.reduceResultState(resultState, dayOfWeek)
                 }
             }
         }
     }
 
-    private fun onCollectedIntent(intent: TimeRoutineIntent) {
-        when (intent) {
-            is TimeRoutineIntent.CreateRoutine -> {
-                navigator.navigate(TimeRoutineEditScreenRoute(intent.dayOfWeek.ordinal))
+    private fun TimeRoutinePageUiState.reduceResultState(
+        resultState: ResultState<DomainResult<TimeRoutineComposition>>,
+        dayOfWeek: DayOfWeek,
+    ): TimeRoutinePageUiState {
+        val dayOfWeekName = dayOfWeek.getDisplayName(TextStyle.FULL, Locale.getDefault())
+        when (resultState) {
+            ResultState.Loading -> {
+                return TimeRoutinePageUiState.Loading(
+                    loadingMessage = UiText.Res.create(
+                        R.string.message_routine_loading,
+                        dayOfWeekName
+                    )
+                )
             }
-        }
-    }
 
-    private fun onCollectedTimeRoutine(domainResult: DomainResult<TimeRoutineComposition>) {
-        _uiState.value = when (domainResult) {
-            is DomainResult.Failure -> {
-                TimeRoutineUiState.Empty
+            is ResultState.Success -> {
+                val data = resultState.data
+                return reduceDomainResult(data, dayOfWeek)
             }
 
-            is DomainResult.Success -> {
-                val data = domainResult.value
-                TimeRoutineUiState.Routine(
-                    title = data.timeRoutine.title,
-                    slotItemList = data.timeSlots.map {
-                        TimeSlotItemUiState(
-                            title = it.title,
-                            startTime = it.startTime,
-                            endTime = it.endTime
-                        )
-                    },
-                    dayOfWeeks = data.dayOfWeeks.map {
-                        it.dayOfWeek
-                    }.sorted()
+            is ResultState.Error -> {
+                return TimeRoutinePageUiState.Error(
+                    errorMessage = UiText.Res.create(
+                        R.string.message_routine_create_confirm,
+                        dayOfWeekName
+                    )
                 )
             }
         }
     }
 
-    fun sendIntent(createRoutine: TimeRoutineIntent.CreateRoutine) {
-        viewModelScope.launch {
-            _intent.emit(createRoutine)
+    private fun TimeRoutinePageUiState.reduceDomainResult(
+        data: DomainResult<TimeRoutineComposition>,
+        dayOfWeek: DayOfWeek,
+    ): TimeRoutinePageUiState {
+        when (data) {
+            is DomainResult.Failure -> return TimeRoutinePageUiState.Empty(
+                emptyMessage = UiText.Res.create(
+                    R.string.message_routine_create_confirm,
+                    dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault())
+                )
+            )
+
+            is DomainResult.Success -> {
+                val routineComposition = data.value
+                return this.reduceTimeRoutineComposition(routineComposition, dayOfWeek)
+            }
         }
     }
-}
 
-internal sealed interface TimeRoutineUiState {
-    data class Routine(
-        val title: String = "",
-        val slotItemList: List<TimeSlotItemUiState> = emptyList(),
-        val dayOfWeeks: List<DayOfWeek> = listOf(),
-    ) : TimeRoutineUiState
+    private fun TimeRoutinePageUiState.reduceTimeRoutineComposition(
+        routineComposition: TimeRoutineComposition,
+        dayOfWeek: DayOfWeek,
+    ): TimeRoutinePageUiState {
+        return TimeRoutinePageUiState.Routine(
+            title = routineComposition.timeRoutine.title,
+            slotItemList = routineComposition.timeSlots.map {
+                TimeRoutinePageSlotItemUiState(
+                    title = it.title,
+                    startTime = it.startTime,
+                    endTime = it.endTime
+                )
+            },
+            dayOfWeeks = routineComposition.dayOfWeeks.map {
+                it.dayOfWeek
+            }.sorted(),
+            dayOfWeekName = dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault())
+        )
+    }
 
-    object Empty : TimeRoutineUiState
-    object Loading : TimeRoutineUiState
-    object Error : TimeRoutineUiState
-}
+    private fun handleIntentSideEffect(intent: TimeRoutinePageUiIntent) {
+        when (intent) {
+            is TimeRoutinePageUiIntent.ModifyRoutine,
+            is TimeRoutinePageUiIntent.CreateRoutine -> {
+                val dayOfWeekOrdinal = viewModelData?.dayOfWeekOrdinal
+                if (dayOfWeekOrdinal != null)
+                    navigator.navigate(TimeRoutineEditScreenRoute(dayOfWeekOrdinal))
+            }
 
-internal data class TimeSlotItemUiState(
-    val title: String,
-    val startTime: LocalTime,
-    val endTime: LocalTime,
-)
+        }
+    }
 
-internal sealed interface TimeRoutineIntent {
-    data class CreateRoutine(val dayOfWeek: DayOfWeek) : TimeRoutineIntent
-
+    fun sendIntent(createRoutine: TimeRoutinePageUiIntent) {
+        viewModelScope.launch {
+            _intent.emit(Envelope(createRoutine))
+        }
+    }
 }

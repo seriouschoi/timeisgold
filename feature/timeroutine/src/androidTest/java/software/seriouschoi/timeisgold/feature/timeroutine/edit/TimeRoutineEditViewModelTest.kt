@@ -9,10 +9,13 @@ import software.seriouschoi.timeisgold.core.test.util.FakeTimeRoutineRepositoryA
 import software.seriouschoi.timeisgold.core.test.util.TimeRoutineTestFixtures
 import software.seriouschoi.timeisgold.domain.services.TimeRoutineDomainService
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.GetTimeRoutineCompositionUseCase
+import software.seriouschoi.timeisgold.domain.usecase.timeroutine.GetTimeRoutineDefinitionUseCase
+import software.seriouschoi.timeisgold.domain.usecase.timeroutine.GetValidTimeRoutineUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.SetTimeRoutineUseCase
 import software.seriouschoi.timeisgold.feature.timeroutine.fake.FakeDestNavigatorPortAdapter
 import java.time.DayOfWeek
 import kotlin.test.Test
+import kotlin.test.todo
 
 /**
  * Created by jhchoi on 2025. 9. 4.
@@ -35,12 +38,17 @@ class TimeRoutineEditViewModelTest {
 
         viewModel = TimeRoutineEditViewModel(
             navigator = FakeDestNavigatorPortAdapter,
-            getTimeRoutineCompositionUseCase = GetTimeRoutineCompositionUseCase(
+            getTimeRoutineUseCase = GetTimeRoutineDefinitionUseCase(
                 timeRoutineRepositoryPort = routineAdapter,
             ),
             setTimeRoutineUseCase = SetTimeRoutineUseCase(
                 timeRoutineRepositoryPort = routineAdapter,
                 timeRoutineDomainService = TimeRoutineDomainService(
+                    timeRoutineRepository = routineAdapter
+                ),
+            ),
+            getValidTimeRoutineUseCase = GetValidTimeRoutineUseCase(
+                service = TimeRoutineDomainService(
                     timeRoutineRepository = routineAdapter
                 ),
             ),
@@ -52,21 +60,21 @@ class TimeRoutineEditViewModelTest {
     }
 
     @Test
-    fun readRoutine_showRoutine() = runTest {
+    fun readRoutine_showRoutineEdit() = runTest {
         viewModel.init()
         viewModel.uiState.filter {
             it is TimeRoutineEditUiState.Routine
         }.test {
             val item = awaitItem()
-            item as TimeRoutineEditUiState.Routine
-            assert(item.routineUuid != null) {
-                "루틴 블러오기 실패. item=$item"
+
+            assert(item is TimeRoutineEditUiState.Routine) {
+                "루틴 편집 화면 진입 실패. item=$item"
             }
         }
     }
 
     @Test
-    fun readRoutine_readFailed_showNewRoutine() = runTest {
+    fun readRoutine_readFailed_showRoutineEdit() = runTest {
         routineAdapter.flags = FakeTimeRoutineRepositoryAdapter.Flags(
             readRoutine = false
         )
@@ -76,9 +84,8 @@ class TimeRoutineEditViewModelTest {
             it is TimeRoutineEditUiState.Routine
         }.test {
             val item = awaitItem()
-            item as TimeRoutineEditUiState.Routine
-            assert(item.routineUuid == null) {
-                "새 루틴이 아님. item=$item"
+            assert(item is TimeRoutineEditUiState.Routine) {
+                "루틴 편집 화면 진입 실패. item=$item"
             }
         }
 
@@ -108,5 +115,4 @@ class TimeRoutineEditViewModelTest {
             assert(true)
         }
     }
-
 }

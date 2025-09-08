@@ -32,4 +32,11 @@ internal abstract class TimeRoutineJoinDayOfWeekViewDao {
     """
     )
     abstract fun getAllDayOfWeeks(): Flow<List<DayOfWeek>>
+
+    @Query(
+        """
+        SELECT * FROM TimeRoutineJoinDayOfWeekView
+    """
+    )
+    abstract fun getAll(): List<TimeRoutineJoinDayOfWeekView>
 }

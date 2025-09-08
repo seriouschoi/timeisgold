@@ -210,10 +210,51 @@ internal class TimeRoutineRepositoryPortAdapter @Inject constructor(
     override suspend fun saveTimeRoutineDefinition(routine: TimeRoutineDefinition): DomainResult<String> {
         return withContext(Dispatchers.IO) {
             runSuspendCatching {
-                appDatabase.TimeRoutineDao().upsert(routine.timeRoutine)
-                updateDayOfWeekList(routine.dayOfWeeks, routine.timeRoutine.uuid)
-                routine.timeRoutine.uuid
+                appDatabase.withTransaction {
+                    appDatabase.TimeRoutineDao().upsert(routine.timeRoutine)
+                    updateDayOfWeekList(routine.dayOfWeeks, routine.timeRoutine.uuid)
+                    routine.timeRoutine.uuid
+                }
             }.toDomainResult()
+        }
+    }
+
+    override fun observeTimeRoutineDefinitionByDayOfWeek(dayOfWeek: DayOfWeek): Flow<TimeRoutineDefinition?> {
+        return appDatabase.TimeRoutineJoinDayOfWeekViewDao()
+            .getLatestByDayOfWeek(dayOfWeek)
+            .distinctUntilChanged()
+            .map {
+                it?.toTimeRoutineEntity()
+            }
+            .flatMapLatest { routine ->
+                if (routine == null) flowOf(null)
+                else {
+                    combine(
+                        observeWeeks(routine.uuid),
+                        observeSlots(routine.uuid)
+                    ) { weeks, slots ->
+                        TimeRoutineDefinition(
+                            timeRoutine = routine,
+                            dayOfWeeks = weeks.toSet(),
+                        )
+                    }
+                }
+            }
+    }
+
+    override suspend fun getAllTimeRoutineDefinitions(): List<TimeRoutineDefinition> {
+        val allTimeRoutines = withContext(Dispatchers.IO) {
+            appDatabase.TimeRoutineJoinDayOfWeekViewDao().getAll().groupBy {
+                it.toTimeRoutineEntity()
+            }
+        }
+        return allTimeRoutines.keys.map {
+            TimeRoutineDefinition(
+                timeRoutine = it,
+                dayOfWeeks = allTimeRoutines[it]?.map {
+                    it.toTimeRoutineDayOfWeekEntity()
+                }?.toSet() ?: emptySet()
+            )
         }
     }
 

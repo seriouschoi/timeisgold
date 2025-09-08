@@ -62,6 +62,31 @@ class FakeTimeRoutineRepositoryAdapter(
         }
     }
 
+    override fun observeTimeRoutineDefinitionByDayOfWeek(dayOfWeek: DayOfWeek): Flow<TimeRoutineDefinition?> {
+        return flow {
+            if (flags.readThrow) {
+                throw Exception()
+            }
+
+            if (!flags.readRoutine) {
+                emit(null)
+                return@flow
+            }
+
+            val forEmit = mockTimeRoutines.find {
+                it.dayOfWeeks.any {
+                    it.dayOfWeek == dayOfWeek
+                }
+            }?.let {
+                TimeRoutineDefinition(
+                    timeRoutine = it.timeRoutine,
+                    dayOfWeeks = it.dayOfWeeks
+                )
+            }
+            emit(forEmit)
+        }
+    }
+
     override suspend fun getCompositionByUuid(timeRoutineUuid: String): TimeRoutineComposition? {
         if (flags.readThrow) {
             throw Exception()
