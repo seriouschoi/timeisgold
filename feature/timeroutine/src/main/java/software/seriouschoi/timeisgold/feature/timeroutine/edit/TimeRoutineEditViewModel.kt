@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -110,17 +111,17 @@ internal class TimeRoutineEditViewModel @Inject constructor(
 
     fun init() {
         viewModelScope.launch {
-            getTimeRoutineUseCase.invoke(currentDayOfWeek).distinctUntilChanged()
-                .asResultState()
-                .collect { resultState: ResultState<DomainResult<TimeRoutineDefinition>> ->
-                    _uiState.update {
-                        it.reduceResultState(resultState, currentDayOfWeek)
-                    }
-                    _routineState.update {
-                        it.reduceResultState(resultState)
-                    }
-                    handleGetRoutineSideEffect(resultState)
-                }
+            _uiState.emit(TimeRoutineEditUiState.Loading)
+            val routineDomainResult = getTimeRoutineUseCase.invoke(currentDayOfWeek).first()
+            _uiState.update {
+                it.reduceRoutineDomainResult(routineDomainResult, currentDayOfWeek)
+            }
+            _routineState.update {
+                it.reduceDomainResult(routineDomainResult)
+            }
+            handleGetRoutineSideEffect(routineDomainResult)?.let { event: TimeRoutineEditUiEvent ->
+                _uiEvent.emit(event)
+            }
         }
 
         viewModelScope.launch {
@@ -141,28 +142,46 @@ internal class TimeRoutineEditViewModel @Inject constructor(
         }
     }
 
-    private fun TimeRoutineDefinition.reduceResultState(
-        resultState: ResultState<DomainResult<TimeRoutineDefinition>>,
-    ): TimeRoutineDefinition {
-        return when (resultState) {
-            is ResultState.Success -> {
-                val domainResult = resultState.data
-                when (domainResult) {
-                    is DomainResult.Failure -> {
-                        this
-                    }
-
-                    is DomainResult.Success -> {
-                        domainResult.value
-                    }
-                }
+    private fun handleGetRoutineSideEffect(state: DomainResult<TimeRoutineDefinition>) =
+        when (state) {
+            is DomainResult.Failure -> {
+                handleGetRoutineError(state.error)
             }
 
-            else -> {
-                this
+            is DomainResult.Success -> {
+                // no work.
+                null
             }
         }
+
+    private fun handleGetRoutineError(error: DomainError) = when (error) {
+        DomainError.NotFound.TimeRoutine -> {
+            null
+        }
+
+        DomainError.Conflict.Data,
+        DomainError.Conflict.DayOfWeek,
+        DomainError.Technical.Unknown,
+        DomainError.Validation.NoSelectedDayOfWeek,
+        DomainError.Validation.Title,
+            -> {
+            TimeRoutineEditUiEvent.ShowAlert(
+                message = UiText.Res(id = CommonR.string.message_failed_load_data),
+                confirmIntent = TimeRoutineEditUiIntent.Exit(),
+            )
+        }
     }
+
+    private fun TimeRoutineDefinition.reduceDomainResult(domainResult: DomainResult<TimeRoutineDefinition>) =
+        when (domainResult) {
+            is DomainResult.Failure -> {
+                this
+            }
+
+            is DomainResult.Success -> {
+                domainResult.value
+            }
+        }
 
     private fun TimeRoutineEditUiState.reduceValidResultState(
         validResult: ResultState<DomainResult<Boolean>>,
@@ -218,25 +237,7 @@ internal class TimeRoutineEditViewModel @Inject constructor(
         }
     }
 
-    private suspend fun handleGetRoutineSideEffect(
-        state: ResultState<DomainResult<TimeRoutineDefinition>>,
-    ) {
-        when (state) {
-            is ResultState.Error -> {
-                _uiEvent.emit(
-                    TimeRoutineEditUiEvent.ShowAlert(
-                        message = UiText.Res(id = CommonR.string.message_failed_load_data),
-                        confirmIntent = TimeRoutineEditUiIntent.Exit(),
-                    )
-                )
-            }
-
-            else -> {
-            }
-        }
-    }
-
-    fun TimeRoutineEditUiState.reduceResultState(
+    fun TimeRoutineEditUiState.reduceRoutineResultState(
         resultState: ResultState<DomainResult<TimeRoutineDefinition>>,
         defaultDayOfWeek: DayOfWeek,
     ): TimeRoutineEditUiState {

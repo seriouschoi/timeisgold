@@ -2,7 +2,6 @@
 
 time routine edit
 - [ ] 테스트 커버리지 도구 도입.
-  - 
 - [x] 저장 유효성을 실시간으로 처리하기. intent flow로 구현. 
 - [ ] 수정 버튼 추가.
 - [ ] time routine edit viewmodel test 추가. (intent의 테스트 전부 작성.)
