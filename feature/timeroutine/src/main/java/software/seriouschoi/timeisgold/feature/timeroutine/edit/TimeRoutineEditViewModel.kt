@@ -172,116 +172,6 @@ internal class TimeRoutineEditViewModel @Inject constructor(
         }
     }
 
-    private fun TimeRoutineDefinition.reduceDomainResult(domainResult: DomainResult<TimeRoutineDefinition>) =
-        when (domainResult) {
-            is DomainResult.Failure -> {
-                this
-            }
-
-            is DomainResult.Success -> {
-                Timber.d("reduceDomainResult success. ${domainResult.value}")
-                domainResult.value
-            }
-        }
-
-    private fun TimeRoutineEditUiState.reduceValidResultState(
-        validResult: ResultState<DomainResult<Boolean>>,
-    ): TimeRoutineEditUiState {
-        if (this !is TimeRoutineEditUiState.Routine) return this
-
-        return when (validResult) {
-            is ResultState.Success -> {
-                val domainResult = validResult.data
-                val newState = this.validState.reduceValidDomainResult(domainResult)
-                this.copy(validState = newState)
-            }
-
-            else -> return this
-        }
-    }
-
-    private fun TimeRoutineEditUiValidUiState.reduceValidDomainResult(validResult: DomainResult<Boolean>): TimeRoutineEditUiValidUiState {
-        return when (validResult) {
-            is DomainResult.Failure -> {
-                val error = validResult.error
-                val newState = this.copy(
-                    isValid = false
-                )
-                when (error) {
-                    DomainError.Validation.Title -> {
-                        newState.copy(
-                            invalidTitleMessage = error.toUiText()
-                        )
-                    }
-
-                    DomainError.Validation.NoSelectedDayOfWeek,
-                    DomainError.Conflict.DayOfWeek,
-                        -> {
-                        newState.copy(
-                            invalidDayOfWeekMessage = error.toUiText()
-                        )
-                    }
-
-                    else -> {
-                        newState
-                    }
-                }
-            }
-
-            is DomainResult.Success -> {
-                if (validResult.value) {
-                    TimeRoutineEditUiValidUiState(isValid = true)
-                } else {
-                    this.copy(isValid = false)
-                }
-            }
-        }
-    }
-
-    fun TimeRoutineEditUiState.reduceRoutineResultState(
-        resultState: ResultState<DomainResult<TimeRoutineDefinition>>,
-        defaultDayOfWeek: DayOfWeek,
-    ): TimeRoutineEditUiState {
-        return when (resultState) {
-            is ResultState.Loading -> {
-                TimeRoutineEditUiState.Loading
-            }
-
-            is ResultState.Success -> {
-                val resultData: DomainResult<TimeRoutineDefinition> = resultState.data
-                this.reduceRoutineDomainResult(resultData, defaultDayOfWeek)
-            }
-
-            else -> this
-        }
-    }
-
-    private fun TimeRoutineEditUiState.reduceRoutineDomainResult(
-        data: DomainResult<TimeRoutineDefinition>,
-        defaultDayOfWeek: DayOfWeek,
-    ): TimeRoutineEditUiState {
-        Timber.d("createRoutineState data=$data")
-        val routineState = TimeRoutineEditUiState.Routine(
-            currentDayOfWeek = defaultDayOfWeek,
-            dayOfWeekList = setOf(defaultDayOfWeek),
-        )
-        when (data) {
-            is DomainResult.Failure -> {
-                val error = data.error
-                return when (error) {
-                    is DomainError.NotFound -> routineState
-                    else -> this
-                }
-            }
-
-            is DomainResult.Success -> {
-                val domainResult: TimeRoutineDefinition = data.value
-                return routineState.reduceRoutineDefinition(domainResult)
-            }
-        }
-    }
-
-
     private fun saveTimeRoutine() {
         viewModelScope.launch {
             val timeRoutine = routineState.firstOrNull() ?: return@launch
@@ -293,70 +183,7 @@ internal class TimeRoutineEditViewModel @Inject constructor(
         }
     }
 
-    private fun DomainError.toUiText(): UiText = when (this) {
-        is DomainError.Validation -> {
-            when (this) {
-                DomainError.Validation.NoSelectedDayOfWeek -> UiText.Res(
-                    id = R.string.message_dayofweek_is_empty
-                )
 
-                DomainError.Validation.Title -> UiText.Res(
-                    id = CommonR.string.message_title_is_empty
-                )
-            }
-        }
-
-        is DomainError.Conflict -> {
-            when (this) {
-                DomainError.Conflict.DayOfWeek -> UiText.Res(
-                    id = R.string.message_conflict_dayofweek
-                )
-
-                else -> {
-                    UiText.Res(
-                        id = CommonR.string.message_failed_save_data
-                    )
-                }
-            }
-        }
-
-        is DomainError.NotFound,
-        is DomainError.Technical,
-            -> UiText.Res(
-            id = CommonR.string.message_failed_save_data
-        )
-    }
-
-    private fun DomainResult<*>.toSaveResultToEvent(): TimeRoutineEditUiEvent =
-        when (this) {
-            is DomainResult.Success -> TimeRoutineEditUiEvent.ShowAlert(
-                message = UiText.Res(id = CommonR.string.message_success_save_data),
-                confirmIntent = TimeRoutineEditUiIntent.Exit
-            )
-
-            is DomainResult.Failure -> {
-                Timber.d("saveResult failed. $this")
-                TimeRoutineEditUiEvent.ShowAlert(
-                    message = this.error.toUiText(),
-                    confirmIntent = null
-                )
-            }
-        }
-
-    private fun TimeRoutineEditUiState.Routine.reduceRoutineDefinition(
-        routineComposition: TimeRoutineDefinition,
-    ): TimeRoutineEditUiState {
-        val newDayOfWeekList = routineComposition.dayOfWeeks.map {
-            it.dayOfWeek
-        }
-        return this.copy(
-            dayOfWeekList = listOf(
-                newDayOfWeekList,
-                this.dayOfWeekList
-            ).flatten().toSet(),
-            routineTitle = routineComposition.timeRoutine.title,
-        )
-    }
 
     fun sendIntent(intent: TimeRoutineEditUiIntent) {
         viewModelScope.launch {
@@ -370,7 +197,7 @@ internal class TimeRoutineEditViewModel @Inject constructor(
         }
     }
 
-    private suspend fun handleIntentSideEffect(intent: TimeRoutineEditUiIntent) {
+    private fun handleIntentSideEffect(intent: TimeRoutineEditUiIntent) {
         when (intent) {
             is TimeRoutineEditUiIntent.Save -> {
                 sendEvent(
@@ -432,53 +259,79 @@ internal class TimeRoutineEditViewModel @Inject constructor(
         }
     }
 
-    private fun DomainResult<Boolean>.toDeleteResultToEvent(): TimeRoutineEditUiEvent {
-        return when (this) {
-            is DomainResult.Success -> TimeRoutineEditUiEvent.ShowAlert(
-                message = UiText.Res(id = CommonR.string.message_success_delete_data),
-                confirmIntent = TimeRoutineEditUiIntent.Exit
+}
+
+internal fun DomainError.toUiText(): UiText = when (this) {
+    is DomainError.Validation -> {
+        when (this) {
+            DomainError.Validation.NoSelectedDayOfWeek -> UiText.Res(
+                id = R.string.message_dayofweek_is_empty
             )
-            is DomainResult.Failure -> {
-                TimeRoutineEditUiEvent.ShowAlert(
-                    message = UiText.Res(id = CommonR.string.message_failed_delete_data),
-                    confirmIntent = null
-                )
-            }
+
+            DomainError.Validation.Title -> UiText.Res(
+                id = CommonR.string.message_title_is_empty
+            )
         }
     }
 
-    private fun TimeRoutineEditUiState.reduceIntent(
-        intent: TimeRoutineEditUiIntent,
-    ): TimeRoutineEditUiState {
-        return when (intent) {
-            is TimeRoutineEditUiIntent.UpdateDayOfWeek -> this.reduceIntentDayOfWeek(intent)
-            is TimeRoutineEditUiIntent.UpdateRoutineTitle -> this.reduceIntentTitle(intent)
-            else -> this
+    is DomainError.Conflict -> {
+        when (this) {
+            DomainError.Conflict.DayOfWeek -> UiText.Res(
+                id = R.string.message_conflict_dayofweek
+            )
+
+            DomainError.Conflict.Data -> UiText.Res(
+                id = R.string.message_conflict_data
+            )
         }
     }
 
-    private fun TimeRoutineEditUiState.reduceIntentTitle(
-        intent: TimeRoutineEditUiIntent.UpdateRoutineTitle,
-    ): TimeRoutineEditUiState {
-        val currentRoutineState = (this as? TimeRoutineEditUiState.Routine)
-        return currentRoutineState?.copy(
-            routineTitle = intent.title
-        ) ?: this
+    is DomainError.NotFound,
+    is DomainError.Technical,
+        -> UiText.Res(
+        id = CommonR.string.message_failed_save_data
+    )
+}
+
+private fun TimeRoutineDefinition.reduceDomainResult(domainResult: DomainResult<TimeRoutineDefinition>) =
+    when (domainResult) {
+        is DomainResult.Failure -> {
+            this
+        }
+
+        is DomainResult.Success -> {
+            Timber.d("reduceDomainResult success. ${domainResult.value}")
+            domainResult.value
+        }
     }
 
-    private fun TimeRoutineEditUiState.reduceIntentDayOfWeek(
-        intent: TimeRoutineEditUiIntent.UpdateDayOfWeek,
-    ): TimeRoutineEditUiState {
-        val routineState = this as? TimeRoutineEditUiState.Routine ?: return this
-
-        val newDayOfWeeks = routineState.dayOfWeekList.toMutableSet()
-        if (intent.checked) {
-            newDayOfWeeks.add(intent.dayOfWeek)
-        } else {
-            newDayOfWeeks.remove(intent.dayOfWeek)
-        }
-        return routineState.copy(
-            dayOfWeekList = newDayOfWeeks
+private fun DomainResult<*>.toSaveResultToEvent(): TimeRoutineEditUiEvent =
+    when (this) {
+        is DomainResult.Success -> TimeRoutineEditUiEvent.ShowAlert(
+            message = UiText.Res(id = CommonR.string.message_success_save_data),
+            confirmIntent = TimeRoutineEditUiIntent.Exit
         )
+
+        is DomainResult.Failure -> {
+            Timber.d("saveResult failed. $this")
+            TimeRoutineEditUiEvent.ShowAlert(
+                message = this.error.toUiText(),
+                confirmIntent = null
+            )
+        }
+    }
+
+private fun DomainResult<Boolean>.toDeleteResultToEvent(): TimeRoutineEditUiEvent {
+    return when (this) {
+        is DomainResult.Success -> TimeRoutineEditUiEvent.ShowAlert(
+            message = UiText.Res(id = CommonR.string.message_success_delete_data),
+            confirmIntent = TimeRoutineEditUiIntent.Exit
+        )
+        is DomainResult.Failure -> {
+            TimeRoutineEditUiEvent.ShowAlert(
+                message = UiText.Res(id = CommonR.string.message_failed_delete_data),
+                confirmIntent = null
+            )
+        }
     }
 }
