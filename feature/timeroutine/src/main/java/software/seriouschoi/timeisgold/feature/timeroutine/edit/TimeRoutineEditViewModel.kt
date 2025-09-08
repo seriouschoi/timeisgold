@@ -24,20 +24,22 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import software.seriouschoi.navigator.DestNavigatorPort
 import software.seriouschoi.timeisgold.core.common.ui.ResultState
+import software.seriouschoi.timeisgold.core.common.ui.TigUiEvent
 import software.seriouschoi.timeisgold.core.common.ui.UiText
 import software.seriouschoi.timeisgold.core.common.ui.asResultState
+import software.seriouschoi.timeisgold.core.common.util.Envelope
 import software.seriouschoi.timeisgold.domain.data.DomainError
 import software.seriouschoi.timeisgold.domain.data.DomainResult
 import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineDefinition
 import software.seriouschoi.timeisgold.domain.data.entities.TimeRoutineDayOfWeekEntity
 import software.seriouschoi.timeisgold.domain.data.entities.TimeRoutineEntity
+import software.seriouschoi.timeisgold.domain.usecase.timeroutine.DeleteTimeRoutineUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.GetTimeRoutineDefinitionUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.GetValidTimeRoutineUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.SetTimeRoutineUseCase
 import software.seriouschoi.timeisgold.feature.timeroutine.bar.R
 import timber.log.Timber
 import java.time.DayOfWeek
-import java.util.UUID
 import javax.inject.Inject
 import software.seriouschoi.timeisgold.core.common.ui.R as CommonR
 
@@ -48,6 +50,7 @@ internal class TimeRoutineEditViewModel @Inject constructor(
 
     private val getTimeRoutineUseCase: GetTimeRoutineDefinitionUseCase,
     private val setTimeRoutineUseCase: SetTimeRoutineUseCase,
+    private val deleteTimeRoutineUseCase: DeleteTimeRoutineUseCase,
     private val getValidTimeRoutineUseCase: GetValidTimeRoutineUseCase,
     private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
@@ -60,10 +63,10 @@ internal class TimeRoutineEditViewModel @Inject constructor(
     private val _uiState = MutableStateFlow<TimeRoutineEditUiState>(TimeRoutineEditUiState.Loading)
     val uiState = _uiState.asStateFlow()
 
-    private val _uiEvent = MutableSharedFlow<TimeRoutineEditUiEvent>()
+    private val _uiEvent = MutableSharedFlow<Envelope<TimeRoutineEditUiEvent>>()
     val uiEvent = _uiEvent.asSharedFlow()
 
-    private val _uiIntent = MutableSharedFlow<TimeRoutineEditUiIntent>()
+    private val _uiIntent = MutableSharedFlow<Envelope<TimeRoutineEditUiIntent>>()
 
     private val emptyTimeRoutineDefinition: TimeRoutineDefinition
         get() {
@@ -118,16 +121,16 @@ internal class TimeRoutineEditViewModel @Inject constructor(
                 it.reduceRoutineDomainResult(routineDomainResult, currentDayOfWeek)
             }
             handleGetRoutineSideEffect(routineDomainResult)?.let { event: TimeRoutineEditUiEvent ->
-                _uiEvent.emit(event)
+                sendEvent(event)
             }
         }
 
         viewModelScope.launch {
-            _uiIntent.collect { intent ->
+            _uiIntent.collect { envelope ->
                 _uiState.update {
-                    it.reduceIntent(intent)
+                    it.reduceIntent(envelope.payload)
                 }
-                handleIntentSideEffect(intent)
+                handleIntentSideEffect(envelope.payload)
             }
         }
 
@@ -165,7 +168,7 @@ internal class TimeRoutineEditViewModel @Inject constructor(
             -> {
             TimeRoutineEditUiEvent.ShowAlert(
                 message = UiText.Res(id = CommonR.string.message_failed_load_data),
-                confirmIntent = TimeRoutineEditUiIntent.Exit(),
+                confirmIntent = TimeRoutineEditUiIntent.Exit,
             )
         }
     }
@@ -287,7 +290,7 @@ internal class TimeRoutineEditViewModel @Inject constructor(
                 timeRoutine
             )
             val event = result.toSaveResultToEvent()
-            _uiEvent.emit(event)
+            sendEvent(event)
         }
     }
 
@@ -299,7 +302,7 @@ internal class TimeRoutineEditViewModel @Inject constructor(
                 )
 
                 DomainError.Validation.Title -> UiText.Res(
-                    id = R.string.message_title_is_empty
+                    id = CommonR.string.message_title_is_empty
                 )
             }
         }
@@ -329,7 +332,7 @@ internal class TimeRoutineEditViewModel @Inject constructor(
         when (this) {
             is DomainResult.Success -> TimeRoutineEditUiEvent.ShowAlert(
                 message = UiText.Res(id = CommonR.string.message_success_save_data),
-                confirmIntent = TimeRoutineEditUiIntent.Exit()
+                confirmIntent = TimeRoutineEditUiIntent.Exit
             )
 
             is DomainResult.Failure -> {
@@ -358,32 +361,49 @@ internal class TimeRoutineEditViewModel @Inject constructor(
 
     fun sendIntent(intent: TimeRoutineEditUiIntent) {
         viewModelScope.launch {
-            Timber.d("sendIntent $intent")
-            _uiIntent.emit(intent)
+            _uiIntent.emit(Envelope(intent))
+        }
+    }
+
+    private fun sendEvent(event: TimeRoutineEditUiEvent) {
+        viewModelScope.launch {
+            _uiEvent.emit(Envelope(event))
         }
     }
 
     private suspend fun handleIntentSideEffect(intent: TimeRoutineEditUiIntent) {
         when (intent) {
             is TimeRoutineEditUiIntent.Save -> {
-                _uiEvent.emit(
+                sendEvent(
                     TimeRoutineEditUiEvent.ShowConfirm(
                         UiText.Res(
-                            R.string.message_routine_edit_confirm
+                            CommonR.string.message_common_save_confirm,
                         ),
-                        TimeRoutineEditUiIntent.SaveConfirm(),
+                        TimeRoutineEditUiIntent.SaveConfirm,
+                        null
+                    )
+                )
+            }
+
+            is TimeRoutineEditUiIntent.Delete -> {
+                sendEvent(
+                    TimeRoutineEditUiEvent.ShowConfirm(
+                        UiText.Res(
+                            CommonR.string.message_common_delete_confirm,
+                        ),
+                        TimeRoutineEditUiIntent.DeleteConfirm,
                         null
                     )
                 )
             }
 
             is TimeRoutineEditUiIntent.Cancel -> {
-                _uiEvent.emit(
+                sendEvent(
                     TimeRoutineEditUiEvent.ShowConfirm(
                         UiText.Res(
-                            R.string.message_routine_edit_cancel
+                            CommonR.string.message_common_cancel_confirm
                         ),
-                        TimeRoutineEditUiIntent.Exit(),
+                        TimeRoutineEditUiIntent.Exit,
                         null
                     )
                 )
@@ -397,7 +417,34 @@ internal class TimeRoutineEditViewModel @Inject constructor(
                 saveTimeRoutine()
             }
 
+            is TimeRoutineEditUiIntent.DeleteConfirm -> {
+                deleteTimeRoutine()
+            }
+
             else -> {}
+        }
+    }
+
+    private fun deleteTimeRoutine() {
+        viewModelScope.launch {
+            val result = deleteTimeRoutineUseCase.invoke(routineState.value.timeRoutine.uuid)
+            val event = result.toDeleteResultToEvent()
+            sendEvent(event)
+        }
+    }
+
+    private fun DomainResult<Boolean>.toDeleteResultToEvent(): TimeRoutineEditUiEvent {
+        return when (this) {
+            is DomainResult.Success -> TimeRoutineEditUiEvent.ShowAlert(
+                message = UiText.Res(id = CommonR.string.message_success_delete_data),
+                confirmIntent = TimeRoutineEditUiIntent.Exit
+            )
+            is DomainResult.Failure -> {
+                TimeRoutineEditUiEvent.ShowAlert(
+                    message = UiText.Res(id = CommonR.string.message_failed_delete_data),
+                    confirmIntent = null
+                )
+            }
         }
     }
 

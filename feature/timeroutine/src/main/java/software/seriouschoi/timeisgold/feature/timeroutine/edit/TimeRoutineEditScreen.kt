@@ -22,6 +22,7 @@ import software.seriouschoi.timeisgold.core.common.ui.components.TigCircleProgre
 import software.seriouschoi.timeisgold.core.common.ui.components.TigLabelButton
 import software.seriouschoi.timeisgold.core.common.ui.components.TigSingleLineTextField
 import software.seriouschoi.timeisgold.core.common.ui.components.TigText
+import software.seriouschoi.timeisgold.core.common.util.Envelope
 import java.time.DayOfWeek
 import java.time.format.TextStyle
 import java.util.Locale
@@ -108,7 +109,7 @@ private fun Routine(
         )
 
         TigText(
-            text = currentRoutine.validState?.invalidTitleMessage?.asString() ?: "",
+            text = currentRoutine.validState.invalidTitleMessage?.asString() ?: "",
         )
         Row {
             DayOfWeek.entries.forEach { dayOfWeek ->
@@ -124,7 +125,7 @@ private fun Routine(
             }
         }
         TigText(
-            text = currentRoutine.validState?.invalidDayOfWeekMessage?.asString() ?: "",
+            text = currentRoutine.validState.invalidDayOfWeekMessage?.asString() ?: "",
         )
 
         BottomButtons(currentRoutine, sendIntent)
@@ -133,13 +134,13 @@ private fun Routine(
 
 @Composable
 private fun ShowEvent(
-    uiEvent: TimeRoutineEditUiEvent?,
+    uiEvent: Envelope<TimeRoutineEditUiEvent>?,
     sendIntent: (TimeRoutineEditUiIntent) -> Unit,
 ) {
-    when (val currentEvent = uiEvent) {
+    when (val currentEvent = uiEvent?.payload) {
         is TimeRoutineEditUiEvent.ShowAlert -> {
             TigAlert(
-                alertId = currentEvent.uuid.toString(),
+                alertId = uiEvent.uuid.toString(),
                 message = currentEvent.message.asString(),
                 confirmButtonText = stringResource(CommonR.string.text_confirm),
                 onClickConfirm = {
@@ -150,7 +151,7 @@ private fun ShowEvent(
 
         is TimeRoutineEditUiEvent.ShowConfirm -> {
             TigAlert(
-                alertId = currentEvent.uuid.toString(),
+                alertId = uiEvent.uuid.toString(),
                 message = currentEvent.message.asString(),
                 confirmButtonText = stringResource(CommonR.string.text_confirm),
                 onClickConfirm = {
@@ -176,8 +177,14 @@ private fun BottomButtons(
 ) {
     TigBottomBar {
         TigLabelButton(
+            label = stringResource(CommonR.string.text_delete),
             onClick = {
-                sendIntent(TimeRoutineEditUiIntent.Save())
+                sendIntent(TimeRoutineEditUiIntent.Delete)
+            }
+        )
+        TigLabelButton(
+            onClick = {
+                sendIntent(TimeRoutineEditUiIntent.Save)
             },
             label = stringResource(CommonR.string.text_save),
             enabled = currentRoutine.validState.isValid
