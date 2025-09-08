@@ -21,6 +21,7 @@
     - 다만 전날,다음날 루틴이 조금 보이면 좋음.
 
 ## time routine edit
+- [ ] 새 루틴인데 삭제 버튼이 왜있음?
 - [ ] time routine edit viewmodel test 추가. (intent의 테스트 전부 작성.)
 - [x] 저장 유효성을 실시간으로 처리하기. intent flow로 구현.
 - [x] 수정 버튼 추가.

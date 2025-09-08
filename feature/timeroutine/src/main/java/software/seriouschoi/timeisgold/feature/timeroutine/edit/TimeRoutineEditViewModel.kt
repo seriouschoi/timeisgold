@@ -24,7 +24,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import software.seriouschoi.navigator.DestNavigatorPort
 import software.seriouschoi.timeisgold.core.common.ui.ResultState
-import software.seriouschoi.timeisgold.core.common.ui.TigUiEvent
 import software.seriouschoi.timeisgold.core.common.ui.UiText
 import software.seriouschoi.timeisgold.core.common.ui.asResultState
 import software.seriouschoi.timeisgold.core.common.util.Envelope
