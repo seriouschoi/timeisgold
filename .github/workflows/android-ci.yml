@@ -24,6 +24,10 @@ jobs:
 
       - uses: ./.github/actions/setup
 
+      - name: Clean
+        run: |
+          ./gradlew clean
+
       - name: Assemble
         run: |
           ./gradlew assembleDebug --stacktrace
