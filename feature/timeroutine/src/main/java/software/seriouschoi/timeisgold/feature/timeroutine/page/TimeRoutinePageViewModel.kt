@@ -13,6 +13,7 @@ import software.seriouschoi.navigator.DestNavigatorPort
 import software.seriouschoi.timeisgold.core.common.ui.ResultState
 import software.seriouschoi.timeisgold.core.common.ui.UiText
 import software.seriouschoi.timeisgold.core.common.ui.asResultState
+import software.seriouschoi.timeisgold.core.common.util.Envelope
 import software.seriouschoi.timeisgold.domain.data.DomainResult
 import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineComposition
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.GetTimeRoutineCompositionUseCase
@@ -46,7 +47,7 @@ internal class TimeRoutinePageViewModel @Inject constructor(
     )
     val uiState = _uiState.asStateFlow()
 
-    private val _intent = MutableSharedFlow<TimeRoutinePageUiIntent>()
+    private val _intent = MutableSharedFlow< Envelope<TimeRoutinePageUiIntent>>()
 
     private val viewModelData
         get() = savedStateHandle.get<ViewModelData>("data")
@@ -54,7 +55,7 @@ internal class TimeRoutinePageViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             _intent.collect {
-                handleIntentSideEffect(it)
+                handleIntentSideEffect(it.payload)
             }
         }
     }
@@ -76,7 +77,7 @@ internal class TimeRoutinePageViewModel @Inject constructor(
         resultState: ResultState<DomainResult<TimeRoutineComposition>>,
         dayOfWeek: DayOfWeek,
     ): TimeRoutinePageUiState {
-        val dayOfWeekName = dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault())
+        val dayOfWeekName = dayOfWeek.getDisplayName(TextStyle.FULL, Locale.getDefault())
         when (resultState) {
             ResultState.Loading -> {
                 return TimeRoutinePageUiState.Loading(
@@ -144,17 +145,19 @@ internal class TimeRoutinePageViewModel @Inject constructor(
 
     private fun handleIntentSideEffect(intent: TimeRoutinePageUiIntent) {
         when (intent) {
+            is TimeRoutinePageUiIntent.ModifyRoutine,
             is TimeRoutinePageUiIntent.CreateRoutine -> {
                 val dayOfWeekOrdinal = viewModelData?.dayOfWeekOrdinal
                 if (dayOfWeekOrdinal != null)
                     navigator.navigate(TimeRoutineEditScreenRoute(dayOfWeekOrdinal))
             }
+
         }
     }
 
-    fun sendIntent(createRoutine: TimeRoutinePageUiIntent.CreateRoutine) {
+    fun sendIntent(createRoutine: TimeRoutinePageUiIntent) {
         viewModelScope.launch {
-            _intent.emit(createRoutine)
+            _intent.emit(Envelope(createRoutine))
         }
     }
 }
