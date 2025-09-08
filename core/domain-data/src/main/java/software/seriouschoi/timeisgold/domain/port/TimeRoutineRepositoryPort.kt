@@ -26,4 +26,5 @@ interface TimeRoutineRepositoryPort {
 
     suspend fun saveTimeRoutineDefinition(routine: TimeRoutineDefinition): DomainResult<String>
     fun observeTimeRoutineDefinitionByDayOfWeek(dayOfWeek: DayOfWeek): Flow<TimeRoutineDefinition?>
+    suspend fun getAllTimeRoutineDefinitions() : List<TimeRoutineDefinition>
 }

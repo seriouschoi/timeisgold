@@ -68,7 +68,7 @@ internal class TimeRoutineEditViewModel @Inject constructor(
     private val emptyTimeRoutineDefinition: TimeRoutineDefinition
         get() {
             return TimeRoutineDefinition(
-                timeRoutine = TimeRoutineEntity.create(UUID.randomUUID().toString()),
+                timeRoutine = TimeRoutineEntity.create(""),
                 dayOfWeeks = listOf(currentDayOfWeek).map {
                     TimeRoutineDayOfWeekEntity(it)
                 }.toSet()
@@ -83,20 +83,18 @@ internal class TimeRoutineEditViewModel @Inject constructor(
         _routineState, uiState
     ) { def, ui ->
         if (ui is TimeRoutineEditUiState.Routine) {
-            ui.let {
-                val routine = def.timeRoutine.copy(
-                    title = it.routineTitle
+            val routine = def.timeRoutine.copy(
+                title = ui.routineTitle
+            )
+            val days = ui.dayOfWeekList.map {
+                TimeRoutineDayOfWeekEntity(
+                    dayOfWeek = it
                 )
-                val days = it.dayOfWeekList.map {
-                    TimeRoutineDayOfWeekEntity(
-                        dayOfWeek = it
-                    )
-                }.toSet()
-                def.copy(
-                    timeRoutine = routine,
-                    dayOfWeeks = days
-                )
-            }
+            }.toSet()
+            def.copy(
+                timeRoutine = routine,
+                dayOfWeeks = days
+            )
         } else {
             def
         }
@@ -113,11 +111,11 @@ internal class TimeRoutineEditViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.emit(TimeRoutineEditUiState.Loading)
             val routineDomainResult = getTimeRoutineUseCase.invoke(currentDayOfWeek).first()
-            _uiState.update {
-                it.reduceRoutineDomainResult(routineDomainResult, currentDayOfWeek)
-            }
             _routineState.update {
                 it.reduceDomainResult(routineDomainResult)
+            }
+            _uiState.update {
+                it.reduceRoutineDomainResult(routineDomainResult, currentDayOfWeek)
             }
             handleGetRoutineSideEffect(routineDomainResult)?.let { event: TimeRoutineEditUiEvent ->
                 _uiEvent.emit(event)
@@ -179,6 +177,7 @@ internal class TimeRoutineEditViewModel @Inject constructor(
             }
 
             is DomainResult.Success -> {
+                Timber.d("reduceDomainResult success. ${domainResult.value}")
                 domainResult.value
             }
         }

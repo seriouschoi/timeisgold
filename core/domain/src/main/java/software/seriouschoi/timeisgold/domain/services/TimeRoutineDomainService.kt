@@ -42,7 +42,12 @@ class TimeRoutineDomainService @Inject constructor(
             return DomainResult.Failure(DomainError.Validation.NoSelectedDayOfWeek)
         }
 
-        val existingDays = timeRoutineRepository.observeAllRoutinesDayOfWeeks().first()
+        val existingDays = timeRoutineRepository.getAllTimeRoutineDefinitions().filter {
+            it.timeRoutine.uuid != newRoutine.timeRoutine.uuid
+        }.map {
+            it.dayOfWeeks.map { it.dayOfWeek }
+        }.flatten()
+
         val conflictDays = existingDays.filter {
             newDays.contains(it)
         }

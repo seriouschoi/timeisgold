@@ -3,7 +3,9 @@
 time routine edit
 - [ ] 테스트 커버리지 도구 도입.
 - [x] 저장 유효성을 실시간으로 처리하기. intent flow로 구현. 
-- [ ] 수정 버튼 추가.
+- [x] 수정 버튼 추가.
+- [ ] valid check 조건에서 요일 확인.
+  - 중복체크인데 나를 포함 하고 있음.
 - [ ] time routine edit viewmodel test 추가. (intent의 테스트 전부 작성.)
 
 - [ ] uuid생성 규칙 일원화를 위해 도메인에 접근자 정의하기.

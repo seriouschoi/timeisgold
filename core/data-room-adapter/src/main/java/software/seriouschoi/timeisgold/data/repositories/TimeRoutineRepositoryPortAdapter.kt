@@ -227,7 +227,7 @@ internal class TimeRoutineRepositoryPortAdapter @Inject constructor(
                 it?.toTimeRoutineEntity()
             }
             .flatMapLatest { routine ->
-                if(routine == null) flowOf(null)
+                if (routine == null) flowOf(null)
                 else {
                     combine(
                         observeWeeks(routine.uuid),
@@ -240,6 +240,22 @@ internal class TimeRoutineRepositoryPortAdapter @Inject constructor(
                     }
                 }
             }
+    }
+
+    override suspend fun getAllTimeRoutineDefinitions(): List<TimeRoutineDefinition> {
+        val allTimeRoutines = withContext(Dispatchers.IO) {
+            appDatabase.TimeRoutineJoinDayOfWeekViewDao().getAll().groupBy {
+                it.toTimeRoutineEntity()
+            }
+        }
+        return allTimeRoutines.keys.map {
+            TimeRoutineDefinition(
+                timeRoutine = it,
+                dayOfWeeks = allTimeRoutines[it]?.map {
+                    it.toTimeRoutineDayOfWeekEntity()
+                }?.toSet() ?: emptySet()
+            )
+        }
     }
 
     override fun observeCompositionByUuidFlow(timeRoutineUuid: String): Flow<TimeRoutineComposition?> {
