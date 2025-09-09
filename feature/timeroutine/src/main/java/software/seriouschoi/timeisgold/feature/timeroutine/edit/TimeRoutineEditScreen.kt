@@ -1,9 +1,11 @@
 package software.seriouschoi.timeisgold.feature.timeroutine.edit
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -58,7 +60,8 @@ private fun Preview() {
         uiState = TimeRoutineEditUiState.Routine(
             currentDayOfWeek = DayOfWeek.MONDAY,
             dayOfWeekList = setOf(DayOfWeek.MONDAY),
-            routineTitle = "title"
+            routineTitle = "title",
+            visibleDelete = true
         )
     ) { }
 }
@@ -95,7 +98,6 @@ private fun Routine(
     sendIntent: (TimeRoutineEditUiIntent) -> Unit,
 ) {
     Column {
-        TigText("timeRoutineEditScreen. ${currentRoutine.currentDayOfWeek}")
         TigSingleLineTextField(
             value = currentRoutine.routineTitle,
             onValueChange = {
@@ -103,15 +105,17 @@ private fun Routine(
                     TimeRoutineEditUiIntent.UpdateRoutineTitle(it)
                 )
             },
-            placeHolder = {
-                TigText(stringResource(CommonR.string.text_routine_title))
-            }
+            modifier = Modifier.fillMaxWidth(),
+            hint = stringResource(CommonR.string.text_routine_title)
         )
 
         TigText(
             text = currentRoutine.validState.invalidTitleMessage?.asString() ?: "",
         )
-        Row {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
             DayOfWeek.entries.forEach { dayOfWeek ->
                 TigCheckButton(
                     label = dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault()),
@@ -176,12 +180,14 @@ private fun BottomButtons(
     sendIntent: (TimeRoutineEditUiIntent) -> Unit,
 ) {
     TigBottomBar {
-        TigLabelButton(
-            label = stringResource(CommonR.string.text_delete),
-            onClick = {
-                sendIntent(TimeRoutineEditUiIntent.Delete)
-            }
-        )
+        if(currentRoutine.visibleDelete){
+            TigLabelButton(
+                label = stringResource(CommonR.string.text_delete),
+                onClick = {
+                    sendIntent(TimeRoutineEditUiIntent.Delete)
+                }
+            )
+        }
         TigLabelButton(
             onClick = {
                 sendIntent(TimeRoutineEditUiIntent.Save)

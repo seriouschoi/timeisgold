@@ -31,7 +31,9 @@ internal fun TimeRoutineEditUiState.reduceRoutineDomainResult(
 
         is DomainResult.Success -> {
             val domainResult: TimeRoutineDefinition = data.value
-            return routineState.reduceRoutineDefinition(domainResult)
+            return routineState.copy(
+                visibleDelete = true
+            ).reduceRoutineDefinition(domainResult)
         }
     }
 }
