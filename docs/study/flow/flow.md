@@ -18,8 +18,9 @@ Android Framework에 의존된다.
 연속적인 데이터 흐름을 말한다.  
 즉 파이프라인을 따라 흘러가는 데이터라고 생각하면 된다.
 
-# Cold Stream
-collect(구독) 하기 전까지 실행되지 않는 스트림.
+# Hot/Cold Stream
+- Hot Stream: 바로 실행되는 스트림.
+- Cold Stream: collect(구독) 하기 전까지 실행되지 않는 스트림.
 
 # Flow
 Flow는 코틀린에서 제공하는 비동기 데이터 콜드 스트림이고,  
