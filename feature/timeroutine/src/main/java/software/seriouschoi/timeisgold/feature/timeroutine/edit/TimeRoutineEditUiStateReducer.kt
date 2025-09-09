@@ -1,11 +1,13 @@
 package software.seriouschoi.timeisgold.feature.timeroutine.edit
 
 import software.seriouschoi.timeisgold.core.common.ui.ResultState
+import software.seriouschoi.timeisgold.core.common.ui.UiText
 import software.seriouschoi.timeisgold.domain.data.DomainError
 import software.seriouschoi.timeisgold.domain.data.DomainResult
 import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineDefinition
 import timber.log.Timber
 import java.time.DayOfWeek
+import software.seriouschoi.timeisgold.core.common.ui.R as CommonR
 
 /**
  * Created by jhchoi on 2025. 9. 9.
@@ -100,8 +102,25 @@ internal fun TimeRoutineEditUiState.reduceValidResultState(
             this.copy(validState = newState)
         }
 
-        else -> return this
+        is ResultState.Error -> {
+            Timber.d("reduceValidResultState error. ${validResult.throwable.message}")
+            val newState = this.validState.reduceValidResultState(validResult)
+            this.copy(validState = newState)
+        }
+
+        ResultState.Loading -> this
     }
+}
+
+internal fun TimeRoutineEditUiValidUiState.reduceValidResultState(validResult: ResultState.Error): TimeRoutineEditUiValidUiState {
+    val errorMessage = validResult.throwable.message?.let {
+        UiText.Res(id = CommonR.string.message_failed_valid_check)
+    } ?: UiText.Res(id = CommonR.string.message_failed_valid_check)
+    val newState = this.copy(
+        isValid = false,
+        invalidTitleMessage = errorMessage
+    )
+    return newState
 }
 
 internal fun TimeRoutineEditUiValidUiState.reduceValidDomainResult(validResult: DomainResult<Boolean>): TimeRoutineEditUiValidUiState {
