@@ -8,7 +8,7 @@ import javax.inject.Inject
 class GetValidTimeRoutineUseCase @Inject constructor(
     private val service: TimeRoutineDomainService,
 ) {
-    suspend operator fun invoke(
+    suspend fun invoke(
         timeRoutineDefinition: TimeRoutineDefinition
     ): DomainResult<Boolean> {
         return service.isValidForAdd(

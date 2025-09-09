@@ -2,6 +2,7 @@ package software.seriouschoi.timeisgold.feature.timeroutine.edit
 
 import software.seriouschoi.timeisgold.core.common.ui.ResultState
 import software.seriouschoi.timeisgold.core.common.ui.UiText
+import software.seriouschoi.timeisgold.core.domain.mapper.toUiText
 import software.seriouschoi.timeisgold.domain.data.DomainError
 import software.seriouschoi.timeisgold.domain.data.DomainResult
 import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineDefinition
@@ -131,7 +132,7 @@ internal fun TimeRoutineEditUiValidUiState.reduceValidDomainResult(validResult: 
                 isValid = false
             )
             when (error) {
-                DomainError.Validation.Title -> {
+                DomainError.Validation.EmptyTitle -> {
                     newState.copy(
                         invalidTitleMessage = error.toUiText()
                     )

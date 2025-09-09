@@ -1,6 +1,6 @@
 package software.seriouschoi.timeisgold.core.test.util
 
-import software.seriouschoi.software.seriouschoi.util.localtime.toEpochMillis
+import software.seriouschoi.timeisgold.core.common.util.toEpochMillis
 import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineComposition
 import software.seriouschoi.timeisgold.domain.data.composition.TimeSlotComposition
 import software.seriouschoi.timeisgold.domain.data.entities.TimeRoutineDayOfWeekEntity

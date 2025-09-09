@@ -27,6 +27,7 @@ import software.seriouschoi.timeisgold.core.common.ui.ResultState
 import software.seriouschoi.timeisgold.core.common.ui.UiText
 import software.seriouschoi.timeisgold.core.common.ui.asResultState
 import software.seriouschoi.timeisgold.core.common.util.Envelope
+import software.seriouschoi.timeisgold.core.domain.mapper.toUiText
 import software.seriouschoi.timeisgold.domain.data.DomainError
 import software.seriouschoi.timeisgold.domain.data.DomainResult
 import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineDefinition
@@ -105,7 +106,7 @@ internal class TimeRoutineEditViewModel @Inject constructor(
     private val validFlow: Flow<ResultState<DomainResult<Boolean>>> =
         currentRoutineState.debounce(500).map { timeRoutine: TimeRoutineDefinition? ->
             timeRoutine?.let {
-                getValidTimeRoutineUseCase(it)
+                getValidTimeRoutineUseCase.invoke(it)
             } ?: DomainResult.Success(false)
         }.asResultState().distinctUntilChanged()
 
@@ -163,7 +164,7 @@ internal class TimeRoutineEditViewModel @Inject constructor(
         DomainError.Conflict.DayOfWeek,
         DomainError.Technical.Unknown,
         DomainError.Validation.NoSelectedDayOfWeek,
-        DomainError.Validation.Title,
+        DomainError.Validation.EmptyTitle,
             -> {
             TimeRoutineEditUiEvent.ShowAlert(
                 message = UiText.Res(id = CommonR.string.message_failed_load_data),
@@ -261,37 +262,6 @@ internal class TimeRoutineEditViewModel @Inject constructor(
 
 }
 
-internal fun DomainError.toUiText(): UiText = when (this) {
-    is DomainError.Validation -> {
-        when (this) {
-            DomainError.Validation.NoSelectedDayOfWeek -> UiText.Res(
-                id = R.string.message_dayofweek_is_empty
-            )
-
-            DomainError.Validation.Title -> UiText.Res(
-                id = CommonR.string.message_title_is_empty
-            )
-        }
-    }
-
-    is DomainError.Conflict -> {
-        when (this) {
-            DomainError.Conflict.DayOfWeek -> UiText.Res(
-                id = R.string.message_conflict_dayofweek
-            )
-
-            DomainError.Conflict.Data -> UiText.Res(
-                id = R.string.message_conflict_data
-            )
-        }
-    }
-
-    is DomainError.NotFound,
-    is DomainError.Technical,
-        -> UiText.Res(
-        id = CommonR.string.message_failed_save_data
-    )
-}
 
 private fun TimeRoutineDefinition.reduceDomainResult(domainResult: DomainResult<TimeRoutineDefinition>) =
     when (domainResult) {

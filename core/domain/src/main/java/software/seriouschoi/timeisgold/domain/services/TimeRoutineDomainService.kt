@@ -35,7 +35,7 @@ class TimeRoutineDomainService @Inject constructor(
 
     suspend fun isValidForAdd(newRoutine: TimeRoutineDefinition): DomainResult<Boolean> {
         if(newRoutine.timeRoutine.title.isEmpty()) {
-            return DomainResult.Failure(DomainError.Validation.Title)
+            return DomainResult.Failure(DomainError.Validation.EmptyTitle)
         }
         val newDays = newRoutine.dayOfWeeks.map { it.dayOfWeek }
         if(newDays.isEmpty()) {
