@@ -24,8 +24,12 @@
     - 다만 전날,다음날 루틴이 조금 보이면 좋음.
 
 ## time routine edit
-- [ ] 새 루틴인데 삭제 버튼이 왜있음?
 - [ ] time routine edit viewmodel test 추가. (intent의 테스트 전부 작성.)
+- [ ] uiState flow 를 merge + scan를 통해서 구현하기.
+  - 현재 3개의 collect호출로 갱신되고 있음.
+  - 이때 의존 흐름은 오직 입력 Intent, 출력은 state, event로 만든다.
+  - 즉 단방향을 확실히 구현해야 한다.
+- [x] 새 루틴인데 삭제 버튼이 왜있음?
 - [x] 저장 유효성을 실시간으로 처리하기. intent flow로 구현.
 - [x] 수정 버튼 추가.
 - [x] valid check 조건에서 요일 확인.
