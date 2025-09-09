@@ -1,9 +1,8 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-
 plugins {
     alias(libs.plugins.timeisgold.android.application)
     alias(libs.plugins.timeisgold.android.compose)
     alias(libs.plugins.timeisgold.android.hilt)
+    id("io.github.irgaly.remove-unused-resources") version "2.3.0"
 }
 
 android {
@@ -12,6 +11,10 @@ android {
         applicationId = "software.seriouschoi.timeisgold"
         versionCode = 1
         versionName = "1.0"
+    }
+    lint {
+        checkGeneratedSources = true
+        checkDependencies = true
     }
 }
 

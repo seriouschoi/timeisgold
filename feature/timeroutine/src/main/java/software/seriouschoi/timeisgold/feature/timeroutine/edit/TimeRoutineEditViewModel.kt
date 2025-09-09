@@ -37,7 +37,6 @@ import software.seriouschoi.timeisgold.domain.usecase.timeroutine.DeleteTimeRout
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.GetTimeRoutineDefinitionUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.GetValidTimeRoutineUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.SetTimeRoutineUseCase
-import software.seriouschoi.timeisgold.feature.timeroutine.R
 import timber.log.Timber
 import java.time.DayOfWeek
 import javax.inject.Inject
@@ -167,7 +166,7 @@ internal class TimeRoutineEditViewModel @Inject constructor(
         DomainError.Validation.EmptyTitle,
             -> {
             TimeRoutineEditUiEvent.ShowAlert(
-                message = UiText.Res(id = CommonR.string.message_failed_load_data),
+                message = error.toUiText(),
                 confirmIntent = TimeRoutineEditUiIntent.Exit,
             )
         }
@@ -203,8 +202,9 @@ internal class TimeRoutineEditViewModel @Inject constructor(
             is TimeRoutineEditUiIntent.Save -> {
                 sendEvent(
                     TimeRoutineEditUiEvent.ShowConfirm(
-                        UiText.Res(
-                            CommonR.string.message_common_save_confirm,
+                        UiText.MultipleRes.create(
+                            CommonR.string.message_format_confirm,
+                            CommonR.string.text_save
                         ),
                         TimeRoutineEditUiIntent.SaveConfirm,
                         null
@@ -215,8 +215,9 @@ internal class TimeRoutineEditViewModel @Inject constructor(
             is TimeRoutineEditUiIntent.Delete -> {
                 sendEvent(
                     TimeRoutineEditUiEvent.ShowConfirm(
-                        UiText.Res(
-                            CommonR.string.message_common_delete_confirm,
+                        UiText.MultipleRes.create(
+                            CommonR.string.message_format_confirm,
+                            CommonR.string.text_delete
                         ),
                         TimeRoutineEditUiIntent.DeleteConfirm,
                         null
@@ -227,8 +228,9 @@ internal class TimeRoutineEditViewModel @Inject constructor(
             is TimeRoutineEditUiIntent.Cancel -> {
                 sendEvent(
                     TimeRoutineEditUiEvent.ShowConfirm(
-                        UiText.Res(
-                            CommonR.string.message_common_cancel_confirm
+                        UiText.MultipleRes.create(
+                            CommonR.string.message_format_confirm,
+                            CommonR.string.text_cancel
                         ),
                         TimeRoutineEditUiIntent.Exit,
                         null
@@ -278,7 +280,10 @@ private fun TimeRoutineDefinition.reduceDomainResult(domainResult: DomainResult<
 private fun DomainResult<*>.toSaveResultToEvent(): TimeRoutineEditUiEvent =
     when (this) {
         is DomainResult.Success -> TimeRoutineEditUiEvent.ShowAlert(
-            message = UiText.Res(id = CommonR.string.message_success_save_data),
+            message = UiText.MultipleRes.create(
+                CommonR.string.message_format_complete,
+                CommonR.string.text_save
+            ),
             confirmIntent = TimeRoutineEditUiIntent.Exit
         )
 
@@ -294,12 +299,15 @@ private fun DomainResult<*>.toSaveResultToEvent(): TimeRoutineEditUiEvent =
 private fun DomainResult<Boolean>.toDeleteResultToEvent(): TimeRoutineEditUiEvent {
     return when (this) {
         is DomainResult.Success -> TimeRoutineEditUiEvent.ShowAlert(
-            message = UiText.Res(id = CommonR.string.message_success_delete_data),
+            message = UiText.MultipleRes.create(
+                CommonR.string.message_format_complete,
+                CommonR.string.text_delete
+            ),
             confirmIntent = TimeRoutineEditUiIntent.Exit
         )
         is DomainResult.Failure -> {
             TimeRoutineEditUiEvent.ShowAlert(
-                message = UiText.Res(id = CommonR.string.message_failed_delete_data),
+                message = this.error.toUiText(),
                 confirmIntent = null
             )
         }

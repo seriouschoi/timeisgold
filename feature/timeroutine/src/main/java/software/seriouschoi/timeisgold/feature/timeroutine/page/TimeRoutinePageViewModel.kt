@@ -17,7 +17,6 @@ import software.seriouschoi.timeisgold.core.common.util.Envelope
 import software.seriouschoi.timeisgold.domain.data.DomainResult
 import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineComposition
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.GetTimeRoutineCompositionUseCase
-import software.seriouschoi.timeisgold.feature.timeroutine.R
 import software.seriouschoi.timeisgold.feature.timeroutine.edit.TimeRoutineEditScreenRoute
 import java.time.DayOfWeek
 import java.time.format.TextStyle
@@ -42,7 +41,10 @@ internal class TimeRoutinePageViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow<TimeRoutinePageUiState>(
         TimeRoutinePageUiState.Loading(
-            UiText.Res.create(CommonR.string.message_loading)
+            UiText.MultipleRes.create(
+                CommonR.string.message_format_loading,
+                CommonR.string.text_routine
+            )
         )
     )
     val uiState = _uiState.asStateFlow()
@@ -81,9 +83,9 @@ internal class TimeRoutinePageViewModel @Inject constructor(
         when (resultState) {
             ResultState.Loading -> {
                 return TimeRoutinePageUiState.Loading(
-                    loadingMessage = UiText.Res.create(
-                        CommonR.string.message_routine_loading,
-                        dayOfWeekName
+                    loadingMessage = UiText.MultipleRes.create(
+                        CommonR.string.message_format_loading,
+                        CommonR.string.text_routine
                     )
                 )
             }
@@ -96,7 +98,7 @@ internal class TimeRoutinePageViewModel @Inject constructor(
             is ResultState.Error -> {
                 return TimeRoutinePageUiState.Error(
                     errorMessage = UiText.Res.create(
-                        CommonR.string.message_routine_create_confirm,
+                        CommonR.string.message_format_routine_create_confirm,
                         dayOfWeekName
                     )
                 )
@@ -111,7 +113,7 @@ internal class TimeRoutinePageViewModel @Inject constructor(
         when (data) {
             is DomainResult.Failure -> return TimeRoutinePageUiState.Empty(
                 emptyMessage = UiText.Res.create(
-                    CommonR.string.message_routine_create_confirm,
+                    CommonR.string.message_format_routine_create_confirm,
                     dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault())
                 )
             )

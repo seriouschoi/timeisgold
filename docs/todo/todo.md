@@ -1,6 +1,9 @@
 # TODOs
 
-# Routine Page.
+- [ ] dead string resource 찾기.
+
+
+## Routine Page.
 - 상단
   - [ ] 타임 루틴 이름, 요일
   - [ ] 루틴이 없을 때는 요일만 표시.

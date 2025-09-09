@@ -115,8 +115,8 @@ internal fun TimeRoutineEditUiState.reduceValidResultState(
 
 internal fun TimeRoutineEditUiValidUiState.reduceValidResultState(validResult: ResultState.Error): TimeRoutineEditUiValidUiState {
     val errorMessage = validResult.throwable.message?.let {
-        UiText.Res(id = CommonR.string.message_failed_valid_check)
-    } ?: UiText.Res(id = CommonR.string.message_failed_valid_check)
+        UiText.Res(id = CommonR.string.message_error_failed_valid_check)
+    } ?: UiText.Res(id = CommonR.string.message_error_failed_valid_check)
     val newState = this.copy(
         isValid = false,
         invalidTitleMessage = errorMessage
