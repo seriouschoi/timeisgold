@@ -29,6 +29,12 @@
   - 현재 3개의 collect호출로 갱신되고 있음.
   - 이때 의존 흐름은 오직 입력 Intent, 출력은 state, event로 만든다.
   - 즉 단방향을 확실히 구현해야 한다.
+  - 이때 기존에 만든 isValidFlow는 사실상 무의미해짐. 
+    - isValid속성은 실시간 uiState로 유효성을 체크함.
+    - 하지만 uiState는 isValid flow를 받아서 uiState를 만들려고 함
+    - 이 흐름을 정리해야 함.
+  - uiState를 둘로 나누는게 가장 확실하긴 한데..
+    - 그래도 되나..
 - [x] 새 루틴인데 삭제 버튼이 왜있음?
 - [x] 저장 유효성을 실시간으로 처리하기. intent flow로 구현.
 - [x] 수정 버튼 추가.
