@@ -82,7 +82,7 @@ internal class TimeRoutinePageViewModel @Inject constructor(
             ResultState.Loading -> {
                 return TimeRoutinePageUiState.Loading(
                     loadingMessage = UiText.Res.create(
-                        R.string.message_routine_loading,
+                        CommonR.string.message_routine_loading,
                         dayOfWeekName
                     )
                 )
@@ -96,7 +96,7 @@ internal class TimeRoutinePageViewModel @Inject constructor(
             is ResultState.Error -> {
                 return TimeRoutinePageUiState.Error(
                     errorMessage = UiText.Res.create(
-                        R.string.message_routine_create_confirm,
+                        CommonR.string.message_routine_create_confirm,
                         dayOfWeekName
                     )
                 )
@@ -111,7 +111,7 @@ internal class TimeRoutinePageViewModel @Inject constructor(
         when (data) {
             is DomainResult.Failure -> return TimeRoutinePageUiState.Empty(
                 emptyMessage = UiText.Res.create(
-                    R.string.message_routine_create_confirm,
+                    CommonR.string.message_routine_create_confirm,
                     dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault())
                 )
             )

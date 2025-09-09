@@ -152,7 +152,7 @@ private fun PreviewEmpty() {
     Empty(
         currentState = TimeRoutinePageUiState.Empty(
             emptyMessage = UiText.Res.create(
-                R.string.message_routine_create_confirm, DayOfWeek.MONDAY.getDisplayName(
+                CommonR.string.message_routine_create_confirm, DayOfWeek.MONDAY.getDisplayName(
                     TextStyle.FULL, Locale.getDefault()
                 )
             )
