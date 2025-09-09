@@ -36,7 +36,7 @@ import software.seriouschoi.timeisgold.domain.usecase.timeroutine.DeleteTimeRout
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.GetTimeRoutineDefinitionUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.GetValidTimeRoutineUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.SetTimeRoutineUseCase
-import software.seriouschoi.timeisgold.feature.timeroutine.bar.R
+import software.seriouschoi.timeisgold.feature.timeroutine.R
 import timber.log.Timber
 import java.time.DayOfWeek
 import javax.inject.Inject
@@ -81,7 +81,7 @@ internal class TimeRoutineEditViewModel @Inject constructor(
         emptyTimeRoutineDefinition
     )
 
-    private val routineState: StateFlow<TimeRoutineDefinition> = combine(
+    private val currentRoutineState: StateFlow<TimeRoutineDefinition> = combine(
         _routineState, uiState
     ) { def, ui ->
         if (ui is TimeRoutineEditUiState.Routine) {
@@ -103,7 +103,7 @@ internal class TimeRoutineEditViewModel @Inject constructor(
     }.stateIn(viewModelScope, SharingStarted.Lazily, emptyTimeRoutineDefinition)
 
     private val validFlow: Flow<ResultState<DomainResult<Boolean>>> =
-        routineState.debounce(500).map { timeRoutine: TimeRoutineDefinition? ->
+        currentRoutineState.debounce(500).map { timeRoutine: TimeRoutineDefinition? ->
             timeRoutine?.let {
                 getValidTimeRoutineUseCase(it)
             } ?: DomainResult.Success(false)
@@ -174,7 +174,7 @@ internal class TimeRoutineEditViewModel @Inject constructor(
 
     private fun saveTimeRoutine() {
         viewModelScope.launch {
-            val timeRoutine = routineState.firstOrNull() ?: return@launch
+            val timeRoutine = currentRoutineState.firstOrNull() ?: return@launch
             val result = setTimeRoutineUseCase.invoke(
                 timeRoutine
             )
@@ -253,7 +253,7 @@ internal class TimeRoutineEditViewModel @Inject constructor(
 
     private fun deleteTimeRoutine() {
         viewModelScope.launch {
-            val result = deleteTimeRoutineUseCase.invoke(routineState.value.timeRoutine.uuid)
+            val result = deleteTimeRoutineUseCase.invoke(currentRoutineState.value.timeRoutine.uuid)
             val event = result.toDeleteResultToEvent()
             sendEvent(event)
         }

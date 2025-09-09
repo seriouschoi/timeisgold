@@ -17,7 +17,7 @@ import software.seriouschoi.timeisgold.core.common.util.Envelope
 import software.seriouschoi.timeisgold.domain.data.DomainResult
 import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineComposition
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.GetTimeRoutineCompositionUseCase
-import software.seriouschoi.timeisgold.feature.timeroutine.bar.R
+import software.seriouschoi.timeisgold.feature.timeroutine.R
 import software.seriouschoi.timeisgold.feature.timeroutine.edit.TimeRoutineEditScreenRoute
 import java.time.DayOfWeek
 import java.time.format.TextStyle

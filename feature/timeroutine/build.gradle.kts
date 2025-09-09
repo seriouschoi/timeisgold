@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "software.seriouschoi.timeisgold.feature.timeroutine.bar"
+    namespace = "software.seriouschoi.timeisgold.feature.timeroutine"
 }
 
 dependencies {
