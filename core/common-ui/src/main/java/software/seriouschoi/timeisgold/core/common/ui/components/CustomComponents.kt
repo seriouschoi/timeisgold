@@ -24,7 +24,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import software.seriouschoi.timeisgold.core.common.ui.R
 
 /**
  * Created by jhchoi on 2025. 9. 4.
@@ -49,9 +51,15 @@ private fun Preview() {
             enabled = false
         )
         TigBottomBar(modifier = Modifier) {
-            TigButton(onClick = {}) {
-                TigText("button")
-            }
+            TigLabelButton(
+                onClick = {},
+                label = "button1"
+            )
+
+            TigLabelButton(
+                onClick = {},
+                label = "button2"
+            )
         }
         TigCircleProgress()
     }
@@ -170,7 +178,7 @@ fun TigButton(
 fun TigBottomBar(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
     Row(
         modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.End
+        horizontalArrangement = Arrangement.SpaceAround
     ) {
         content()
     }
@@ -189,7 +197,7 @@ fun TigSingleLineTextField(
     modifier: Modifier = Modifier,
     value: String,
     onValueChange: (String) -> Unit,
-    placeHolder: @Composable () -> Unit = {},
+    hint: String = ""
 ) {
     val focusManager = LocalFocusManager.current
     TextField(
@@ -204,7 +212,7 @@ fun TigSingleLineTextField(
             }
         ),
         placeholder = {
-            placeHolder()
+            TigText(hint)
         }
     )
 }

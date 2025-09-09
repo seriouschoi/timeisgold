@@ -21,7 +21,7 @@ interface TimeRoutineRepositoryPort {
     fun observeCompositionByUuidFlow(timeRoutineUuid: String): Flow<TimeRoutineComposition?>
 
     fun observeTimeRoutineByDayOfWeek(day: DayOfWeek): Flow<TimeRoutineEntity?>
-    suspend fun deleteTimeRoutine(timeRoutineUuid: String)
+    suspend fun deleteTimeRoutine(timeRoutineUuid: String): DomainResult<Int>
     fun observeAllRoutinesDayOfWeeks(): Flow<List<DayOfWeek>>
 
     suspend fun saveTimeRoutineDefinition(routine: TimeRoutineDefinition): DomainResult<String>

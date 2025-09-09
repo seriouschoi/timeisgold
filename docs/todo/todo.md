@@ -1,35 +1,19 @@
 # TODOs
 
-time routine edit
-- [ ] 테스트 커버리지 도구 도입.
-- [x] 저장 유효성을 실시간으로 처리하기. intent flow로 구현. 
-- [x] 수정 버튼 추가.
-- [ ] valid check 조건에서 요일 확인.
-  - 중복체크인데 나를 포함 하고 있음.
-- [ ] time routine edit viewmodel test 추가. (intent의 테스트 전부 작성.)
+- [ ] dead string resource 찾기.
 
-- [ ] uuid생성 규칙 일원화를 위해 도메인에 접근자 정의하기.
-  - UUID.randomUUID().toString() 이걸 일일히 하다보면, 다른곳에서 다른 규칙을 쓸 우려가 있음.
-- [ ] TimeRoutineRepositoryPort가 너무 큼. Composition과 Routine을 나눠야 함.
-- [ ] 현재까지 만들어진 모든 뷰모델을 SavedStateHandle을 사용하여 초기화할 값 전달.
 
-# TimeRoutineComposition 남발로 인한 사이드이펙트 개선
-- [x] 아래의 내용을 진행.
-  - [x] TimeRoutine데이터의 경계를 확정하기.
-  - [x] 남용된 Composition대신 경계가 확정된 Definition을 사용.
-  - [x] Composition은 남용하지 않기.
-
-# Routine Page.
+## Routine Page.
 - 상단
   - [ ] 타임 루틴 이름, 요일
   - [ ] 루틴이 없을 때는 요일만 표시.
 
 - 컨텐츠
-  - [ ] 현재 요일의 타임 루틴 목록.
-    - [ ] 타임루틴을 Flow로 가져오자.
-    - 타임루틴을 표시하기 위해선,
-    - [ ] 00:00~24:00 시간표가 있어야 하며, 그안에 타임슬롯을 출력해야 한다.
-  - [ ] 루틴이 없을경우, 오늘은 루틴이 없습니다. 루틴을 만들까요? 라는 메시지 출력.
+  - [ ] 현재 요일의 타임 슬롯 목록.
+    - [x] 슬롯을 Flow로 가져오자.
+    - 슬롯을 표시하기 위해선,
+    - [ ] ***00:00~24:00 시간표가 있어야 하며, 그안에 타임슬롯을 출력해야 한다.***
+  - [x] 루틴이 없을경우, 오늘은 루틴이 없습니다. 루틴을 만들까요? 라는 메시지 출력.
 
 - ~~하단~~
   - ~~요일 탭바.~~
@@ -39,6 +23,25 @@ time routine edit
     - 타임 루틴을 탐색하면서 볼일은 없음.
     - 다만 전날,다음날 루틴이 조금 보이면 좋음.
 
+## time routine edit
+- [ ] 새 루틴인데 삭제 버튼이 왜있음?
+- [ ] time routine edit viewmodel test 추가. (intent의 테스트 전부 작성.)
+- [x] 저장 유효성을 실시간으로 처리하기. intent flow로 구현.
+- [x] 수정 버튼 추가.
+- [x] valid check 조건에서 요일 확인.
+  - 중복체크인데 나를 포함 하고 있음.
+
+- [ ] uuid생성 규칙 일원화를 위해 도메인에 접근자 정의하기.
+  - UUID.randomUUID().toString() 이걸 일일히 하다보면, 다른곳에서 다른 규칙을 쓸 우려가 있음.
+- [ ] TimeRoutineRepositoryPort가 너무 큼. Composition과 Routine을 나눠야 함.
+- [ ] 현재까지 만들어진 모든 뷰모델을 SavedStateHandle을 사용하여 초기화할 값 전달.
+- [ ] 테스트 커버리지 도구 도입.
+
+# TimeRoutineComposition 남발로 인한 사이드이펙트 개선
+- [x] 아래의 내용을 진행.
+  - [x] TimeRoutine데이터의 경계를 확정하기.
+  - [x] 남용된 Composition대신 경계가 확정된 Definition을 사용.
+  - [x] Composition은 남용하지 않기.
 
 # TimeSlot Tag.
 - [ ] 타임슬롯에 태그 추가. 추후 리포트제공시 태그 기반으로 수행률 확인.

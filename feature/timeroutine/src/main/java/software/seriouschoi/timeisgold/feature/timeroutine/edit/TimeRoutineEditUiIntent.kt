@@ -1,26 +1,15 @@
 package software.seriouschoi.timeisgold.feature.timeroutine.edit
 
 import java.time.DayOfWeek
-import java.util.UUID
 
 internal sealed class TimeRoutineEditUiIntent(
-    open val uuid: UUID = UUID.randomUUID(),
 ) {
-    data class Save(
-        override val uuid: UUID = UUID.randomUUID(),
-    ) : TimeRoutineEditUiIntent()
-
-    data class Cancel(
-        override val uuid: UUID = UUID.randomUUID(),
-    ) : TimeRoutineEditUiIntent()
-
-    data class Exit(
-        override val uuid: UUID = UUID.randomUUID(),
-    ) : TimeRoutineEditUiIntent()
-
-    data class SaveConfirm(
-        override val uuid: UUID = UUID.randomUUID(),
-    ) : TimeRoutineEditUiIntent()
+    data object Save : TimeRoutineEditUiIntent()
+    data object Delete : TimeRoutineEditUiIntent()
+    data object Cancel : TimeRoutineEditUiIntent()
+    data object Exit : TimeRoutineEditUiIntent()
+    data object SaveConfirm : TimeRoutineEditUiIntent()
+    data object DeleteConfirm : TimeRoutineEditUiIntent()
 
     data class UpdateRoutineTitle(
         val title: String,

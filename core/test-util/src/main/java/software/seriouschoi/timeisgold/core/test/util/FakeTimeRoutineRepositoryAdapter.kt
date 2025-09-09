@@ -87,6 +87,10 @@ class FakeTimeRoutineRepositoryAdapter(
         }
     }
 
+    override suspend fun getAllTimeRoutineDefinitions(): List<TimeRoutineDefinition> {
+        TODO("Not yet implemented")
+    }
+
     override suspend fun getCompositionByUuid(timeRoutineUuid: String): TimeRoutineComposition? {
         if (flags.readThrow) {
             throw Exception()
@@ -128,7 +132,8 @@ class FakeTimeRoutineRepositoryAdapter(
         }
     }
 
-    override suspend fun deleteTimeRoutine(timeRoutineUuid: String) {
+    override suspend fun deleteTimeRoutine(timeRoutineUuid: String): DomainResult<Int> {
+        TODO("Not yet implemented")
     }
 
     override fun observeAllRoutinesDayOfWeeks(): Flow<List<DayOfWeek>> {

@@ -20,6 +20,7 @@ import software.seriouschoi.timeisgold.data.mapper.toTimeRoutineSchema
 import software.seriouschoi.timeisgold.data.mapper.toTimeSlotEntity
 import software.seriouschoi.timeisgold.data.mapper.toTimeSlotSchema
 import software.seriouschoi.timeisgold.data.util.toDomainResult
+import software.seriouschoi.timeisgold.domain.data.DomainError
 import software.seriouschoi.timeisgold.domain.data.DomainResult
 import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineComposition
 import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineDefinition
@@ -190,15 +191,18 @@ internal class TimeRoutineRepositoryPortAdapter @Inject constructor(
         }
     }
 
-    override suspend fun deleteTimeRoutine(timeRoutineUuid: String) {
-        appDatabase.withTransaction {
-            val timeRoutineSchema =
-                appDatabase.TimeRoutineDao().observe(timeRoutineUuid).first()
-                    ?: return@withTransaction
+    override suspend fun deleteTimeRoutine(timeRoutineUuid: String): DomainResult<Int> {
+        return withContext(Dispatchers.IO) {
+            appDatabase.withTransaction {
+                val timeRoutineSchema =
+                    appDatabase.TimeRoutineDao().observe(timeRoutineUuid).first()
+                        ?: return@withTransaction DomainResult.Failure(DomainError.NotFound.TimeRoutine)
 
-            // remove time routine.
-            val deletedCount = appDatabase.TimeRoutineDao().delete(timeRoutineSchema)
-            Timber.d("deletedCount: $deletedCount")
+                // remove time routine.
+                val deletedCount = appDatabase.TimeRoutineDao().delete(timeRoutineSchema)
+                Timber.d("deletedCount: $deletedCount")
+                return@withTransaction DomainResult.Success(deletedCount)
+            }
         }
     }
 

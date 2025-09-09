@@ -11,7 +11,7 @@ sealed class DomainResult<out T> {
 
 sealed interface DomainError {
     sealed interface Validation : DomainError {
-        data object Title : Validation
+        data object EmptyTitle : Validation
         data object NoSelectedDayOfWeek : Validation
     }
 

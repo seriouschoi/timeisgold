@@ -8,6 +8,7 @@ import software.seriouschoi.timeisgold.core.android.test.util.toSavedStateHandle
 import software.seriouschoi.timeisgold.core.test.util.FakeTimeRoutineRepositoryAdapter
 import software.seriouschoi.timeisgold.core.test.util.TimeRoutineTestFixtures
 import software.seriouschoi.timeisgold.domain.services.TimeRoutineDomainService
+import software.seriouschoi.timeisgold.domain.usecase.timeroutine.DeleteTimeRoutineUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.GetTimeRoutineCompositionUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.GetTimeRoutineDefinitionUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.GetValidTimeRoutineUseCase
@@ -51,6 +52,9 @@ class TimeRoutineEditViewModelTest {
                 service = TimeRoutineDomainService(
                     timeRoutineRepository = routineAdapter
                 ),
+            ),
+            deleteTimeRoutineUseCase = DeleteTimeRoutineUseCase(
+                timeRoutineRepositoryPort = routineAdapter,
             ),
             savedStateHandle = TimeRoutineEditScreenRoute(
                 testDayOfWeek.ordinal

@@ -1,6 +1,6 @@
 package software.seriouschoi.timeisgold.domain.data.entities
 
-import software.seriouschoi.software.seriouschoi.util.localtime.toEpochMillis
+import software.seriouschoi.timeisgold.core.common.util.toEpochMillis
 import java.time.LocalDateTime
 import java.util.UUID
 

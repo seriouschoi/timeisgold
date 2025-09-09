@@ -9,6 +9,7 @@ internal sealed interface TimeRoutineEditUiState {
         val dayOfWeekList: Set<DayOfWeek> = emptySet(),
         val currentDayOfWeek: DayOfWeek? = null,
         val validState: TimeRoutineEditUiValidUiState = TimeRoutineEditUiValidUiState(),
+        val visibleDelete: Boolean = false
     ) : TimeRoutineEditUiState
 
     data object Loading : TimeRoutineEditUiState
@@ -17,5 +18,5 @@ internal sealed interface TimeRoutineEditUiState {
 internal data class TimeRoutineEditUiValidUiState(
     val invalidTitleMessage: UiText? = null,
     val invalidDayOfWeekMessage: UiText? = null,
-    val isValid: Boolean = true
+    val isValid: Boolean = false
 )

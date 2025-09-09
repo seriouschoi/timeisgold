@@ -1,4 +1,4 @@
-package software.seriouschoi.software.seriouschoi.util.localtime
+package software.seriouschoi.timeisgold.core.common.util
 
 import java.time.LocalDateTime
 import java.time.ZoneId

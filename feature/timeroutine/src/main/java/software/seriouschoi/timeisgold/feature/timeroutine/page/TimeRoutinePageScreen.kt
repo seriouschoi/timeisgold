@@ -18,7 +18,7 @@ import software.seriouschoi.timeisgold.core.common.ui.UiText
 import software.seriouschoi.timeisgold.core.common.ui.asString
 import software.seriouschoi.timeisgold.core.common.ui.components.TigLabelButton
 import software.seriouschoi.timeisgold.core.common.ui.components.TigText
-import software.seriouschoi.timeisgold.feature.timeroutine.bar.R
+import software.seriouschoi.timeisgold.feature.timeroutine.R
 import java.time.DayOfWeek
 import java.time.format.TextStyle
 import java.util.Locale
@@ -42,7 +42,11 @@ fun TimeRoutinePageScreen(
         viewModel.uiState
     }.collectAsState(
         TimeRoutinePageUiState.Loading(
-            UiText.Res(CommonR.string.message_loading)
+            UiText.MultipleRes.create(
+                CommonR.string.message_format_loading,
+                CommonR.string.text_routine
+
+            )
         )
     )
 
@@ -119,9 +123,7 @@ private fun Error(currentState: TimeRoutinePageUiState.Error) {
 private fun PreviewError() {
     Error(
         TimeRoutinePageUiState.Error(
-            errorMessage = UiText.Res.create(
-                CommonR.string.message_failed_load_data_by_unknown_error,
-            )
+            errorMessage = UiText.Raw("알 수 없는 오류.")
         )
     )
 }
@@ -151,11 +153,7 @@ private fun Empty(
 private fun PreviewEmpty() {
     Empty(
         currentState = TimeRoutinePageUiState.Empty(
-            emptyMessage = UiText.Res.create(
-                R.string.message_routine_create_confirm, DayOfWeek.MONDAY.getDisplayName(
-                    TextStyle.FULL, Locale.getDefault()
-                )
-            )
+            emptyMessage = UiText.Raw("시간표를 만들까요?")
         )
     ) {
 
@@ -177,7 +175,7 @@ private fun Loading(state: TimeRoutinePageUiState.Loading) {
 private fun PreviewLoading() {
     Loading(
         TimeRoutinePageUiState.Loading(
-            UiText.Res(CommonR.string.message_loading)
+            UiText.Raw("불러오는 중...")
         )
     )
 }

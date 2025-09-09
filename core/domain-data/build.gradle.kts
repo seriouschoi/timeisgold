@@ -5,5 +5,5 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":core:localtime-util"))
+    implementation(project(":core:common-util"))
 }

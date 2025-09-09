@@ -5,12 +5,13 @@ plugins {
 }
 
 android {
-    namespace = "software.seriouschoi.timeisgold.feature.timeroutine.bar"
+    namespace = "software.seriouschoi.timeisgold.feature.timeroutine"
 }
 
 dependencies {
     implementation(project(":core:domain"))
     implementation(project(":core:domain-data"))
+    implementation(project(":core:domain-uimapper"))
     implementation(project(":core:navigator-api"))
     implementation(project(":core:common-ui"))
     implementation(project(":core:common-util"))
