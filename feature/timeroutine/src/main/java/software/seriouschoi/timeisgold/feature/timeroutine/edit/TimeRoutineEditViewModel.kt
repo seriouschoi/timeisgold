@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -102,11 +103,54 @@ internal class TimeRoutineEditViewModel @Inject constructor(
         }
     }.stateIn(viewModelScope, SharingStarted.Lazily, emptyTimeRoutineDefinition)
 
+    val validStateFlow: StateFlow<TimeRoutineEditUiValidUiState> =
+        currentRoutineState.debounce(500).map { timeRoutine: TimeRoutineDefinition ->
+            getValidTimeRoutineUseCase.invoke(timeRoutine)
+        }.asResultState().mapNotNull { resultState: ResultState<DomainResult<Boolean>> ->
+            when (resultState) {
+                is ResultState.Success -> resultState.data
+                is ResultState.Error -> DomainResult.Failure(DomainError.Technical.Unknown)
+                ResultState.Loading -> null
+            }
+        }.map { domainResult: DomainResult<Boolean> ->
+            when (domainResult) {
+                is DomainResult.Failure -> {
+                    val invalidState = TimeRoutineEditUiValidUiState(
+                        isValid = false,
+                    )
+                    when (val error = domainResult.error) {
+                        DomainError.Validation.EmptyTitle,
+                        DomainError.NotFound.TimeRoutine,
+                        DomainError.Conflict.Data,
+                        DomainError.Technical.Unknown,
+                            -> {
+                            invalidState.copy(
+                                invalidTitleMessage = error.toUiText(),
+                            )
+                        }
+
+                        DomainError.Validation.NoSelectedDayOfWeek,
+                        DomainError.Conflict.DayOfWeek,
+                            -> {
+                            invalidState.copy(
+                                invalidDayOfWeekMessage = error.toUiText(),
+                            )
+                        }
+                    }
+                }
+
+                is DomainResult.Success -> {
+                    TimeRoutineEditUiValidUiState(isValid = domainResult.value)
+                }
+            }
+        }.stateIn(viewModelScope, SharingStarted.Lazily, TimeRoutineEditUiValidUiState())
+
+    @Deprecated("use validStateFlow")
     private val validFlow: Flow<ResultState<DomainResult<Boolean>>> =
-        currentRoutineState.debounce(500).map { timeRoutine: TimeRoutineDefinition? ->
-            timeRoutine?.let {
+        currentRoutineState.debounce(500).map { timeRoutine: TimeRoutineDefinition ->
+            timeRoutine.let {
                 getValidTimeRoutineUseCase.invoke(it)
-            } ?: DomainResult.Success(false)
+            }
         }.asResultState().distinctUntilChanged()
 
     fun init() {
@@ -182,7 +226,6 @@ internal class TimeRoutineEditViewModel @Inject constructor(
             sendEvent(event)
         }
     }
-
 
 
     fun sendIntent(intent: TimeRoutineEditUiIntent) {
@@ -305,6 +348,7 @@ private fun DomainResult<Boolean>.toDeleteResultToEvent(): TimeRoutineEditUiEven
             ),
             confirmIntent = TimeRoutineEditUiIntent.Exit
         )
+
         is DomainResult.Failure -> {
             TimeRoutineEditUiEvent.ShowAlert(
                 message = this.error.toUiText(),

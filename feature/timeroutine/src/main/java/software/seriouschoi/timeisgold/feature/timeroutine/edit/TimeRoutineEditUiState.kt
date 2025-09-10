@@ -8,7 +8,6 @@ internal sealed interface TimeRoutineEditUiState {
         val routineTitle: String = "",
         val dayOfWeekList: Set<DayOfWeek> = emptySet(),
         val currentDayOfWeek: DayOfWeek? = null,
-        val validState: TimeRoutineEditUiValidUiState = TimeRoutineEditUiValidUiState(),
         val visibleDelete: Boolean = false
     ) : TimeRoutineEditUiState
 

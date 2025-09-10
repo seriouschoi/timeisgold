@@ -40,7 +40,8 @@ internal fun TimeRoutineEditScreen() {
 
     //show uiState.
     val uiState by viewModel.uiState.collectAsState()
-    Screen(uiState = uiState, sendIntent = {
+    val validState by viewModel.validStateFlow.collectAsState()
+    Screen(uiState = uiState, validState = validState, sendIntent = {
         viewModel.sendIntent(it)
     })
 
@@ -62,13 +63,15 @@ private fun Preview() {
             dayOfWeekList = setOf(DayOfWeek.MONDAY),
             routineTitle = "title",
             visibleDelete = true
-        )
+        ),
+        validState = TimeRoutineEditUiValidUiState()
     ) { }
 }
 
 @Composable
 private fun Screen(
     uiState: TimeRoutineEditUiState,
+    validState: TimeRoutineEditUiValidUiState,
     sendIntent: (TimeRoutineEditUiIntent) -> Unit,
 ) {
     TapGestureBox(
@@ -78,7 +81,7 @@ private fun Screen(
             Box {
                 when (val state = uiState) {
                     is TimeRoutineEditUiState.Routine -> {
-                        Routine(state) {
+                        Routine(state, validState) {
                             sendIntent(it)
                         }
                     }
@@ -95,6 +98,7 @@ private fun Screen(
 @Composable
 private fun Routine(
     currentRoutine: TimeRoutineEditUiState.Routine,
+    validState: TimeRoutineEditUiValidUiState,
     sendIntent: (TimeRoutineEditUiIntent) -> Unit,
 ) {
     Column {
@@ -110,7 +114,7 @@ private fun Routine(
         )
 
         TigText(
-            text = currentRoutine.validState.invalidTitleMessage?.asString() ?: "",
+            text = validState.invalidTitleMessage?.asString() ?: "",
         )
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -129,10 +133,10 @@ private fun Routine(
             }
         }
         TigText(
-            text = currentRoutine.validState.invalidDayOfWeekMessage?.asString() ?: "",
+            text = validState.invalidDayOfWeekMessage?.asString() ?: "",
         )
 
-        BottomButtons(currentRoutine, sendIntent)
+        BottomButtons(currentRoutine, validState, sendIntent)
     }
 }
 
@@ -177,10 +181,11 @@ private fun ShowEvent(
 @Composable
 private fun BottomButtons(
     currentRoutine: TimeRoutineEditUiState.Routine,
+    validState: TimeRoutineEditUiValidUiState,
     sendIntent: (TimeRoutineEditUiIntent) -> Unit,
 ) {
     TigBottomBar {
-        if(currentRoutine.visibleDelete){
+        if (currentRoutine.visibleDelete) {
             TigLabelButton(
                 label = stringResource(CommonR.string.text_delete),
                 onClick = {
@@ -193,7 +198,7 @@ private fun BottomButtons(
                 sendIntent(TimeRoutineEditUiIntent.Save)
             },
             label = stringResource(CommonR.string.text_save),
-            enabled = currentRoutine.validState.isValid
+            enabled = validState.isValid
         )
     }
 }
