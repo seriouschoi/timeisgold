@@ -78,12 +78,8 @@ private fun Screen(
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
             Box {
-                when (val state = uiState) {
-                    is TimeRoutineEditUiState.Routine -> {
-                        Routine(state, validState) {
-                            sendIntent(it)
-                        }
-                    }
+                Routine(uiState, validState) {
+                    sendIntent(it)
                 }
             }
         }
