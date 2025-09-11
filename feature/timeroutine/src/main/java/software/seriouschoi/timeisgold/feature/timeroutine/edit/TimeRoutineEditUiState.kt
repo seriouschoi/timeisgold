@@ -3,14 +3,14 @@ package software.seriouschoi.timeisgold.feature.timeroutine.edit
 import software.seriouschoi.timeisgold.core.common.ui.UiText
 import java.time.DayOfWeek
 
-internal sealed interface TimeRoutineEditUiState {
-    data class Routine(
-        val routineTitle: String = "",
-        val dayOfWeekList: Set<DayOfWeek> = emptySet(),
-        val currentDayOfWeek: DayOfWeek? = null,
-        val visibleDelete: Boolean = false,
-        val isLoading: Boolean = false
-    ) : TimeRoutineEditUiState
+data class TimeRoutineEditUiState(
+    val routineTitle: String = "",
+    val dayOfWeekList: Set<DayOfWeek> = emptySet(),
+    val currentDayOfWeek: DayOfWeek? = null,
+    val visibleDelete: Boolean = false,
+    val isLoading: Boolean = false
+) {
+
 }
 
 internal data class TimeRoutineEditUiValidUiState(

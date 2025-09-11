@@ -24,13 +24,10 @@
     - 다만 전날,다음날 루틴이 조금 보이면 좋음.
 
 ## time routine edit flow 정리.
-- initFlow <- getDataUseCase().first()
-  - initedRoutineFlow <- initFlow
-  - initedUiStateFlow <- initFlow 
-- intentFlow <- from sendIntent
-  - eventFlow <- intentFlow 
-- intentUiStateFlow <- intentFlow
-- uiStateFlow <- combine(initedUiStateFlow, intentFlow)
+- [x] initFlow <- getDataUseCase().first()
+- [x] intentFlow <- from sendIntent
+- [x] eventFlow <- initFlow, intentFlow 
+- [x] uiStateFlow <- combine(initFlow, intentFlow)
 - currentRoutineState <- combine(uiStateFlow, initedRoutineFlow)
 - validFlow <- currentRoutineState
 

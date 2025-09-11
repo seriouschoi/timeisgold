@@ -10,7 +10,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -20,7 +19,6 @@ import software.seriouschoi.timeisgold.core.common.ui.components.TapGestureBox
 import software.seriouschoi.timeisgold.core.common.ui.components.TigAlert
 import software.seriouschoi.timeisgold.core.common.ui.components.TigBottomBar
 import software.seriouschoi.timeisgold.core.common.ui.components.TigCheckButton
-import software.seriouschoi.timeisgold.core.common.ui.components.TigCircleProgress
 import software.seriouschoi.timeisgold.core.common.ui.components.TigLabelButton
 import software.seriouschoi.timeisgold.core.common.ui.components.TigLoadingBox
 import software.seriouschoi.timeisgold.core.common.ui.components.TigSingleLineTextField
@@ -40,7 +38,7 @@ internal fun TimeRoutineEditScreen() {
     }
 
     //show uiState.
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiStateFlow.collectAsState()
     val validState by viewModel.validStateFlow.collectAsState()
     Screen(uiState = uiState, validState = validState, sendIntent = {
         viewModel.sendIntent(it)
@@ -59,7 +57,7 @@ internal fun TimeRoutineEditScreen() {
 @Composable
 private fun Preview() {
     Screen(
-        uiState = TimeRoutineEditUiState.Routine(
+        uiState = TimeRoutineEditUiState(
             currentDayOfWeek = DayOfWeek.MONDAY,
             dayOfWeekList = setOf(DayOfWeek.MONDAY),
             routineTitle = "title",
@@ -94,7 +92,7 @@ private fun Screen(
 
 @Composable
 private fun Routine(
-    currentRoutine: TimeRoutineEditUiState.Routine,
+    currentRoutine: TimeRoutineEditUiState,
     validState: TimeRoutineEditUiValidUiState,
     sendIntent: (TimeRoutineEditUiIntent) -> Unit,
 ) {
@@ -183,7 +181,7 @@ private fun ShowEvent(
 
 @Composable
 private fun BottomButtons(
-    currentRoutine: TimeRoutineEditUiState.Routine,
+    currentRoutine: TimeRoutineEditUiState,
     validState: TimeRoutineEditUiValidUiState,
     sendIntent: (TimeRoutineEditUiIntent) -> Unit,
 ) {

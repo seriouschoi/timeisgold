@@ -9,14 +9,12 @@ import software.seriouschoi.timeisgold.core.test.util.FakeTimeRoutineRepositoryA
 import software.seriouschoi.timeisgold.core.test.util.TimeRoutineTestFixtures
 import software.seriouschoi.timeisgold.domain.services.TimeRoutineDomainService
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.DeleteTimeRoutineUseCase
-import software.seriouschoi.timeisgold.domain.usecase.timeroutine.GetTimeRoutineCompositionUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.GetTimeRoutineDefinitionUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.GetValidTimeRoutineUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.SetTimeRoutineUseCase
 import software.seriouschoi.timeisgold.feature.timeroutine.fake.FakeDestNavigatorPortAdapter
 import java.time.DayOfWeek
 import kotlin.test.Test
-import kotlin.test.todo
 
 /**
  * Created by jhchoi on 2025. 9. 4.
@@ -66,7 +64,7 @@ class TimeRoutineEditViewModelTest {
     @Test
     fun readRoutine_showRoutineEdit() = runTest {
         viewModel.init()
-        viewModel.uiState.filter {
+        viewModel.uiStateFlow.filter {
             it is TimeRoutineEditUiState.Routine
         }.test {
             val item = awaitItem()
@@ -84,7 +82,7 @@ class TimeRoutineEditViewModelTest {
         )
         viewModel.init()
 
-        viewModel.uiState.filter {
+        viewModel.uiStateFlow.filter {
             it is TimeRoutineEditUiState.Routine
         }.test {
             val item = awaitItem()
@@ -106,7 +104,7 @@ class TimeRoutineEditViewModelTest {
         )
         viewModel.init()
 
-        viewModel.uiState.filter {
+        viewModel.uiStateFlow.filter {
             it is TimeRoutineEditUiState.Routine
         }.test {
             expectNoEvents()

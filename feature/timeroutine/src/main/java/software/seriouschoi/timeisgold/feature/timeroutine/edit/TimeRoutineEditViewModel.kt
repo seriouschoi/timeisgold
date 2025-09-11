@@ -6,14 +6,12 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
@@ -21,8 +19,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.scan
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import software.seriouschoi.navigator.DestNavigatorPort
 import software.seriouschoi.timeisgold.core.common.ui.ResultState
@@ -44,8 +42,8 @@ import java.time.DayOfWeek
 import javax.inject.Inject
 import software.seriouschoi.timeisgold.core.common.ui.R as CommonR
 
-@HiltViewModel
 @OptIn(FlowPreview::class)
+@HiltViewModel
 internal class TimeRoutineEditViewModel @Inject constructor(
     private val navigator: DestNavigatorPort,
 
@@ -70,75 +68,86 @@ internal class TimeRoutineEditViewModel @Inject constructor(
 
     private val _uiIntentFlow = MutableSharedFlow<Envelope<TimeRoutineEditUiIntent>>()
 
-    private val initResultStateFlow = flow {
-        val result = getTimeRoutineUseCase.invoke(currentDayOfWeek).first()
-        val initData = when (result) {
-            is DomainResult.Failure -> {
-                null
-            }
-
-            is DomainResult.Success -> result.value
-        }
-        emit(initData)
-    }.asResultState().stateIn(viewModelScope, SharingStarted.Lazily, ResultState.Loading)
+    private val initResultStateFlow: StateFlow<ResultState<DomainResult<TimeRoutineDefinition>>> =
+        flow {
+            val result = getTimeRoutineUseCase.invoke(currentDayOfWeek).first()
+            emit(result)
+        }.asResultState().stateIn(viewModelScope, SharingStarted.Lazily, ResultState.Loading)
 
 
-    private val initedRoutineFlow = initResultStateFlow.map { resultState ->
-        when (resultState) {
-            is ResultState.Error -> null
-            ResultState.Loading -> null
-            is ResultState.Success -> {
-                resultState.data
-            }
-        }
-    }.stateIn(viewModelScope, SharingStarted.Lazily, null)
-
-    val uiState: StateFlow<TimeRoutineEditUiState> = merge(
-        initedRoutineFlow.map {
-            UiPreState.Init(it ?: emptyTimeRoutineDefinition)
+    val uiStateFlow: StateFlow<TimeRoutineEditUiState> = merge(
+        initResultStateFlow.map { it: ResultState<DomainResult<TimeRoutineDefinition>> ->
+            UiPreState.Init(it)
         }, _uiIntentFlow.map {
             UiPreState.Intent(it.payload)
         }
     ).scan(
-        TimeRoutineEditUiState.Routine()
-    ) { currentState: TimeRoutineEditUiState.Routine, ui: UiPreState ->
-        when (ui) {
+        TimeRoutineEditUiState(
+            isLoading = true
+        )
+    ) { currentState: TimeRoutineEditUiState, preState: UiPreState ->
+        when (preState) {
             is UiPreState.Init -> {
-                TODO()
-            }
-            is UiPreState.Intent -> {
-                TODO()
-            }
-        }
-    }.stateIn(viewModelScope, SharingStarted.Lazily, TimeRoutineEditUiState.Routine())
-
-
-    private val currentRoutineState: StateFlow<TimeRoutineDefinition> = combine(
-        initedRoutineFlow, uiState
-    ) { def, ui ->
-        val routineDefinition = def ?: emptyTimeRoutineDefinition
-        if (ui is TimeRoutineEditUiState.Routine) {
-            val routine = routineDefinition.timeRoutine.copy(
-                title = ui.routineTitle
-            )
-            val days = ui.dayOfWeekList.map {
-                TimeRoutineDayOfWeekEntity(
-                    dayOfWeek = it
+                currentState.reduceFromInit(
+                    preState = preState,
+                    currentDayOfWeek = currentDayOfWeek,
                 )
-            }.toSet()
-            routineDefinition.copy(
-                timeRoutine = routine,
-                dayOfWeeks = days
-            )
-        } else {
-            routineDefinition
-        }
-    }.stateIn(viewModelScope, SharingStarted.Lazily, emptyTimeRoutineDefinition)
+            }
 
-    val validStateFlow: StateFlow<TimeRoutineEditUiValidUiState> =
-        currentRoutineState.debounce(500).map { timeRoutine: TimeRoutineDefinition ->
-            getValidTimeRoutineUseCase.invoke(timeRoutine)
-        }.asResultState().mapNotNull { resultState: ResultState<DomainResult<Boolean>> ->
+            is UiPreState.Intent -> {
+                currentState.reduceFromIntent(preState)
+            }
+        }
+    }.stateIn(viewModelScope, SharingStarted.Lazily, TimeRoutineEditUiState(isLoading = true))
+
+
+    /**
+     * 현재 입력된 routineDefinition
+     */
+    private val currentRoutineDefinitionFlow: StateFlow<TimeRoutineDefinition?> = combine(
+        initResultStateFlow.mapNotNull { resultState ->
+            when (resultState) {
+                is ResultState.Error -> null
+                ResultState.Loading -> null
+                is ResultState.Success -> {
+                    resultState.data
+                }
+            }
+        }.map { domainResult: DomainResult<TimeRoutineDefinition> ->
+            when (domainResult) {
+                is DomainResult.Failure -> {
+                    when (domainResult.error) {
+                        DomainError.NotFound.TimeRoutine -> emptyTimeRoutineDefinition
+                        else -> null
+                    }
+                }
+
+                is DomainResult.Success -> domainResult.value
+            }
+        }, uiStateFlow
+    ) { initResult: TimeRoutineDefinition?, ui ->
+        val def = initResult ?: return@combine null
+
+        val routine = def.timeRoutine.copy(
+            title = ui.routineTitle
+        )
+        val days = ui.dayOfWeekList.map {
+            TimeRoutineDayOfWeekEntity(
+                dayOfWeek = it
+            )
+        }.toSet()
+        def.copy(
+            timeRoutine = routine,
+            dayOfWeeks = days
+        )
+    }.stateIn(viewModelScope, SharingStarted.Lazily, null)
+
+    val validStateFlow: StateFlow<TimeRoutineEditUiValidUiState> = currentRoutineDefinitionFlow
+        .debounce(500)
+        .mapNotNull { timeRoutine: TimeRoutineDefinition? ->
+            timeRoutine?.let { getValidTimeRoutineUseCase.invoke(it) }
+        }.asResultState()
+        .mapNotNull { resultState: ResultState<DomainResult<Boolean>> ->
             when (resultState) {
                 is ResultState.Success -> resultState.data
                 is ResultState.Error -> DomainResult.Failure(DomainError.Technical.Unknown)
@@ -177,90 +186,57 @@ internal class TimeRoutineEditViewModel @Inject constructor(
             }
         }.stateIn(viewModelScope, SharingStarted.Lazily, TimeRoutineEditUiValidUiState())
 
-    private val _uiEvent = MutableSharedFlow<Envelope<TimeRoutineEditUiEvent>>()
-
-
-    val uiEvent = _uiEvent.asSharedFlow()
-
-    @Deprecated("use validStateFlow")
-    private val validFlow: Flow<ResultState<DomainResult<Boolean>>> =
-        currentRoutineState.debounce(500).map { timeRoutine: TimeRoutineDefinition ->
-            timeRoutine.let {
-                getValidTimeRoutineUseCase.invoke(it)
+    private val _uiEvent = MutableSharedFlow<TimeRoutineEditUiEvent>()
+    val uiEvent: SharedFlow<Envelope<TimeRoutineEditUiEvent>> = merge(
+        initResultStateFlow.map {
+            UiPreEvent.Init(it)
+        }, _uiIntentFlow.map {
+            UiPreEvent.Intent(it.payload)
+        }, _uiEvent.map {
+            UiPreEvent.Event(it)
+        }
+    ).mapNotNull { preEvent: UiPreEvent ->
+        when (preEvent) {
+            is UiPreEvent.Init -> {
+                createEvent(preEvent)
             }
-        }.asResultState().distinctUntilChanged()
+
+            is UiPreEvent.Intent -> {
+                createEvent(preEvent)
+            }
+
+            is UiPreEvent.Event -> {
+                preEvent.event
+            }
+        }
+    }.map {
+        Envelope(it)
+    }.shareIn(viewModelScope, SharingStarted.Lazily)
 
     fun init() {
         viewModelScope.launch {
-            _uiState.emit(TimeRoutineEditUiState.Routine(isLoading = true))
-            val routineDomainResult = getTimeRoutineUseCase.invoke(currentDayOfWeek).first()
-            initedRoutineFlow.update {
-                it.reduceDomainResult(routineDomainResult)
-            }
-            _uiState.update {
-                it.reduceRoutineDomainResult(routineDomainResult, currentDayOfWeek)
-            }
-            handleGetRoutineSideEffect(routineDomainResult)?.let { event: TimeRoutineEditUiEvent ->
-                sendEvent(event)
-            }
-        }
-
-        viewModelScope.launch {
-            _uiIntentFlow.collect { envelope ->
-                _uiState.update {
-                    it.reduceIntent(envelope.payload)
-                }
-                handleIntentSideEffect(envelope.payload)
-            }
-        }
-
-        viewModelScope.launch {
-            validFlow.distinctUntilChanged().collect { valid ->
-                _uiState.update {
-                    it.reduceValidResultState(valid)
+            _uiIntentFlow.collect { envelope: Envelope<TimeRoutineEditUiIntent> ->
+                when (envelope.payload) {
+                    TimeRoutineEditUiIntent.Exit -> navigator.back()
+                    TimeRoutineEditUiIntent.SaveConfirm -> saveTimeRoutine()
+                    TimeRoutineEditUiIntent.DeleteConfirm -> deleteTimeRoutine()
+                    else -> {
+                        //no work.
+                    }
                 }
             }
         }
     }
 
-    private fun handleGetRoutineSideEffect(state: DomainResult<TimeRoutineDefinition>) =
-        when (state) {
-            is DomainResult.Failure -> {
-                handleGetRoutineError(state.error)
-            }
-
-            is DomainResult.Success -> {
-                // no work.
-                null
-            }
-        }
-
-    private fun handleGetRoutineError(error: DomainError) = when (error) {
-        DomainError.NotFound.TimeRoutine -> {
-            null
-        }
-
-        DomainError.Conflict.Data,
-        DomainError.Conflict.DayOfWeek,
-        DomainError.Technical.Unknown,
-        DomainError.Validation.NoSelectedDayOfWeek,
-        DomainError.Validation.EmptyTitle,
-            -> {
-            TimeRoutineEditUiEvent.ShowAlert(
-                message = error.toUiText(),
-                confirmIntent = TimeRoutineEditUiIntent.Exit,
-            )
-        }
-    }
 
     private fun saveTimeRoutine() {
         viewModelScope.launch {
-            val timeRoutine = currentRoutineState.firstOrNull() ?: return@launch
+            val timeRoutine = currentRoutineDefinitionFlow.firstOrNull() ?: return@launch
             val result = setTimeRoutineUseCase.invoke(
                 timeRoutine
             )
             val event = result.toSaveResultToEvent()
-            sendEvent(event)
+            _uiEvent.emit(event)
         }
     }
 
@@ -271,91 +247,89 @@ internal class TimeRoutineEditViewModel @Inject constructor(
         }
     }
 
-    private fun sendEvent(event: TimeRoutineEditUiEvent) {
-        viewModelScope.launch {
-            _uiEvent.emit(Envelope(event))
-        }
-    }
-
-    private fun handleIntentSideEffect(intent: TimeRoutineEditUiIntent) {
-        when (intent) {
-            is TimeRoutineEditUiIntent.Save -> {
-                sendEvent(
-                    TimeRoutineEditUiEvent.ShowConfirm(
-                        UiText.MultipleRes.create(
-                            CommonR.string.message_format_confirm,
-                            CommonR.string.text_save
-                        ),
-                        TimeRoutineEditUiIntent.SaveConfirm,
-                        null
-                    )
-                )
-            }
-
-            is TimeRoutineEditUiIntent.Delete -> {
-                sendEvent(
-                    TimeRoutineEditUiEvent.ShowConfirm(
-                        UiText.MultipleRes.create(
-                            CommonR.string.message_format_confirm,
-                            CommonR.string.text_delete
-                        ),
-                        TimeRoutineEditUiIntent.DeleteConfirm,
-                        null
-                    )
-                )
-            }
-
-            is TimeRoutineEditUiIntent.Cancel -> {
-                sendEvent(
-                    TimeRoutineEditUiEvent.ShowConfirm(
-                        UiText.MultipleRes.create(
-                            CommonR.string.message_format_confirm,
-                            CommonR.string.text_cancel
-                        ),
-                        TimeRoutineEditUiIntent.Exit,
-                        null
-                    )
-                )
-            }
-
-            is TimeRoutineEditUiIntent.Exit -> {
-                navigator.back()
-            }
-
-            is TimeRoutineEditUiIntent.SaveConfirm -> {
-                saveTimeRoutine()
-            }
-
-            is TimeRoutineEditUiIntent.DeleteConfirm -> {
-                deleteTimeRoutine()
-            }
-
-            else -> {}
-        }
-    }
 
     private fun deleteTimeRoutine() {
         viewModelScope.launch {
-            val result = deleteTimeRoutineUseCase.invoke(currentRoutineState.value.timeRoutine.uuid)
+            val routineDefinition = currentRoutineDefinitionFlow.first() ?: return@launch
+            val result =
+                deleteTimeRoutineUseCase.invoke(routineDefinition.timeRoutine.uuid)
             val event = result.toDeleteResultToEvent()
-            sendEvent(event)
+            _uiEvent.emit(event)
         }
     }
 
 }
 
-
-private fun TimeRoutineDefinition.reduceDomainResult(domainResult: DomainResult<TimeRoutineDefinition>) =
-    when (domainResult) {
-        is DomainResult.Failure -> {
-            this
+private fun TimeRoutineEditUiState.reduceFromIntent(
+    preState: UiPreState.Intent,
+): TimeRoutineEditUiState {
+    return when (preState.intent) {
+        is TimeRoutineEditUiIntent.UpdateDayOfWeek -> {
+            val newDayOfWeeks = this.dayOfWeekList.toMutableSet().apply {
+                if (preState.intent.checked) {
+                    this.add(preState.intent.dayOfWeek)
+                } else {
+                    this.remove(preState.intent.dayOfWeek)
+                }
+            }
+            this.copy(
+                dayOfWeekList = newDayOfWeeks
+            )
         }
 
-        is DomainResult.Success -> {
-            Timber.d("reduceDomainResult success. ${domainResult.value}")
-            domainResult.value
+        is TimeRoutineEditUiIntent.UpdateRoutineTitle -> {
+            this.copy(
+                routineTitle = preState.intent.title
+            )
+        }
+
+        else -> this
+    }
+}
+
+private fun TimeRoutineEditUiState.reduceFromInit(
+    preState: UiPreState.Init,
+    currentDayOfWeek: DayOfWeek,
+): TimeRoutineEditUiState {
+    val data = preState.data
+    val emptyState = TimeRoutineEditUiState(
+        isLoading = false,
+        routineTitle = "",
+        dayOfWeekList = emptySet(),
+        currentDayOfWeek = currentDayOfWeek,
+        visibleDelete = false
+    )
+    return when (data) {
+        is ResultState.Error -> {
+            emptyState
+        }
+
+        ResultState.Loading -> this.copy(
+            isLoading = true
+        )
+
+        is ResultState.Success -> {
+            when (val domainResult = data.data) {
+                is DomainResult.Failure -> {
+                    emptyState
+                }
+
+                is DomainResult.Success -> {
+                    val routineDef = domainResult.value
+                    TimeRoutineEditUiState(
+                        routineTitle = routineDef.timeRoutine.title,
+                        dayOfWeekList = routineDef.dayOfWeeks.map { it.dayOfWeek }.toSet(),
+                        currentDayOfWeek = currentDayOfWeek,
+                        visibleDelete = true,
+                        isLoading = false
+
+                    )
+                }
+            }
         }
     }
+}
+
 
 private fun DomainResult<*>.toSaveResultToEvent(): TimeRoutineEditUiEvent =
     when (this) {
@@ -395,7 +369,91 @@ private fun DomainResult<Boolean>.toDeleteResultToEvent(): TimeRoutineEditUiEven
     }
 }
 
+private fun createEvent(preEvent: UiPreEvent.Intent): TimeRoutineEditUiEvent? {
+    val intent = preEvent.intent
+    return when (intent) {
+        TimeRoutineEditUiIntent.Save -> {
+            TimeRoutineEditUiEvent.ShowConfirm(
+                UiText.MultipleRes.create(
+                    CommonR.string.message_format_confirm,
+                    CommonR.string.text_save
+                ),
+                TimeRoutineEditUiIntent.SaveConfirm,
+                null
+            )
+        }
+
+        TimeRoutineEditUiIntent.Delete -> {
+            TimeRoutineEditUiEvent.ShowConfirm(
+                UiText.MultipleRes.create(
+                    CommonR.string.message_format_confirm,
+                    CommonR.string.text_delete
+                ),
+                TimeRoutineEditUiIntent.DeleteConfirm,
+                null
+            )
+        }
+
+        TimeRoutineEditUiIntent.Cancel -> {
+            TimeRoutineEditUiEvent.ShowConfirm(
+                UiText.MultipleRes.create(
+                    CommonR.string.message_format_confirm,
+                    CommonR.string.text_cancel
+                ),
+                TimeRoutineEditUiIntent.Exit,
+                null
+            )
+        }
+
+        else -> null
+    }
+}
+
+private fun createEvent(preEvent: UiPreEvent.Init): TimeRoutineEditUiEvent? {
+    val newEvent: TimeRoutineEditUiEvent? = when (
+        val resultState: ResultState<DomainResult<TimeRoutineDefinition>> = preEvent.data
+    ) {
+        is ResultState.Error -> {
+            null
+        }
+
+        ResultState.Loading -> {
+            null
+        }
+
+        is ResultState.Success -> {
+            when (val domainResult = resultState.data) {
+                is DomainResult.Success -> null
+                is DomainResult.Failure -> {
+                    when (val domainError = domainResult.error) {
+                        DomainError.Conflict.Data,
+                        DomainError.Conflict.DayOfWeek,
+                        DomainError.Technical.Unknown,
+                        DomainError.Validation.EmptyTitle,
+                        DomainError.Validation.NoSelectedDayOfWeek,
+                            -> {
+                            TimeRoutineEditUiEvent.ShowAlert(
+                                message = domainError.toUiText(),
+                                confirmIntent = TimeRoutineEditUiIntent.Exit,
+                            )
+                        }
+
+                        DomainError.NotFound.TimeRoutine -> null
+                    }
+                }
+            }
+        }
+    }
+    return newEvent
+}
+
 private sealed interface UiPreState {
-    data class Init(val data: TimeRoutineDefinition) : UiPreState
+    data class Init(val data: ResultState<DomainResult<TimeRoutineDefinition>>) : UiPreState
     data class Intent(val intent: TimeRoutineEditUiIntent) : UiPreState
+}
+
+private sealed interface UiPreEvent {
+    data class Init(val data: ResultState<DomainResult<TimeRoutineDefinition>>) : UiPreEvent
+    data class Intent(val intent: TimeRoutineEditUiIntent) : UiPreEvent
+    data class Event(val event: TimeRoutineEditUiEvent) : UiPreEvent
 }
