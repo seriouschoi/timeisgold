@@ -59,7 +59,7 @@ private fun Preview() {
     Screen(
         uiState = TimeRoutineEditUiState(
             currentDayOfWeek = DayOfWeek.MONDAY,
-            dayOfWeekList = setOf(DayOfWeek.MONDAY),
+            dayOfWeekMap = TimeRoutineEditDayOfWeekItemState.createDefaultItemMap(),
             routineTitle = "title",
             visibleDelete = true
         ),
@@ -112,15 +112,18 @@ private fun Routine(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                DayOfWeek.entries.forEach { dayOfWeek ->
+                currentRoutine.dayOfWeekMap.forEach { dayOfWeekItem ->
                     TigCheckButton(
-                        label = dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault()),
-                        checked = currentRoutine.dayOfWeekList.contains(dayOfWeek),
+                        label = dayOfWeekItem.key.getDisplayName(
+                            TextStyle.SHORT,
+                            Locale.getDefault()
+                        ),
+                        checked = dayOfWeekItem.value.checked,
                         onCheckedChange = {
                             sendIntent(
-                                TimeRoutineEditUiIntent.UpdateDayOfWeek(dayOfWeek, it)
+                                TimeRoutineEditUiIntent.UpdateDayOfWeek(dayOfWeekItem.key, it)
                             )
-                        }
+                        },
                     )
                 }
             }

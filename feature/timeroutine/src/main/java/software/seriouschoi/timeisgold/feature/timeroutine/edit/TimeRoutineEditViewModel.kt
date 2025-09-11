@@ -131,9 +131,11 @@ internal class TimeRoutineEditViewModel @Inject constructor(
         val routine = def.timeRoutine.copy(
             title = ui.routineTitle
         )
-        val days = ui.dayOfWeekList.map {
+        val days = ui.dayOfWeekMap.filter {
+            it.value.checked
+        }.map {
             TimeRoutineDayOfWeekEntity(
-                dayOfWeek = it
+                dayOfWeek = it.key
             )
         }.toSet()
         def.copy(
@@ -265,15 +267,17 @@ private fun TimeRoutineEditUiState.reduceFromIntent(
 ): TimeRoutineEditUiState {
     return when (preState.intent) {
         is TimeRoutineEditUiIntent.UpdateDayOfWeek -> {
-            val newDayOfWeeks = this.dayOfWeekList.toMutableSet().apply {
-                if (preState.intent.checked) {
-                    this.add(preState.intent.dayOfWeek)
+            val newDayOfWeeks = this.dayOfWeekMap.mapValues { entry ->
+                if (entry.key == preState.intent.dayOfWeek) {
+                    entry.value.copy(
+                        checked = preState.intent.checked
+                    )
                 } else {
-                    this.remove(preState.intent.dayOfWeek)
+                    entry.value
                 }
             }
             this.copy(
-                dayOfWeekList = newDayOfWeeks
+                dayOfWeekMap = newDayOfWeeks
             )
         }
 
@@ -292,12 +296,17 @@ private fun TimeRoutineEditUiState.reduceFromInit(
     currentDayOfWeek: DayOfWeek,
 ): TimeRoutineEditUiState {
     val data = preState.data
+    val defaultDayOfWeeks = TimeRoutineEditDayOfWeekItemState.createDefaultItemMap().toMutableMap()
+    val defaultDayOfWeekItem = defaultDayOfWeeks[currentDayOfWeek]
+        ?: TimeRoutineEditDayOfWeekItemState(dayOfWeek = currentDayOfWeek)
+    defaultDayOfWeeks[currentDayOfWeek] = defaultDayOfWeekItem.copy(
+        checked = true
+    )
     val emptyState = TimeRoutineEditUiState(
         isLoading = false,
-        routineTitle = "",
-        dayOfWeekList = emptySet(),
         currentDayOfWeek = currentDayOfWeek,
-        visibleDelete = false
+        visibleDelete = false,
+        dayOfWeekMap = defaultDayOfWeeks
     )
     return when (data) {
         is ResultState.Error -> {
@@ -316,9 +325,17 @@ private fun TimeRoutineEditUiState.reduceFromInit(
 
                 is DomainResult.Success -> {
                     val routineDef = domainResult.value
+                    val newDayOfWeeksMap = emptyState.dayOfWeekMap.mapValues {entry ->
+                        val checked = routineDef.dayOfWeeks.any {
+                            it.dayOfWeek ==entry.value.dayOfWeek
+                        }
+                        entry.value.copy(
+                            checked = checked
+                        )
+                    }
                     TimeRoutineEditUiState(
                         routineTitle = routineDef.timeRoutine.title,
-                        dayOfWeekList = routineDef.dayOfWeeks.map { it.dayOfWeek }.toSet(),
+                        dayOfWeekMap = newDayOfWeeksMap,
                         currentDayOfWeek = currentDayOfWeek,
                         visibleDelete = true,
                         isLoading = false

@@ -235,7 +235,7 @@ fun TigSingleLineTextField(
     modifier: Modifier = Modifier,
     value: String,
     onValueChange: (String) -> Unit,
-    hint: String = ""
+    hint: String = "",
 ) {
     val focusManager = LocalFocusManager.current
     TextField(
@@ -261,6 +261,7 @@ fun TigCheckButton(
     label: String,
     checked: Boolean,
     onCheckedChange: ((Boolean) -> Unit)?,
+    enabled: Boolean = true,
 ) {
     Column(
         modifier = modifier,
@@ -269,6 +270,7 @@ fun TigCheckButton(
         Checkbox(
             checked = checked,
             onCheckedChange = onCheckedChange,
+            enabled = enabled
         )
         TigText(text = label)
     }
