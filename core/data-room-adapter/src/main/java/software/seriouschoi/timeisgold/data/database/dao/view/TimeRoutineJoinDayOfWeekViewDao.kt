@@ -3,6 +3,7 @@ package software.seriouschoi.timeisgold.data.database.dao.view
 import androidx.room.Dao
 import androidx.room.Query
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import software.seriouschoi.timeisgold.data.database.view.TimeRoutineJoinDayOfWeekView
 import java.time.DayOfWeek
 
@@ -31,7 +32,10 @@ internal abstract class TimeRoutineJoinDayOfWeekViewDao {
         SELECT DISTINCT dayOfWeek FROM TimeRoutineJoinDayOfWeekView
     """
     )
-    abstract fun getAllDayOfWeeks(): Flow<List<DayOfWeek>>
+    abstract fun observeAllDayOfWeeks(): Flow<List<DayOfWeek>>
+
+
+    suspend fun getAllDayOfWeeks(): List<DayOfWeek> = observeAllDayOfWeeks().first()
 
     @Query(
         """

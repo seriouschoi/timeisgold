@@ -208,7 +208,7 @@ internal class TimeRoutineRepositoryPortAdapter @Inject constructor(
 
 
     override fun observeAllRoutinesDayOfWeeks(): Flow<List<DayOfWeek>> {
-        return appDatabase.TimeRoutineJoinDayOfWeekViewDao().getAllDayOfWeeks()
+        return appDatabase.TimeRoutineJoinDayOfWeekViewDao().observeAllDayOfWeeks()
     }
 
     override suspend fun saveTimeRoutineDefinition(routine: TimeRoutineDefinition): DomainResult<String> {
@@ -260,6 +260,10 @@ internal class TimeRoutineRepositoryPortAdapter @Inject constructor(
                 }?.toSet() ?: emptySet()
             )
         }
+    }
+
+    override suspend fun getAllDayOfWeeks(): List<DayOfWeek> {
+        return appDatabase.TimeRoutineJoinDayOfWeekViewDao().getAllDayOfWeeks()
     }
 
     override fun observeCompositionByUuidFlow(timeRoutineUuid: String): Flow<TimeRoutineComposition?> {

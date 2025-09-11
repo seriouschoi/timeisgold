@@ -22,7 +22,7 @@ class TimeRoutineDomainService @Inject constructor(
             throw TIGException.EmptyDayOfWeeks()
         }
 
-        val existingDays = timeRoutineRepository.observeAllRoutinesDayOfWeeks().first()
+        val existingDays = timeRoutineRepository.getAllDayOfWeeks()
         val conflictDays = existingDays.filter {
             newDays.contains(it)
         }

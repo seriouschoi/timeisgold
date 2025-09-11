@@ -124,6 +124,7 @@ private fun Routine(
                                 TimeRoutineEditUiIntent.UpdateDayOfWeek(dayOfWeekItem.key, it)
                             )
                         },
+                        enabled = dayOfWeekItem.value.enable
                     )
                 }
             }

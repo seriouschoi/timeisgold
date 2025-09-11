@@ -34,6 +34,7 @@ import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineDefini
 import software.seriouschoi.timeisgold.domain.data.entities.TimeRoutineDayOfWeekEntity
 import software.seriouschoi.timeisgold.domain.data.entities.TimeRoutineEntity
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.DeleteTimeRoutineUseCase
+import software.seriouschoi.timeisgold.domain.usecase.timeroutine.GetAllRoutinesDayOfWeeksUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.GetTimeRoutineDefinitionUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.GetValidTimeRoutineUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.SetTimeRoutineUseCase
@@ -51,6 +52,7 @@ internal class TimeRoutineEditViewModel @Inject constructor(
     private val setTimeRoutineUseCase: SetTimeRoutineUseCase,
     private val deleteTimeRoutineUseCase: DeleteTimeRoutineUseCase,
     private val getValidTimeRoutineUseCase: GetValidTimeRoutineUseCase,
+    private val getAllDayOfWeeksUseCase: GetAllRoutinesDayOfWeeksUseCase,
     private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
@@ -74,12 +76,46 @@ internal class TimeRoutineEditViewModel @Inject constructor(
             emit(result)
         }.asResultState().stateIn(viewModelScope, SharingStarted.Lazily, ResultState.Loading)
 
+    private val initUsedDayOfWeeksFlow = flow {
+        val result = getAllDayOfWeeksUseCase.invoke()
+        emit(result)
+    }.asResultState().stateIn(viewModelScope, SharingStarted.Lazily, ResultState.Loading)
+
+    private val initUsedDayOfWeeksWithoutMeFlow = combine(
+        initResultStateFlow.mapNotNull { resultState ->
+            when (resultState) {
+                ResultState.Loading -> null
+                is ResultState.Error -> emptyList()
+                is ResultState.Success -> {
+                    when (val domainResult = resultState.data) {
+                        is DomainResult.Failure -> emptyList()
+                        is DomainResult.Success -> domainResult.value.dayOfWeeks.map { it.dayOfWeek }
+                    }
+                }
+            }
+        },
+        initUsedDayOfWeeksFlow.mapNotNull {
+            (it as? ResultState.Success)?.data
+        }
+    ) { initDayOfWeeks: List<DayOfWeek>, usedDayOfWeeks: List<DayOfWeek> ->
+        usedDayOfWeeks
+            .filter {
+                //현재 선택된 요일은 제외
+                it != currentDayOfWeek
+            }
+            .filter { dayOfWeek ->
+                !initDayOfWeeks.any { it == dayOfWeek }
+            }
+    }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     val uiStateFlow: StateFlow<TimeRoutineEditUiState> = merge(
         initResultStateFlow.map { it: ResultState<DomainResult<TimeRoutineDefinition>> ->
             UiPreState.Init(it)
         }, _uiIntentFlow.map {
             UiPreState.Intent(it.payload)
+        },
+        initUsedDayOfWeeksWithoutMeFlow.map {
+            UiPreState.InitUsedDayOfWeeks(it)
         }
     ).scan(
         TimeRoutineEditUiState(
@@ -96,6 +132,10 @@ internal class TimeRoutineEditViewModel @Inject constructor(
 
             is UiPreState.Intent -> {
                 currentState.reduceFromIntent(preState)
+            }
+
+            is UiPreState.InitUsedDayOfWeeks -> {
+                currentState.reduceFromInitUsedDayOfWeeks(preState)
             }
         }
     }.stateIn(viewModelScope, SharingStarted.Lazily, TimeRoutineEditUiState(isLoading = true))
@@ -132,7 +172,7 @@ internal class TimeRoutineEditViewModel @Inject constructor(
             title = ui.routineTitle
         )
         val days = ui.dayOfWeekMap.filter {
-            it.value.checked
+            it.value.checked && it.value.enable
         }.map {
             TimeRoutineDayOfWeekEntity(
                 dayOfWeek = it.key
@@ -262,6 +302,22 @@ internal class TimeRoutineEditViewModel @Inject constructor(
 
 }
 
+private fun TimeRoutineEditUiState.reduceFromInitUsedDayOfWeeks(preState: UiPreState.InitUsedDayOfWeeks): TimeRoutineEditUiState {
+    val newDayOfWeeksMap = this.dayOfWeekMap.mapValues { entry ->
+        val isUsedDayOfWeek = preState.dayOfWeeks.contains(entry.key)
+        val checked = isUsedDayOfWeek || entry.value.checked
+        entry.value.copy(
+            enable = !isUsedDayOfWeek,
+            checked = checked
+        )
+    }
+
+
+    return this.copy(
+        dayOfWeekMap = newDayOfWeeksMap
+    )
+}
+
 private fun TimeRoutineEditUiState.reduceFromIntent(
     preState: UiPreState.Intent,
 ): TimeRoutineEditUiState {
@@ -296,13 +352,12 @@ private fun TimeRoutineEditUiState.reduceFromInit(
     currentDayOfWeek: DayOfWeek,
 ): TimeRoutineEditUiState {
     val data = preState.data
-    val defaultDayOfWeeks = TimeRoutineEditDayOfWeekItemState.createDefaultItemMap().toMutableMap()
-    val defaultDayOfWeekItem = defaultDayOfWeeks[currentDayOfWeek]
-        ?: TimeRoutineEditDayOfWeekItemState(dayOfWeek = currentDayOfWeek)
-    defaultDayOfWeeks[currentDayOfWeek] = defaultDayOfWeekItem.copy(
-        checked = true
-    )
-    val emptyState = TimeRoutineEditUiState(
+    val defaultDayOfWeeks = this.dayOfWeekMap.mapValues { entry ->
+        entry.value.copy(
+            checked = entry.key == currentDayOfWeek
+        )
+    }
+    val emptyState = this.copy(
         isLoading = false,
         currentDayOfWeek = currentDayOfWeek,
         visibleDelete = false,
@@ -325,21 +380,20 @@ private fun TimeRoutineEditUiState.reduceFromInit(
 
                 is DomainResult.Success -> {
                     val routineDef = domainResult.value
-                    val newDayOfWeeksMap = emptyState.dayOfWeekMap.mapValues {entry ->
+                    val newDayOfWeeksMap = emptyState.dayOfWeekMap.mapValues { entry ->
                         val checked = routineDef.dayOfWeeks.any {
-                            it.dayOfWeek ==entry.value.dayOfWeek
+                            it.dayOfWeek == entry.value.dayOfWeek
                         }
                         entry.value.copy(
                             checked = checked
                         )
                     }
-                    TimeRoutineEditUiState(
+                    this.copy(
                         routineTitle = routineDef.timeRoutine.title,
                         dayOfWeekMap = newDayOfWeeksMap,
                         currentDayOfWeek = currentDayOfWeek,
                         visibleDelete = true,
                         isLoading = false
-
                     )
                 }
             }
@@ -467,6 +521,7 @@ private fun createEvent(preEvent: UiPreEvent.Init): TimeRoutineEditUiEvent? {
 private sealed interface UiPreState {
     data class Init(val data: ResultState<DomainResult<TimeRoutineDefinition>>) : UiPreState
     data class Intent(val intent: TimeRoutineEditUiIntent) : UiPreState
+    data class InitUsedDayOfWeeks(val dayOfWeeks: List<DayOfWeek>) : UiPreState
 }
 
 private sealed interface UiPreEvent {
