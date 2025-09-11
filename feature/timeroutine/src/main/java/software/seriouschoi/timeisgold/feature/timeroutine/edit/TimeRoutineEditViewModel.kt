@@ -235,7 +235,7 @@ internal class TimeRoutineEditViewModel @Inject constructor(
             val result = setTimeRoutineUseCase.invoke(
                 timeRoutine
             )
-            val event = result.toSaveResultToEvent()
+            val event = result.convertSaveResultToEvent()
             _uiEvent.emit(event)
         }
     }
@@ -253,7 +253,7 @@ internal class TimeRoutineEditViewModel @Inject constructor(
             val routineDefinition = currentRoutineDefinitionFlow.first() ?: return@launch
             val result =
                 deleteTimeRoutineUseCase.invoke(routineDefinition.timeRoutine.uuid)
-            val event = result.toDeleteResultToEvent()
+            val event = result.convertDeleteResultToEvent()
             _uiEvent.emit(event)
         }
     }
@@ -331,7 +331,7 @@ private fun TimeRoutineEditUiState.reduceFromInit(
 }
 
 
-private fun DomainResult<*>.toSaveResultToEvent(): TimeRoutineEditUiEvent =
+private fun DomainResult<*>.convertSaveResultToEvent(): TimeRoutineEditUiEvent =
     when (this) {
         is DomainResult.Success -> TimeRoutineEditUiEvent.ShowAlert(
             message = UiText.MultipleRes.create(
@@ -350,7 +350,7 @@ private fun DomainResult<*>.toSaveResultToEvent(): TimeRoutineEditUiEvent =
         }
     }
 
-private fun DomainResult<Boolean>.toDeleteResultToEvent(): TimeRoutineEditUiEvent {
+private fun DomainResult<Boolean>.convertDeleteResultToEvent(): TimeRoutineEditUiEvent {
     return when (this) {
         is DomainResult.Success -> TimeRoutineEditUiEvent.ShowAlert(
             message = UiText.MultipleRes.create(
