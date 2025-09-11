@@ -40,6 +40,8 @@ import software.seriouschoi.timeisgold.domain.usecase.timeroutine.GetValidTimeRo
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.SetTimeRoutineUseCase
 import timber.log.Timber
 import java.time.DayOfWeek
+import java.time.format.TextStyle
+import java.util.Locale
 import javax.inject.Inject
 import software.seriouschoi.timeisgold.core.common.ui.R as CommonR
 
@@ -138,6 +140,14 @@ internal class TimeRoutineEditViewModel @Inject constructor(
                 currentState.reduceFromInitUsedDayOfWeeks(preState)
             }
         }
+    }.map { uiState: TimeRoutineEditUiState ->
+        val currentDayOfWeeks = uiState.dayOfWeekMap.filter { it.value.checked && it.value.enable }.keys
+        val subTitle = currentDayOfWeeks.sorted().joinToString {
+            it.getDisplayName(TextStyle.SHORT, Locale.getDefault())
+        }
+        uiState.copy(
+            subTitle = subTitle
+        )
     }.stateIn(viewModelScope, SharingStarted.Lazily, TimeRoutineEditUiState(isLoading = true))
 
 
@@ -169,7 +179,7 @@ internal class TimeRoutineEditViewModel @Inject constructor(
         val def = initResult ?: return@combine null
 
         val routine = def.timeRoutine.copy(
-            title = ui.routineTitle
+            title = ui.routineTitle.takeIf { it.isNotEmpty() } ?: ui.subTitle
         )
         val days = ui.dayOfWeekMap.filter {
             it.value.checked && it.value.enable

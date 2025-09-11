@@ -5,6 +5,7 @@ import java.time.DayOfWeek
 
 data class TimeRoutineEditUiState(
     val routineTitle: String = "",
+    val subTitle: String = "",
     val dayOfWeekMap: Map<DayOfWeek, TimeRoutineEditDayOfWeekItemState> = TimeRoutineEditDayOfWeekItemState.createDefaultItemMap(),
     val currentDayOfWeek: DayOfWeek? = null,
     val visibleDelete: Boolean = false,

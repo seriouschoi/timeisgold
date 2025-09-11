@@ -102,7 +102,8 @@ private fun Routine(
                     )
                 },
                 modifier = Modifier.fillMaxWidth(),
-                hint = stringResource(CommonR.string.text_routine_title)
+                hint = currentRoutine.subTitle.takeIf { it.isNotEmpty() }
+                    ?: stringResource(CommonR.string.text_routine_title)
             )
 
             TigText(
