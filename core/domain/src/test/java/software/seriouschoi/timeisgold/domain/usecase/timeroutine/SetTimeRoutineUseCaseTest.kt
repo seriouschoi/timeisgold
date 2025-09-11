@@ -9,6 +9,7 @@ import org.mockito.junit.MockitoJUnitRunner
 import software.seriouschoi.timeisgold.core.test.util.FakeTimeRoutineRepositoryAdapter
 import software.seriouschoi.timeisgold.core.test.util.TimeRoutineTestFixtures
 import software.seriouschoi.timeisgold.domain.data.DomainResult
+import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineDefinition
 import software.seriouschoi.timeisgold.domain.port.TimeRoutineRepositoryPort
 import software.seriouschoi.timeisgold.domain.services.TimeRoutineDomainService
 import java.time.DayOfWeek
@@ -39,7 +40,13 @@ class SetTimeRoutineUseCaseTest {
     fun `setTimeRoutine when duplicate dayOfWeek should throw exception`() {
         runTest {
             val routineMonTue = testFixture.routineCompoMonTue.timeRoutine
-            val testResult = useCase.invoke(routineMonTue, listOf(DayOfWeek.MONDAY))
+            val dayOfWeeks = testFixture.routineCompoMonTue.dayOfWeeks
+            val testResult = useCase.invoke(
+                TimeRoutineDefinition(
+                    timeRoutine = routineMonTue,
+                    dayOfWeeks = dayOfWeeks
+                )
+            )
             assert(testResult is DomainResult.Failure)
         }
     }
@@ -48,7 +55,13 @@ class SetTimeRoutineUseCaseTest {
     fun `setTimeRoutine when not duplicate dayOfWeek should not throw exception`() {
         runTest {
             val routineWedThu = testFixture.routineCompoWedThu.timeRoutine
-            val testResult = useCase.invoke(routineWedThu, listOf(DayOfWeek.WEDNESDAY))
+            val dayOfWeeks = testFixture.routineCompoWedThu.dayOfWeeks
+            val testResult = useCase.invoke(
+                TimeRoutineDefinition(
+                    timeRoutine = routineWedThu,
+                    dayOfWeeks = dayOfWeeks
+                )
+            )
             assert(testResult is DomainResult.Success)
         }
     }

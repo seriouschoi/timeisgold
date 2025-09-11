@@ -119,4 +119,8 @@ TimeRoutineEntity와 TimeRoutineDayOfWeekEntity로만
 
 # focus??
 
-# someFlow.first() 와 someFlow.value의 차이는??
+# someFlow.first() 와 someFlow.value의 차이는
+first()는 flow를 collect해서 가장 처음 emit된 값을 가져오고 즉시 종료한다.
+즉 collect { it -> } 을 호출해서 첫번째 값 나오면 바로 종료된다.
+value는 flow가 현재 메모리에 들고 있는 값을 바로 가져온다.
+즉 기다려주지 않는다.
