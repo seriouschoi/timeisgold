@@ -1,10 +1,13 @@
 package software.seriouschoi.timeisgold.core.common.ui.components
 
+import android.os.Build
+import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material3.BasicAlertDialog
@@ -22,11 +25,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusManager
+import androidx.compose.ui.graphics.BlurEffect
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.TileMode
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import software.seriouschoi.timeisgold.core.common.ui.R
 
 /**
  * Created by jhchoi on 2025. 9. 4.
@@ -34,9 +39,9 @@ import software.seriouschoi.timeisgold.core.common.ui.R
  */
 @Preview
 @Composable
-private fun Preview() {
+private fun ComponentsPreview() {
     Column(
-        modifier = Modifier
+        modifier = Modifier.fillMaxSize()
     ) {
         TigText("test")
         TigSingleLineTextField(value = "test\naset", onValueChange = {})
@@ -65,6 +70,15 @@ private fun Preview() {
     }
 }
 
+@Preview
+@Composable
+private fun LoadingBoxPreview() {
+    Box(modifier = Modifier.fillMaxSize()) {
+        ComponentsPreview()
+        TigLoadingBox()
+    }
+}
+
 @Composable
 fun TapGestureBox(modifier: Modifier, composable: @Composable () -> Unit) {
     val focusManager = LocalFocusManager.current
@@ -73,7 +87,7 @@ fun TapGestureBox(modifier: Modifier, composable: @Composable () -> Unit) {
     }
 }
 
-fun Modifier.tapClearFocus(focusManager: FocusManager): Modifier {
+private fun Modifier.tapClearFocus(focusManager: FocusManager): Modifier {
     return this.pointerInput(Unit) {
         detectTapGestures {
             focusManager.clearFocus(force = true)
@@ -138,6 +152,30 @@ fun TigAlert(
                 )
             }
         }
+    }
+}
+
+@Composable
+fun TigLoadingBox() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color.Black.copy(alpha = 0.3f))
+            .graphicsLayer {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    val renderEffect = BlurEffect(
+                        radiusX = 20f,
+                        radiusY = 20f,
+                        edgeTreatment = TileMode.Clamp
+                    )
+                    //require androidx.compose.ui.graphics
+                    this.renderEffect = renderEffect
+                }
+            },
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        CircularProgressIndicator()
     }
 }
 

@@ -8,18 +8,19 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.merge
+import kotlinx.coroutines.flow.scan
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -60,33 +61,64 @@ internal class TimeRoutineEditViewModel @Inject constructor(
         DayOfWeek.entries[it]
     }
 
-    private val _uiState = MutableStateFlow<TimeRoutineEditUiState>(TimeRoutineEditUiState.Loading)
-    val uiState = _uiState.asStateFlow()
-
-    private val _uiEvent = MutableSharedFlow<Envelope<TimeRoutineEditUiEvent>>()
-    val uiEvent = _uiEvent.asSharedFlow()
-
-    private val _uiIntent = MutableSharedFlow<Envelope<TimeRoutineEditUiIntent>>()
-
-    private val emptyTimeRoutineDefinition: TimeRoutineDefinition
-        get() {
-            return TimeRoutineDefinition(
-                timeRoutine = TimeRoutineEntity.create(""),
-                dayOfWeeks = listOf(currentDayOfWeek).map {
-                    TimeRoutineDayOfWeekEntity(it)
-                }.toSet()
-            )
-        }
-
-    private val _routineState: MutableStateFlow<TimeRoutineDefinition> = MutableStateFlow(
-        emptyTimeRoutineDefinition
+    private val emptyTimeRoutineDefinition: TimeRoutineDefinition = TimeRoutineDefinition(
+        timeRoutine = TimeRoutineEntity.create(title = ""),
+        dayOfWeeks = listOf(currentDayOfWeek).map {
+            TimeRoutineDayOfWeekEntity(it)
+        }.toSet()
     )
 
+    private val _uiIntentFlow = MutableSharedFlow<Envelope<TimeRoutineEditUiIntent>>()
+
+    private val initResultStateFlow = flow {
+        val result = getTimeRoutineUseCase.invoke(currentDayOfWeek).first()
+        val initData = when (result) {
+            is DomainResult.Failure -> {
+                null
+            }
+
+            is DomainResult.Success -> result.value
+        }
+        emit(initData)
+    }.asResultState().stateIn(viewModelScope, SharingStarted.Lazily, ResultState.Loading)
+
+
+    private val initedRoutineFlow = initResultStateFlow.map { resultState ->
+        when (resultState) {
+            is ResultState.Error -> null
+            ResultState.Loading -> null
+            is ResultState.Success -> {
+                resultState.data
+            }
+        }
+    }.stateIn(viewModelScope, SharingStarted.Lazily, null)
+
+    val uiState: StateFlow<TimeRoutineEditUiState> = merge(
+        initedRoutineFlow.map {
+            UiPreState.Init(it ?: emptyTimeRoutineDefinition)
+        }, _uiIntentFlow.map {
+            UiPreState.Intent(it.payload)
+        }
+    ).scan(
+        TimeRoutineEditUiState.Routine()
+    ) { currentState: TimeRoutineEditUiState.Routine, ui: UiPreState ->
+        when (ui) {
+            is UiPreState.Init -> {
+                TODO()
+            }
+            is UiPreState.Intent -> {
+                TODO()
+            }
+        }
+    }.stateIn(viewModelScope, SharingStarted.Lazily, TimeRoutineEditUiState.Routine())
+
+
     private val currentRoutineState: StateFlow<TimeRoutineDefinition> = combine(
-        _routineState, uiState
+        initedRoutineFlow, uiState
     ) { def, ui ->
+        val routineDefinition = def ?: emptyTimeRoutineDefinition
         if (ui is TimeRoutineEditUiState.Routine) {
-            val routine = def.timeRoutine.copy(
+            val routine = routineDefinition.timeRoutine.copy(
                 title = ui.routineTitle
             )
             val days = ui.dayOfWeekList.map {
@@ -94,12 +126,12 @@ internal class TimeRoutineEditViewModel @Inject constructor(
                     dayOfWeek = it
                 )
             }.toSet()
-            def.copy(
+            routineDefinition.copy(
                 timeRoutine = routine,
                 dayOfWeeks = days
             )
         } else {
-            def
+            routineDefinition
         }
     }.stateIn(viewModelScope, SharingStarted.Lazily, emptyTimeRoutineDefinition)
 
@@ -145,6 +177,11 @@ internal class TimeRoutineEditViewModel @Inject constructor(
             }
         }.stateIn(viewModelScope, SharingStarted.Lazily, TimeRoutineEditUiValidUiState())
 
+    private val _uiEvent = MutableSharedFlow<Envelope<TimeRoutineEditUiEvent>>()
+
+
+    val uiEvent = _uiEvent.asSharedFlow()
+
     @Deprecated("use validStateFlow")
     private val validFlow: Flow<ResultState<DomainResult<Boolean>>> =
         currentRoutineState.debounce(500).map { timeRoutine: TimeRoutineDefinition ->
@@ -155,9 +192,9 @@ internal class TimeRoutineEditViewModel @Inject constructor(
 
     fun init() {
         viewModelScope.launch {
-            _uiState.emit(TimeRoutineEditUiState.Loading)
+            _uiState.emit(TimeRoutineEditUiState.Routine(isLoading = true))
             val routineDomainResult = getTimeRoutineUseCase.invoke(currentDayOfWeek).first()
-            _routineState.update {
+            initedRoutineFlow.update {
                 it.reduceDomainResult(routineDomainResult)
             }
             _uiState.update {
@@ -169,7 +206,7 @@ internal class TimeRoutineEditViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
-            _uiIntent.collect { envelope ->
+            _uiIntentFlow.collect { envelope ->
                 _uiState.update {
                     it.reduceIntent(envelope.payload)
                 }
@@ -230,7 +267,7 @@ internal class TimeRoutineEditViewModel @Inject constructor(
 
     fun sendIntent(intent: TimeRoutineEditUiIntent) {
         viewModelScope.launch {
-            _uiIntent.emit(Envelope(intent))
+            _uiIntentFlow.emit(Envelope(intent))
         }
     }
 
@@ -356,4 +393,9 @@ private fun DomainResult<Boolean>.toDeleteResultToEvent(): TimeRoutineEditUiEven
             )
         }
     }
+}
+
+private sealed interface UiPreState {
+    data class Init(val data: TimeRoutineDefinition) : UiPreState
+    data class Intent(val intent: TimeRoutineEditUiIntent) : UiPreState
 }

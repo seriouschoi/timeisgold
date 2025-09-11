@@ -14,13 +14,29 @@ Android Framework에 의존된다.
 그 기능도 제한적이며,  
 코틀린 비동기 처리 관련해서 강력한 Flow와 결합하기도 힘들다.
 
-# Stream
+# Flow(Stream)
 연속적인 데이터 흐름을 말한다.  
 즉 파이프라인을 따라 흘러가는 데이터라고 생각하면 된다.
 
-# Hot/Cold Stream
-- Hot Stream: 바로 실행되는 스트림.
-- Cold Stream: collect(구독) 하기 전까지 실행되지 않는 스트림.
+# Hot/Cold Flow(Stream)
+- Hot Stream: 
+  - 구독 시점에 최신 값을 바로 전달함.
+  - 즉, 데이터 생산은 공유되고, 소비만 여러 collect에서 이뤄짐.
+  - 예시: StateFlow, SharedFlow
+  - 사용례: UiStateFlow, UiEventFlow
+- Cold Stream: 
+  - collect할 때마다 처음부터 실행됨.(데이터 생산이 구독자마다 별도로 시작)
+  - 일반적인 Flow는 Cold Stream이다.
+  - 사용례: myDao.getUsers()
+    - collect 할때마다 쿼리를 실행하는 구조.
+
+쉬운 이해
+- hot stream.
+  - 핫라인 전화기와 같다.
+  - 수화기를 드는 순간 상시 대화중인 채널에 바로 합류한다.
+- cold stream.
+  - 전화라인을 기본적으로 비활성이며,
+  - 수화기를 들면 상대방이 응답하고 대화(emit)이 시작된다.
 
 # Flow
 Flow는 코틀린에서 제공하는 비동기 데이터 콜드 스트림이고,  
@@ -67,6 +83,11 @@ Room내부적으로 DB변경을 감지해서 자동으로 Flow를 emit해준다.
 flow에 data를 발행.
 
 # StateFlow
-기본적으로 Cold Stream인 Flow와 달리, 이녀석은 Hot Stream(Hot Flow).
-collect가 호출되지 않아도, 계속 방출되고 있음.
+hot flow이며,
+항상 최신 값을 갱신하고 있고, 
+새로운 구독자는 마지막 '상태'를 바로 받는다.
+즉 이 flow를 여러 곳에서 collect하면, 
+나중에 collect한 곳에선 마지막 상태만 수신하게 된다.
+
+
 

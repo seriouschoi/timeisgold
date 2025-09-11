@@ -1,6 +1,7 @@
 package software.seriouschoi.timeisgold.domain.usecase.timeroutine
 
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.merge
@@ -27,6 +28,11 @@ class FlowStudy {
         delay(100)
         emit("c")
     }
+
+    data class StudyData(
+        val name: String,
+        val age: Int,
+    )
 
     @Test
     fun combine() {
@@ -76,6 +82,7 @@ class FlowStudy {
             }
         }
     }
+
 
     @Test
     fun zip() {

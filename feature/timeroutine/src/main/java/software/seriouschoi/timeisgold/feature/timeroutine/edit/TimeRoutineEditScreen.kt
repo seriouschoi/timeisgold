@@ -22,6 +22,7 @@ import software.seriouschoi.timeisgold.core.common.ui.components.TigBottomBar
 import software.seriouschoi.timeisgold.core.common.ui.components.TigCheckButton
 import software.seriouschoi.timeisgold.core.common.ui.components.TigCircleProgress
 import software.seriouschoi.timeisgold.core.common.ui.components.TigLabelButton
+import software.seriouschoi.timeisgold.core.common.ui.components.TigLoadingBox
 import software.seriouschoi.timeisgold.core.common.ui.components.TigSingleLineTextField
 import software.seriouschoi.timeisgold.core.common.ui.components.TigText
 import software.seriouschoi.timeisgold.core.common.util.Envelope
@@ -85,10 +86,6 @@ private fun Screen(
                             sendIntent(it)
                         }
                     }
-
-                    TimeRoutineEditUiState.Loading -> {
-                        Loading()
-                    }
                 }
             }
         }
@@ -101,42 +98,48 @@ private fun Routine(
     validState: TimeRoutineEditUiValidUiState,
     sendIntent: (TimeRoutineEditUiIntent) -> Unit,
 ) {
-    Column {
-        TigSingleLineTextField(
-            value = currentRoutine.routineTitle,
-            onValueChange = {
-                sendIntent(
-                    TimeRoutineEditUiIntent.UpdateRoutineTitle(it)
-                )
-            },
-            modifier = Modifier.fillMaxWidth(),
-            hint = stringResource(CommonR.string.text_routine_title)
-        )
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column {
+            TigSingleLineTextField(
+                value = currentRoutine.routineTitle,
+                onValueChange = {
+                    sendIntent(
+                        TimeRoutineEditUiIntent.UpdateRoutineTitle(it)
+                    )
+                },
+                modifier = Modifier.fillMaxWidth(),
+                hint = stringResource(CommonR.string.text_routine_title)
+            )
 
-        TigText(
-            text = validState.invalidTitleMessage?.asString() ?: "",
-        )
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            DayOfWeek.entries.forEach { dayOfWeek ->
-                TigCheckButton(
-                    label = dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault()),
-                    checked = currentRoutine.dayOfWeekList.contains(dayOfWeek),
-                    onCheckedChange = {
-                        sendIntent(
-                            TimeRoutineEditUiIntent.UpdateDayOfWeek(dayOfWeek, it)
-                        )
-                    }
-                )
+            TigText(
+                text = validState.invalidTitleMessage?.asString() ?: "",
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                DayOfWeek.entries.forEach { dayOfWeek ->
+                    TigCheckButton(
+                        label = dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault()),
+                        checked = currentRoutine.dayOfWeekList.contains(dayOfWeek),
+                        onCheckedChange = {
+                            sendIntent(
+                                TimeRoutineEditUiIntent.UpdateDayOfWeek(dayOfWeek, it)
+                            )
+                        }
+                    )
+                }
             }
-        }
-        TigText(
-            text = validState.invalidDayOfWeekMessage?.asString() ?: "",
-        )
+            TigText(
+                text = validState.invalidDayOfWeekMessage?.asString() ?: "",
+            )
 
-        BottomButtons(currentRoutine, validState, sendIntent)
+            BottomButtons(currentRoutine, validState, sendIntent)
+        }
+
+        if (currentRoutine.isLoading) {
+            Loading()
+        }
     }
 }
 
@@ -206,7 +209,5 @@ private fun BottomButtons(
 
 @Composable
 private fun Loading() {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        TigCircleProgress()
-    }
+    TigLoadingBox()
 }

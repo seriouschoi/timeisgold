@@ -23,6 +23,17 @@
     - 타임 루틴을 탐색하면서 볼일은 없음.
     - 다만 전날,다음날 루틴이 조금 보이면 좋음.
 
+## time routine edit flow 정리.
+- initFlow <- getDataUseCase().first()
+  - initedRoutineFlow <- initFlow
+  - initedUiStateFlow <- initFlow 
+- intentFlow <- from sendIntent
+  - eventFlow <- intentFlow 
+- intentUiStateFlow <- intentFlow
+- uiStateFlow <- combine(initedUiStateFlow, intentFlow)
+- currentRoutineState <- combine(uiStateFlow, initedRoutineFlow)
+- validFlow <- currentRoutineState
+
 ## time routine edit
 - [ ] time routine edit viewmodel test 추가. (intent의 테스트 전부 작성.)
 - [ ] uiState flow 를 merge + scan를 통해서 구현하기.
@@ -32,9 +43,14 @@
   - 이때 기존에 만든 isValidFlow는 사실상 무의미해짐. 
     - isValid속성은 실시간 uiState로 유효성을 체크함.
     - 하지만 uiState는 isValid flow를 받아서 uiState를 만들려고 함
-    - 이 흐름을 정리해야 함.
   - uiState를 둘로 나누는게 가장 확실하긴 한데..
-    - 그래도 되나..
+    - 이 흐름을 정리해야 함.
+      - routineState: 기본 루틴.(uuid를 비롯한 불변 상태 참조 목적)
+      - UiState.loading 은 지금 생각해보니 분기로 할 필요가 없었다.
+        - 이유: 
+          - Loading을 만든 이유가 상태 전환시 uistate를 초기화 하기 위한거였는데,
+          - 입력 값을 초기화할 이유는 없었다.
+    
 - [x] 새 루틴인데 삭제 버튼이 왜있음?
 - [x] 저장 유효성을 실시간으로 처리하기. intent flow로 구현.
 - [x] 수정 버튼 추가.
