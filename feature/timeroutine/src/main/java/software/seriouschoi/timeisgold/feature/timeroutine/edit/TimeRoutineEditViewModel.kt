@@ -30,8 +30,10 @@ import software.seriouschoi.timeisgold.core.common.ui.ResultState
 import software.seriouschoi.timeisgold.core.common.ui.UiText
 import software.seriouschoi.timeisgold.core.common.ui.asResultState
 import software.seriouschoi.timeisgold.core.common.ui.flowResultState
+import software.seriouschoi.timeisgold.core.common.ui.provider.UiTextProvider
 import software.seriouschoi.timeisgold.core.common.util.Envelope
 import software.seriouschoi.timeisgold.core.domain.mapper.toUiText
+import software.seriouschoi.timeisgold.domain.data.DayOfWeekType
 import software.seriouschoi.timeisgold.domain.data.DomainError
 import software.seriouschoi.timeisgold.domain.data.DomainResult
 import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineDefinition
@@ -39,6 +41,7 @@ import software.seriouschoi.timeisgold.domain.data.entities.TimeRoutineDayOfWeek
 import software.seriouschoi.timeisgold.domain.data.entities.TimeRoutineEntity
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.DeleteTimeRoutineUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.GetAllRoutinesDayOfWeeksUseCase
+import software.seriouschoi.timeisgold.domain.usecase.timeroutine.GetDayOfWeeksTypeUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.GetTimeRoutineDefinitionUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.GetValidTimeRoutineUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.SetTimeRoutineUseCase
@@ -52,6 +55,8 @@ import software.seriouschoi.timeisgold.core.common.ui.R as CommonR
 @OptIn(FlowPreview::class)
 @HiltViewModel
 internal class TimeRoutineEditViewModel @Inject constructor(
+    private val savedStateHandle: SavedStateHandle,
+
     private val navigator: DestNavigatorPort,
 
     private val getTimeRoutineUseCase: GetTimeRoutineDefinitionUseCase,
@@ -59,7 +64,9 @@ internal class TimeRoutineEditViewModel @Inject constructor(
     private val deleteTimeRoutineUseCase: DeleteTimeRoutineUseCase,
     private val getValidTimeRoutineUseCase: GetValidTimeRoutineUseCase,
     private val getAllDayOfWeeksUseCase: GetAllRoutinesDayOfWeeksUseCase,
-    private val savedStateHandle: SavedStateHandle,
+    private val getDayOfWeeksTypeUseCase: GetDayOfWeeksTypeUseCase,
+
+    private val uiTextProvider: UiTextProvider,
 ) : ViewModel() {
 
     private val route get() = savedStateHandle.toRoute<TimeRoutineEditScreenRoute>()
@@ -152,16 +159,11 @@ internal class TimeRoutineEditViewModel @Inject constructor(
             }
         }
     }.map { uiState: TimeRoutineEditUiState ->
-        val currentDayOfWeeks =
-            uiState.dayOfWeekMap.filter { it.value.checked && it.value.enable }.keys
-        val subTitle = currentDayOfWeeks.sorted().joinToString {
-            it.getDisplayName(TextStyle.SHORT, Locale.getDefault())
-        }
+        val subTitle = getAutoRoutineTitle(uiState.dayOfWeekMap.keys)
         uiState.copy(
             subTitle = subTitle
         )
     }.stateIn(viewModelScope, SharingStarted.Lazily, TimeRoutineEditUiState(isLoading = true))
-
 
     /**
      * 현재 입력된 routineDefinition
@@ -252,6 +254,7 @@ internal class TimeRoutineEditViewModel @Inject constructor(
         }.stateIn(viewModelScope, SharingStarted.Lazily, TimeRoutineEditUiValidUiState())
 
     private val _uiEvent = MutableSharedFlow<Envelope<TimeRoutineEditUiEvent>>()
+
     val uiEvent: SharedFlow<Envelope<TimeRoutineEditUiEvent>> = merge(
         initResultStateFlow.map {
             UiPreEvent.Init(it)
@@ -263,11 +266,11 @@ internal class TimeRoutineEditViewModel @Inject constructor(
     ).mapNotNull { preEvent: UiPreEvent ->
         when (preEvent) {
             is UiPreEvent.Init -> {
-                createEvent(preEvent)
+                createEventFromInited(preEvent)
             }
 
             is UiPreEvent.Intent -> {
-                createEvent(preEvent)
+                createEventFromIntent(preEvent)
             }
 
             is UiPreEvent.Event -> {
@@ -277,7 +280,6 @@ internal class TimeRoutineEditViewModel @Inject constructor(
     }.map {
         Envelope(it)
     }.shareIn(viewModelScope, SharingStarted.Lazily)
-
     fun init() {
         viewModelScope.launch {
             _uiIntentFlow.collect { envelope: Envelope<TimeRoutineEditUiIntent> ->
@@ -335,7 +337,8 @@ internal class TimeRoutineEditViewModel @Inject constructor(
             }
 
             is ResultState.Error,
-            is ResultState.Success -> {
+            is ResultState.Success,
+                -> {
                 _loadingStateFlow.emit(false)
             }
         }
@@ -346,7 +349,6 @@ internal class TimeRoutineEditViewModel @Inject constructor(
             _uiIntentFlow.emit(Envelope(intent))
         }
     }
-
 
     private fun deleteTimeRoutine() {
         flowResultState {
@@ -378,6 +380,22 @@ internal class TimeRoutineEditViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
+
+    private fun getAutoRoutineTitle(dayOfWeeks: Set<DayOfWeek>): String {
+        val dayOfWeeksName = getDayOfWeeksTypeUseCase.invoke(dayOfWeeks)?.getDisplayNameText()
+            ?: dayOfWeeks.sorted().joinToString {
+                it.getDisplayName(TextStyle.SHORT, Locale.getDefault())
+            }.let {
+                UiText.Raw(it)
+            }
+
+        val newSubTitle = UiText.MultipleUiTextArgs.create(
+            CommonR.string.text_routine_format,
+            dayOfWeeksName
+        )
+
+        return uiTextProvider.getString(newSubTitle)
+    }
 }
 
 private fun TimeRoutineEditUiState.reduceFromInitUsedDayOfWeeks(preState: UiPreState.InitUsedDayOfWeeks): TimeRoutineEditUiState {
@@ -481,7 +499,7 @@ private fun TimeRoutineEditUiState.reduceFromInit(
 private fun DomainResult<*>.convertSaveResultToEvent(): TimeRoutineEditUiEvent =
     when (this) {
         is DomainResult.Success -> TimeRoutineEditUiEvent.ShowAlert(
-            message = UiText.MultipleRes.create(
+            message = UiText.MultipleResArgs.create(
                 CommonR.string.message_format_complete,
                 CommonR.string.text_save
             ),
@@ -500,7 +518,7 @@ private fun DomainResult<*>.convertSaveResultToEvent(): TimeRoutineEditUiEvent =
 private fun DomainResult<Boolean>.convertDeleteResultToEvent(): TimeRoutineEditUiEvent {
     return when (this) {
         is DomainResult.Success -> TimeRoutineEditUiEvent.ShowAlert(
-            message = UiText.MultipleRes.create(
+            message = UiText.MultipleResArgs.create(
                 CommonR.string.message_format_complete,
                 CommonR.string.text_delete
             ),
@@ -516,12 +534,12 @@ private fun DomainResult<Boolean>.convertDeleteResultToEvent(): TimeRoutineEditU
     }
 }
 
-private fun createEvent(preEvent: UiPreEvent.Intent): TimeRoutineEditUiEvent? {
+private fun createEventFromIntent(preEvent: UiPreEvent.Intent): TimeRoutineEditUiEvent? {
     val intent = preEvent.intent
     return when (intent) {
         TimeRoutineEditUiIntent.Save -> {
             TimeRoutineEditUiEvent.ShowConfirm(
-                UiText.MultipleRes.create(
+                UiText.MultipleResArgs.create(
                     CommonR.string.message_format_confirm,
                     CommonR.string.text_save
                 ),
@@ -532,7 +550,7 @@ private fun createEvent(preEvent: UiPreEvent.Intent): TimeRoutineEditUiEvent? {
 
         TimeRoutineEditUiIntent.Delete -> {
             TimeRoutineEditUiEvent.ShowConfirm(
-                UiText.MultipleRes.create(
+                UiText.MultipleResArgs.create(
                     CommonR.string.message_format_confirm,
                     CommonR.string.text_delete
                 ),
@@ -543,7 +561,7 @@ private fun createEvent(preEvent: UiPreEvent.Intent): TimeRoutineEditUiEvent? {
 
         TimeRoutineEditUiIntent.Cancel -> {
             TimeRoutineEditUiEvent.ShowConfirm(
-                UiText.MultipleRes.create(
+                UiText.MultipleResArgs.create(
                     CommonR.string.message_format_confirm,
                     CommonR.string.text_cancel
                 ),
@@ -556,7 +574,7 @@ private fun createEvent(preEvent: UiPreEvent.Intent): TimeRoutineEditUiEvent? {
     }
 }
 
-private fun createEvent(preEvent: UiPreEvent.Init): TimeRoutineEditUiEvent? {
+private fun createEventFromInited(preEvent: UiPreEvent.Init): TimeRoutineEditUiEvent? {
     val newEvent: TimeRoutineEditUiEvent? = when (
         val resultState: ResultState<DomainResult<TimeRoutineDefinition>> = preEvent.data
     ) {
@@ -605,4 +623,13 @@ private sealed interface UiPreEvent {
     data class Init(val data: ResultState<DomainResult<TimeRoutineDefinition>>) : UiPreEvent
     data class Intent(val intent: TimeRoutineEditUiIntent) : UiPreEvent
     data class Event(val event: TimeRoutineEditUiEvent) : UiPreEvent
+}
+
+
+private fun DayOfWeekType.getDisplayNameText(): UiText {
+    return when (this) {
+        DayOfWeekType.WeekDay -> UiText.Res(CommonR.string.text_weekday)
+        DayOfWeekType.WeekEnd -> UiText.Res(CommonR.string.text_weekend)
+        DayOfWeekType.EveryDay -> UiText.Res(CommonR.string.text_everyday)
+    }
 }

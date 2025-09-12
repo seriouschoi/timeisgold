@@ -39,7 +39,7 @@ fun TimeRoutinePageScreen(
         viewModel.uiState
     }.collectAsState(
         TimeRoutinePageUiState.Loading(
-            UiText.MultipleRes.create(
+            UiText.MultipleResArgs.create(
                 CommonR.string.message_format_loading,
                 CommonR.string.text_routine
 
