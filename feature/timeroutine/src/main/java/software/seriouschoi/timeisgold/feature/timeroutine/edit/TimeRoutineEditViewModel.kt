@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
@@ -128,9 +129,7 @@ internal class TimeRoutineEditViewModel @Inject constructor(
             UiPreState.Loading(it)
         }
     ).scan(
-        TimeRoutineEditUiState(
-            isLoading = true
-        )
+        TimeRoutineEditUiState(isLoading = true)
     ) { currentState: TimeRoutineEditUiState, preState: UiPreState ->
         when (preState) {
             is UiPreState.Init -> {
@@ -149,9 +148,7 @@ internal class TimeRoutineEditViewModel @Inject constructor(
             }
 
             is UiPreState.Loading -> {
-                currentState.copy(
-                    isLoading = preState.loading
-                )
+                currentState.copy(isLoading = preState.loading)
             }
         }
     }.map { uiState: TimeRoutineEditUiState ->
@@ -211,6 +208,7 @@ internal class TimeRoutineEditViewModel @Inject constructor(
 
     val validStateFlow: StateFlow<TimeRoutineEditUiValidUiState> = currentRoutineDefinitionFlow
         .debounce(500)
+        .distinctUntilChanged()
         .mapNotNull { timeRoutine: TimeRoutineDefinition? ->
             timeRoutine?.let { getValidTimeRoutineUseCase.invoke(it) }
         }.asResultState()
@@ -330,15 +328,15 @@ internal class TimeRoutineEditViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
-    private fun updateLoadingState(resultState: ResultState<DomainResult<*>>) {
+    private suspend fun updateLoadingState(resultState: ResultState<DomainResult<*>>) {
         when (resultState) {
             ResultState.Loading -> {
-                _loadingStateFlow.tryEmit(true)
+                _loadingStateFlow.emit(true)
             }
 
             is ResultState.Error,
             is ResultState.Success -> {
-                _loadingStateFlow.tryEmit(false)
+                _loadingStateFlow.emit(false)
             }
         }
     }
@@ -362,12 +360,14 @@ internal class TimeRoutineEditViewModel @Inject constructor(
                 ResultState.Loading -> {
                     null
                 }
+
                 is ResultState.Error -> {
                     TimeRoutineEditUiEvent.ShowAlert(
                         message = DomainError.Technical.Unknown.toUiText(),
                         confirmIntent = null
                     )
                 }
+
                 is ResultState.Success -> {
                     val domainResult = resultState.data
                     domainResult.convertDeleteResultToEvent()
@@ -446,9 +446,7 @@ private fun TimeRoutineEditUiState.reduceFromInit(
             emptyState
         }
 
-        ResultState.Loading -> this.copy(
-            isLoading = true
-        )
+        ResultState.Loading -> this.copy(isLoading = true)
 
         is ResultState.Success -> {
             when (val domainResult = data.data) {

@@ -1,7 +1,6 @@
 package software.seriouschoi.timeisgold.feature.timeroutine.edit
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -60,7 +59,8 @@ private fun Preview() {
             currentDayOfWeek = DayOfWeek.MONDAY,
             dayOfWeekMap = TimeRoutineEditDayOfWeekItemState.createDefaultItemMap(),
             routineTitle = "title",
-            visibleDelete = true
+            visibleDelete = true,
+            isLoading = true
         ),
         validState = TimeRoutineEditUiValidUiState()
     ) { }
@@ -73,12 +73,8 @@ private fun Screen(
     sendIntent: (TimeRoutineEditUiIntent) -> Unit,
 ) {
     TigContainer(uiState.isLoading) {
-        Column(modifier = Modifier.fillMaxSize()) {
-            Box {
-                Routine(uiState, validState) {
-                    sendIntent(it)
-                }
-            }
+        Routine(uiState, validState) {
+            sendIntent(it)
         }
     }
 }
@@ -89,49 +85,47 @@ private fun Routine(
     validState: TimeRoutineEditUiValidUiState,
     sendIntent: (TimeRoutineEditUiIntent) -> Unit,
 ) {
-    Box(modifier = Modifier.fillMaxSize()) {
-        Column {
-            TigSingleLineTextField(
-                value = currentRoutine.routineTitle,
-                onValueChange = {
-                    sendIntent(
-                        TimeRoutineEditUiIntent.UpdateRoutineTitle(it)
-                    )
-                },
-                modifier = Modifier.fillMaxWidth(),
-                hint = currentRoutine.subTitle.takeIf { it.isNotEmpty() }
-                    ?: stringResource(CommonR.string.text_routine_title)
-            )
+    Column(modifier = Modifier.fillMaxSize()) {
+        TigSingleLineTextField(
+            value = currentRoutine.routineTitle,
+            onValueChange = {
+                sendIntent(
+                    TimeRoutineEditUiIntent.UpdateRoutineTitle(it)
+                )
+            },
+            modifier = Modifier.fillMaxWidth(),
+            hint = currentRoutine.subTitle.takeIf { it.isNotEmpty() }
+                ?: stringResource(CommonR.string.text_routine_title)
+        )
 
-            TigText(
-                text = validState.invalidTitleMessage?.asString() ?: "",
-            )
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                currentRoutine.dayOfWeekMap.forEach { dayOfWeekItem ->
-                    TigCheckButton(
-                        label = dayOfWeekItem.key.getDisplayName(
-                            TextStyle.SHORT,
-                            Locale.getDefault()
-                        ),
-                        checked = dayOfWeekItem.value.checked,
-                        onCheckedChange = {
-                            sendIntent(
-                                TimeRoutineEditUiIntent.UpdateDayOfWeek(dayOfWeekItem.key, it)
-                            )
-                        },
-                        enabled = dayOfWeekItem.value.enable
-                    )
-                }
+        TigText(
+            text = validState.invalidTitleMessage?.asString() ?: "",
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            currentRoutine.dayOfWeekMap.forEach { dayOfWeekItem ->
+                TigCheckButton(
+                    label = dayOfWeekItem.key.getDisplayName(
+                        TextStyle.SHORT,
+                        Locale.getDefault()
+                    ),
+                    checked = dayOfWeekItem.value.checked,
+                    onCheckedChange = {
+                        sendIntent(
+                            TimeRoutineEditUiIntent.UpdateDayOfWeek(dayOfWeekItem.key, it)
+                        )
+                    },
+                    enabled = dayOfWeekItem.value.enable
+                )
             }
-            TigText(
-                text = validState.invalidDayOfWeekMessage?.asString() ?: "",
-            )
-
-            BottomButtons(currentRoutine, validState, sendIntent)
         }
+        TigText(
+            text = validState.invalidDayOfWeekMessage?.asString() ?: "",
+        )
+
+        BottomButtons(currentRoutine, validState, sendIntent)
     }
 }
 
