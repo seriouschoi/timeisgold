@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -19,7 +20,6 @@ import software.seriouschoi.timeisgold.core.common.ui.components.TigBottomBar
 import software.seriouschoi.timeisgold.core.common.ui.components.TigCheckButton
 import software.seriouschoi.timeisgold.core.common.ui.components.TigLabelButton
 import software.seriouschoi.timeisgold.core.common.ui.components.TigSingleLineTextField
-import software.seriouschoi.timeisgold.core.common.ui.components.TigText
 import software.seriouschoi.timeisgold.core.common.ui.container.TigContainer
 import software.seriouschoi.timeisgold.core.common.util.Envelope
 import java.time.DayOfWeek
@@ -60,7 +60,7 @@ private fun Preview() {
             dayOfWeekMap = TimeRoutineEditDayOfWeekItemState.createDefaultItemMap(),
             routineTitle = "title",
             visibleDelete = true,
-            isLoading = true
+            isLoading = false
         ),
         validState = TimeRoutineEditUiValidUiState()
     ) { }
@@ -98,7 +98,7 @@ private fun Routine(
                 ?: stringResource(CommonR.string.text_routine_title)
         )
 
-        TigText(
+        Text(
             text = validState.invalidTitleMessage?.asString() ?: "",
         )
         Row(
@@ -121,7 +121,7 @@ private fun Routine(
                 )
             }
         }
-        TigText(
+        Text(
             text = validState.invalidDayOfWeekMessage?.asString() ?: "",
         )
 

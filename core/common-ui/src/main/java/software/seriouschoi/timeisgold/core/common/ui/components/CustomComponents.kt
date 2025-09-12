@@ -1,22 +1,22 @@
 package software.seriouschoi.timeisgold.core.common.ui.components
 
-import android.os.Build
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -27,10 +27,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusManager
-import androidx.compose.ui.graphics.BlurEffect
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.TileMode
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.tooling.preview.Preview
@@ -46,8 +42,16 @@ private fun ComponentsPreview() {
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
-        TigText("test")
-        TigSingleLineTextField(value = "test\naset", onValueChange = {})
+        TigSingleLineTextField(
+            value = "test\naset",
+            onValueChange = {},
+            modifier = Modifier.fillMaxWidth()
+        )
+        TigSingleLineTextField(
+            hint = "hint",
+            onValueChange = {},
+            modifier = Modifier.fillMaxWidth()
+        )
         TigCheckButton(label = "test", checked = true, onCheckedChange = {})
         TigLabelButton(
             onClick = {},
@@ -126,7 +130,7 @@ fun TigAlert(
         },
     ) {
         Column {
-            TigText(text = message)
+            Text(text = message)
 
             TigBottomBar {
                 if (onClickCancel != null && cancelButtonText != null) {
@@ -152,7 +156,6 @@ fun TigAlert(
 }
 
 
-
 @Composable
 fun TigCircleProgress() {
     CircularProgressIndicator()
@@ -170,7 +173,7 @@ fun TigLabelButton(
         modifier = modifier,
         enabled = enabled
     ) {
-        TigText(text = label)
+        Text(text = label)
     }
 }
 
@@ -196,18 +199,11 @@ fun TigBottomBar(modifier: Modifier = Modifier, content: @Composable () -> Unit)
     }
 }
 
-@Composable
-fun TigText(text: String, modifier: Modifier = Modifier) {
-    Text(
-        text = text,
-        modifier = modifier,
-    )
-}
 
 @Composable
 fun TigSingleLineTextField(
     modifier: Modifier = Modifier,
-    value: String,
+    value: String = "",
     onValueChange: (String) -> Unit,
     hint: String = "",
 ) {
@@ -224,7 +220,24 @@ fun TigSingleLineTextField(
             }
         ),
         placeholder = {
-            TigText(hint)
+            Text(
+                text = hint,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+            )
+        },
+        trailingIcon = {
+            if (value.isNotEmpty()) {
+                IconButton(
+                    onClick = {
+                        onValueChange("")
+                    }
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Clear,
+                        contentDescription = null,
+                    )
+                }
+            }
         }
     )
 }
@@ -246,6 +259,6 @@ fun TigCheckButton(
             onCheckedChange = onCheckedChange,
             enabled = enabled
         )
-        TigText(text = label)
+        Text(text = label)
     }
 }

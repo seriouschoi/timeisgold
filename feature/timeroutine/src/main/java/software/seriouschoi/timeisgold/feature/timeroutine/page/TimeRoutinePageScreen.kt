@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -17,7 +18,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import software.seriouschoi.timeisgold.core.common.ui.UiText
 import software.seriouschoi.timeisgold.core.common.ui.asString
 import software.seriouschoi.timeisgold.core.common.ui.components.TigLabelButton
-import software.seriouschoi.timeisgold.core.common.ui.components.TigText
 import java.time.DayOfWeek
 import software.seriouschoi.timeisgold.core.common.ui.R as CommonR
 
@@ -78,8 +78,8 @@ private fun Routine(
     sendIntent: (TimeRoutinePageUiIntent) -> Unit,
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
-        TigText(text = state.dayOfWeekName)
-        TigText(text = state.title)
+        Text(text = state.dayOfWeekName)
+        Text(text = state.title)
         TigLabelButton(
             label = stringResource(CommonR.string.text_edit),
             onClick = {
@@ -111,7 +111,7 @@ private fun Error(currentState: TimeRoutinePageUiState.Error) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        TigText(text = currentState.errorMessage.asString())
+        Text(text = currentState.errorMessage.asString())
     }
 }
 
@@ -135,7 +135,7 @@ private fun Empty(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        TigText(text = currentState.emptyMessage.asString())
+        Text(text = currentState.emptyMessage.asString())
         TigLabelButton(
             label = stringResource(CommonR.string.text_create),
             onClick = {
@@ -163,7 +163,7 @@ private fun Loading(state: TimeRoutinePageUiState.Loading) {
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
-        TigText(text = state.loadingMessage.asString())
+        Text(text = state.loadingMessage.asString())
     }
 }
 
