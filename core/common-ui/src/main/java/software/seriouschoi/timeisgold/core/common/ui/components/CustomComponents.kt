@@ -122,8 +122,8 @@ fun TigAlert(
 
     BasicAlertDialog(
         onDismissRequest = {
-            show = false
-        }
+//            show = false
+        },
     ) {
         Column {
             TigText(text = message)

@@ -1,13 +1,14 @@
 package software.seriouschoi.timeisgold.core.common.ui.container
 
 import android.os.Build
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.BlurEffect
@@ -25,17 +26,33 @@ import software.seriouschoi.timeisgold.core.common.ui.components.tapClearFocus
 @Composable
 fun TigContainer(
     loading: Boolean = false,
-    composable: @Composable () -> Unit = {}
+    loadingContent: @Composable () -> Unit = {
+        TigCircleProgress()
+    },
+    content: @Composable () -> Unit
 ) {
+    val animationTime = 300
+    val maxBlurRadius = 20f
+    val dimAlpha by animateFloatAsState(
+        targetValue = if (loading) 0.3f else 0f,
+        animationSpec = tween(durationMillis = animationTime), // 0.3초 페이드
+        label = "LoadingDimAlpha"
+    )
+
+    val blurAlpha by animateFloatAsState(
+        targetValue = if (loading) maxBlurRadius else 0f,
+        animationSpec = tween(durationMillis = animationTime), // 0.3초 페이드
+        label = "LoadingBlurAlpha"
+    )
+
     val focusManager = LocalFocusManager.current
     val blurModifier = Modifier
-        .background(Color.Black.copy(alpha = 0.3f))
         .tapClearFocus(focusManager)
         .graphicsLayer {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 val renderEffect = BlurEffect(
-                    radiusX = 20f,
-                    radiusY = 20f,
+                    radiusX = blurAlpha,
+                    radiusY = blurAlpha,
                     edgeTreatment = TileMode.Clamp
                 )
                 //require androidx.compose.ui.graphics
@@ -47,13 +64,13 @@ fun TigContainer(
         modifier = Modifier
             .fillMaxSize()
             .then(
-                if (loading) blurModifier
+                if (loading || blurAlpha > 0f) blurModifier
                 else Modifier
             )
     ) {
-        composable()
+        content()
     }
-    if (loading) {
+    if (loading || dimAlpha > 0f) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -61,11 +78,13 @@ fun TigContainer(
                     enabled = true,
                     onClick = {
                         //consume.
-                    },
-                    interactionSource = remember { MutableInteractionSource() }
+                    }
+                )
+                .then(
+                    Modifier.background(Color.Black.copy(alpha = dimAlpha))
                 ),
             contentAlignment = Alignment.Center) {
-            TigCircleProgress()
+            loadingContent()
         }
     }
 }
