@@ -18,10 +18,7 @@ import software.seriouschoi.timeisgold.core.common.ui.UiText
 import software.seriouschoi.timeisgold.core.common.ui.asString
 import software.seriouschoi.timeisgold.core.common.ui.components.TigLabelButton
 import software.seriouschoi.timeisgold.core.common.ui.components.TigText
-import software.seriouschoi.timeisgold.feature.timeroutine.R
 import java.time.DayOfWeek
-import java.time.format.TextStyle
-import java.util.Locale
 import software.seriouschoi.timeisgold.core.common.ui.R as CommonR
 
 /**

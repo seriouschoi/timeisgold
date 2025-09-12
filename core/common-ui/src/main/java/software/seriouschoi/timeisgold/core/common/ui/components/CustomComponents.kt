@@ -2,7 +2,9 @@ package software.seriouschoi.timeisgold.core.common.ui.components
 
 import android.os.Build
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -32,6 +34,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.tooling.preview.Preview
+import software.seriouschoi.timeisgold.core.common.ui.container.TigContainer
 
 /**
  * Created by jhchoi on 2025. 9. 4.
@@ -73,21 +76,14 @@ private fun ComponentsPreview() {
 @Preview
 @Composable
 private fun LoadingBoxPreview() {
-    Box(modifier = Modifier.fillMaxSize()) {
+    TigContainer(
+        loading = true
+    ) {
         ComponentsPreview()
-        TigLoadingBox()
     }
 }
 
-@Composable
-fun TapGestureBox(modifier: Modifier, composable: @Composable () -> Unit) {
-    val focusManager = LocalFocusManager.current
-    Box(modifier.tapClearFocus(focusManager)) {
-        composable()
-    }
-}
-
-private fun Modifier.tapClearFocus(focusManager: FocusManager): Modifier {
+fun Modifier.tapClearFocus(focusManager: FocusManager): Modifier {
     return this.pointerInput(Unit) {
         detectTapGestures {
             focusManager.clearFocus(force = true)
@@ -155,29 +151,7 @@ fun TigAlert(
     }
 }
 
-@Composable
-fun TigLoadingBox() {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(Color.Black.copy(alpha = 0.3f))
-            .graphicsLayer {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                    val renderEffect = BlurEffect(
-                        radiusX = 20f,
-                        radiusY = 20f,
-                        edgeTreatment = TileMode.Clamp
-                    )
-                    //require androidx.compose.ui.graphics
-                    this.renderEffect = renderEffect
-                }
-            },
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        CircularProgressIndicator()
-    }
-}
+
 
 @Composable
 fun TigCircleProgress() {

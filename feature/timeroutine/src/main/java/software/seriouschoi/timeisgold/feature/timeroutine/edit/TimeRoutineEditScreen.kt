@@ -15,14 +15,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import software.seriouschoi.timeisgold.core.common.ui.asString
-import software.seriouschoi.timeisgold.core.common.ui.components.TapGestureBox
 import software.seriouschoi.timeisgold.core.common.ui.components.TigAlert
 import software.seriouschoi.timeisgold.core.common.ui.components.TigBottomBar
 import software.seriouschoi.timeisgold.core.common.ui.components.TigCheckButton
 import software.seriouschoi.timeisgold.core.common.ui.components.TigLabelButton
-import software.seriouschoi.timeisgold.core.common.ui.components.TigLoadingBox
 import software.seriouschoi.timeisgold.core.common.ui.components.TigSingleLineTextField
 import software.seriouschoi.timeisgold.core.common.ui.components.TigText
+import software.seriouschoi.timeisgold.core.common.ui.container.TigContainer
 import software.seriouschoi.timeisgold.core.common.util.Envelope
 import java.time.DayOfWeek
 import java.time.format.TextStyle
@@ -73,9 +72,7 @@ private fun Screen(
     validState: TimeRoutineEditUiValidUiState,
     sendIntent: (TimeRoutineEditUiIntent) -> Unit,
 ) {
-    TapGestureBox(
-        modifier = Modifier.fillMaxSize()
-    ) {
+    TigContainer(uiState.isLoading) {
         Column(modifier = Modifier.fillMaxSize()) {
             Box {
                 Routine(uiState, validState) {
@@ -134,10 +131,6 @@ private fun Routine(
             )
 
             BottomButtons(currentRoutine, validState, sendIntent)
-        }
-
-        if (currentRoutine.isLoading) {
-            Loading()
         }
     }
 }
@@ -205,8 +198,3 @@ private fun BottomButtons(
     }
 }
 
-
-@Composable
-private fun Loading() {
-    TigLoadingBox()
-}
