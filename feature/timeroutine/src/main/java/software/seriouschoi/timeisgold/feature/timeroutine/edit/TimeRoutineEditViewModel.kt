@@ -6,7 +6,6 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -16,9 +15,11 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.merge
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.scan
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
@@ -27,6 +28,7 @@ import software.seriouschoi.navigator.DestNavigatorPort
 import software.seriouschoi.timeisgold.core.common.ui.ResultState
 import software.seriouschoi.timeisgold.core.common.ui.UiText
 import software.seriouschoi.timeisgold.core.common.ui.asResultState
+import software.seriouschoi.timeisgold.core.common.ui.flowResultState
 import software.seriouschoi.timeisgold.core.common.util.Envelope
 import software.seriouschoi.timeisgold.core.domain.mapper.toUiText
 import software.seriouschoi.timeisgold.domain.data.DomainError
@@ -111,6 +113,8 @@ internal class TimeRoutineEditViewModel @Inject constructor(
             }
     }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
+    private val _loadingStateFlow = MutableSharedFlow<Boolean>()
+
     val uiStateFlow: StateFlow<TimeRoutineEditUiState> = merge(
         initResultStateFlow.map { it: ResultState<DomainResult<TimeRoutineDefinition>> ->
             UiPreState.Init(it)
@@ -119,6 +123,9 @@ internal class TimeRoutineEditViewModel @Inject constructor(
         },
         initUsedDayOfWeeksWithoutMeFlow.map {
             UiPreState.InitUsedDayOfWeeks(it)
+        },
+        _loadingStateFlow.map {
+            UiPreState.Loading(it)
         }
     ).scan(
         TimeRoutineEditUiState(
@@ -140,9 +147,16 @@ internal class TimeRoutineEditViewModel @Inject constructor(
             is UiPreState.InitUsedDayOfWeeks -> {
                 currentState.reduceFromInitUsedDayOfWeeks(preState)
             }
+
+            is UiPreState.Loading -> {
+                currentState.copy(
+                    isLoading = preState.loading
+                )
+            }
         }
     }.map { uiState: TimeRoutineEditUiState ->
-        val currentDayOfWeeks = uiState.dayOfWeekMap.filter { it.value.checked && it.value.enable }.keys
+        val currentDayOfWeeks =
+            uiState.dayOfWeekMap.filter { it.value.checked && it.value.enable }.keys
         val subTitle = currentDayOfWeeks.sorted().joinToString {
             it.getDisplayName(TextStyle.SHORT, Locale.getDefault())
         }
@@ -239,14 +253,14 @@ internal class TimeRoutineEditViewModel @Inject constructor(
             }
         }.stateIn(viewModelScope, SharingStarted.Lazily, TimeRoutineEditUiValidUiState())
 
-    private val _uiEvent = MutableSharedFlow<TimeRoutineEditUiEvent>()
+    private val _uiEvent = MutableSharedFlow<Envelope<TimeRoutineEditUiEvent>>()
     val uiEvent: SharedFlow<Envelope<TimeRoutineEditUiEvent>> = merge(
         initResultStateFlow.map {
             UiPreEvent.Init(it)
         }, _uiIntentFlow.map {
             UiPreEvent.Intent(it.payload)
         }, _uiEvent.map {
-            UiPreEvent.Event(it)
+            UiPreEvent.Event(it.payload)
         }
     ).mapNotNull { preEvent: UiPreEvent ->
         when (preEvent) {
@@ -271,7 +285,10 @@ internal class TimeRoutineEditViewModel @Inject constructor(
             _uiIntentFlow.collect { envelope: Envelope<TimeRoutineEditUiIntent> ->
                 when (envelope.payload) {
                     TimeRoutineEditUiIntent.Exit -> navigator.back()
-                    TimeRoutineEditUiIntent.SaveConfirm -> saveTimeRoutine()
+                    TimeRoutineEditUiIntent.SaveConfirm -> {
+                        saveTimeRoutine()
+                    }
+
                     TimeRoutineEditUiIntent.DeleteConfirm -> deleteTimeRoutine()
                     else -> {
                         //no work.
@@ -281,18 +298,50 @@ internal class TimeRoutineEditViewModel @Inject constructor(
         }
     }
 
-
     private fun saveTimeRoutine() {
-        viewModelScope.launch {
-            val timeRoutine = currentRoutineDefinitionFlow.firstOrNull() ?: return@launch
-            val result = setTimeRoutineUseCase.invoke(
+        flowResultState {
+            val timeRoutine = currentRoutineDefinitionFlow.firstOrNull()
+                ?: return@flowResultState DomainResult.Failure(
+                    DomainError.NotFound.TimeRoutine
+                )
+            setTimeRoutineUseCase.invoke(
                 timeRoutine
             )
-            val event = result.convertSaveResultToEvent()
-            _uiEvent.emit(event)
-        }
+        }.onEach { resultState ->
+            updateLoadingState(resultState)
+        }.mapNotNull { resultState: ResultState<DomainResult<String>> ->
+            when (resultState) {
+                ResultState.Loading -> null
+
+                is ResultState.Error -> {
+                    TimeRoutineEditUiEvent.ShowAlert(
+                        message = DomainError.Technical.Unknown.toUiText(),
+                        confirmIntent = null
+                    )
+                }
+
+                is ResultState.Success -> {
+                    val domainResult = resultState.data
+                    domainResult.convertSaveResultToEvent()
+                }
+            }
+        }.onEach { event: TimeRoutineEditUiEvent ->
+            _uiEvent.emit(Envelope(event))
+        }.launchIn(viewModelScope)
     }
 
+    private fun updateLoadingState(resultState: ResultState<DomainResult<*>>) {
+        when (resultState) {
+            ResultState.Loading -> {
+                _loadingStateFlow.tryEmit(true)
+            }
+
+            is ResultState.Error,
+            is ResultState.Success -> {
+                _loadingStateFlow.tryEmit(false)
+            }
+        }
+    }
 
     fun sendIntent(intent: TimeRoutineEditUiIntent) {
         viewModelScope.launch {
@@ -302,13 +351,31 @@ internal class TimeRoutineEditViewModel @Inject constructor(
 
 
     private fun deleteTimeRoutine() {
-        viewModelScope.launch {
-            val routineDefinition = currentRoutineDefinitionFlow.first() ?: return@launch
-            val result =
-                deleteTimeRoutineUseCase.invoke(routineDefinition.timeRoutine.uuid)
-            val event = result.convertDeleteResultToEvent()
-            _uiEvent.emit(event)
-        }
+        flowResultState {
+            val routineDefinition = currentRoutineDefinitionFlow.first()
+                ?: return@flowResultState DomainResult.Failure(DomainError.Technical.Unknown)
+            deleteTimeRoutineUseCase.invoke(routineDefinition.timeRoutine.uuid)
+        }.onEach { resultState ->
+            updateLoadingState(resultState)
+        }.mapNotNull { resultState: ResultState<DomainResult<Boolean>> ->
+            when (resultState) {
+                ResultState.Loading -> {
+                    null
+                }
+                is ResultState.Error -> {
+                    TimeRoutineEditUiEvent.ShowAlert(
+                        message = DomainError.Technical.Unknown.toUiText(),
+                        confirmIntent = null
+                    )
+                }
+                is ResultState.Success -> {
+                    val domainResult = resultState.data
+                    domainResult.convertDeleteResultToEvent()
+                }
+            }
+        }.onEach {
+            _uiEvent.emit(Envelope(it))
+        }.launchIn(viewModelScope)
     }
 
 }
@@ -533,6 +600,7 @@ private sealed interface UiPreState {
     data class Init(val data: ResultState<DomainResult<TimeRoutineDefinition>>) : UiPreState
     data class Intent(val intent: TimeRoutineEditUiIntent) : UiPreState
     data class InitUsedDayOfWeeks(val dayOfWeeks: List<DayOfWeek>) : UiPreState
+    data class Loading(val loading: Boolean) : UiPreState
 }
 
 private sealed interface UiPreEvent {
