@@ -41,7 +41,7 @@ internal class TimeRoutinePageViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow<TimeRoutinePageUiState>(
         TimeRoutinePageUiState.Loading(
-            UiText.MultipleRes.create(
+            UiText.MultipleResArgs.create(
                 CommonR.string.message_format_loading,
                 CommonR.string.text_routine
             )
@@ -83,7 +83,7 @@ internal class TimeRoutinePageViewModel @Inject constructor(
         when (resultState) {
             ResultState.Loading -> {
                 return TimeRoutinePageUiState.Loading(
-                    loadingMessage = UiText.MultipleRes.create(
+                    loadingMessage = UiText.MultipleResArgs.create(
                         CommonR.string.message_format_loading,
                         CommonR.string.text_routine
                     )

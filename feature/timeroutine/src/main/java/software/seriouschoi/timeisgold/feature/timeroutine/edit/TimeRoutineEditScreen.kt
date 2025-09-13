@@ -1,11 +1,11 @@
 package software.seriouschoi.timeisgold.feature.timeroutine.edit
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -15,14 +15,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import software.seriouschoi.timeisgold.core.common.ui.asString
-import software.seriouschoi.timeisgold.core.common.ui.components.TapGestureBox
 import software.seriouschoi.timeisgold.core.common.ui.components.TigAlert
 import software.seriouschoi.timeisgold.core.common.ui.components.TigBottomBar
 import software.seriouschoi.timeisgold.core.common.ui.components.TigCheckButton
 import software.seriouschoi.timeisgold.core.common.ui.components.TigLabelButton
-import software.seriouschoi.timeisgold.core.common.ui.components.TigLoadingBox
 import software.seriouschoi.timeisgold.core.common.ui.components.TigSingleLineTextField
-import software.seriouschoi.timeisgold.core.common.ui.components.TigText
+import software.seriouschoi.timeisgold.core.common.ui.container.TigContainer
 import software.seriouschoi.timeisgold.core.common.util.Envelope
 import java.time.DayOfWeek
 import java.time.format.TextStyle
@@ -61,7 +59,8 @@ private fun Preview() {
             currentDayOfWeek = DayOfWeek.MONDAY,
             dayOfWeekMap = TimeRoutineEditDayOfWeekItemState.createDefaultItemMap(),
             routineTitle = "title",
-            visibleDelete = true
+            visibleDelete = true,
+            isLoading = false
         ),
         validState = TimeRoutineEditUiValidUiState()
     ) { }
@@ -73,15 +72,9 @@ private fun Screen(
     validState: TimeRoutineEditUiValidUiState,
     sendIntent: (TimeRoutineEditUiIntent) -> Unit,
 ) {
-    TapGestureBox(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        Column(modifier = Modifier.fillMaxSize()) {
-            Box {
-                Routine(uiState, validState) {
-                    sendIntent(it)
-                }
-            }
+    TigContainer(uiState.isLoading) {
+        Routine(uiState, validState) {
+            sendIntent(it)
         }
     }
 }
@@ -92,53 +85,47 @@ private fun Routine(
     validState: TimeRoutineEditUiValidUiState,
     sendIntent: (TimeRoutineEditUiIntent) -> Unit,
 ) {
-    Box(modifier = Modifier.fillMaxSize()) {
-        Column {
-            TigSingleLineTextField(
-                value = currentRoutine.routineTitle,
-                onValueChange = {
-                    sendIntent(
-                        TimeRoutineEditUiIntent.UpdateRoutineTitle(it)
-                    )
-                },
-                modifier = Modifier.fillMaxWidth(),
-                hint = currentRoutine.subTitle.takeIf { it.isNotEmpty() }
-                    ?: stringResource(CommonR.string.text_routine_title)
-            )
+    Column(modifier = Modifier.fillMaxSize()) {
+        TigSingleLineTextField(
+            value = currentRoutine.routineTitle,
+            onValueChange = {
+                sendIntent(
+                    TimeRoutineEditUiIntent.UpdateRoutineTitle(it)
+                )
+            },
+            modifier = Modifier.fillMaxWidth(),
+            hint = currentRoutine.subTitle.takeIf { it.isNotEmpty() }
+                ?: stringResource(CommonR.string.text_routine_title)
+        )
 
-            TigText(
-                text = validState.invalidTitleMessage?.asString() ?: "",
-            )
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                currentRoutine.dayOfWeekMap.forEach { dayOfWeekItem ->
-                    TigCheckButton(
-                        label = dayOfWeekItem.key.getDisplayName(
-                            TextStyle.SHORT,
-                            Locale.getDefault()
-                        ),
-                        checked = dayOfWeekItem.value.checked,
-                        onCheckedChange = {
-                            sendIntent(
-                                TimeRoutineEditUiIntent.UpdateDayOfWeek(dayOfWeekItem.key, it)
-                            )
-                        },
-                        enabled = dayOfWeekItem.value.enable
-                    )
-                }
+        Text(
+            text = validState.invalidTitleMessage?.asString() ?: "",
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            currentRoutine.dayOfWeekMap.forEach { dayOfWeekItem ->
+                TigCheckButton(
+                    label = dayOfWeekItem.key.getDisplayName(
+                        TextStyle.SHORT,
+                        Locale.getDefault()
+                    ),
+                    checked = dayOfWeekItem.value.checked,
+                    onCheckedChange = {
+                        sendIntent(
+                            TimeRoutineEditUiIntent.UpdateDayOfWeek(dayOfWeekItem.key, it)
+                        )
+                    },
+                    enabled = dayOfWeekItem.value.enable
+                )
             }
-            TigText(
-                text = validState.invalidDayOfWeekMessage?.asString() ?: "",
-            )
-
-            BottomButtons(currentRoutine, validState, sendIntent)
         }
+        Text(
+            text = validState.invalidDayOfWeekMessage?.asString() ?: "",
+        )
 
-        if (currentRoutine.isLoading) {
-            Loading()
-        }
+        BottomButtons(currentRoutine, validState, sendIntent)
     }
 }
 
@@ -205,8 +192,3 @@ private fun BottomButtons(
     }
 }
 
-
-@Composable
-private fun Loading() {
-    TigLoadingBox()
-}
