@@ -159,7 +159,8 @@ internal class TimeRoutineEditViewModel @Inject constructor(
             }
         }
     }.map { uiState: TimeRoutineEditUiState ->
-        val subTitle = getAutoRoutineTitle(uiState.dayOfWeekMap.keys)
+        val dayOfWeeks = uiState.dayOfWeekMap.filter { it.value.checked && it.value.enable }.keys
+        val subTitle = getAutoRoutineTitle(dayOfWeeks)
         uiState.copy(
             subTitle = subTitle
         )
