@@ -91,6 +91,10 @@ class FakeTimeRoutineRepositoryAdapter(
         TODO("Not yet implemented")
     }
 
+    override suspend fun getAllDayOfWeeks(): List<DayOfWeek> {
+        TODO("Not yet implemented")
+    }
+
     override suspend fun getCompositionByUuid(timeRoutineUuid: String): TimeRoutineComposition? {
         if (flags.readThrow) {
             throw Exception()
