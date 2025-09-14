@@ -20,13 +20,11 @@
     - 타임 루틴을 탐색하면서 볼일은 없음.
     - 다만 전날,다음날 루틴이 조금 보이면 좋음.
 
+## time routine edit test.
+- [ ] 우선 deprecated 된 함수들 제거.
+- [ ] time routine edit viewmodel test 추가. (intent의 테스트 전부 작성.)
 
 ## time routine edit
-- [x] 요일 중복 선택 방지를 위한 disable처리 추가.
-- [x] 제목을 입력하지 않았을 경우, 부제목 출력.
-  - 부제목은 placeholder로 출력하자.
-  - 부제목은 요일 선택으로 인해 자동생성된 제목이다.
-- [ ] time routine edit viewmodel test 추가. (intent의 테스트 전부 작성.)
 - [ ] uuid생성 규칙 일원화를 위해 도메인에 접근자 정의하기.
   - UUID.randomUUID().toString() 이걸 일일히 하다보면, 다른곳에서 다른 규칙을 쓸 우려가 있음.
 - [ ] TimeRoutineRepositoryPort가 너무 큼. Composition과 Routine을 나눠야 함.
