@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "software.seriouschoi.navigator"
+    namespace = "software.seriouschoi.navigator.adapter"
 }
 
 dependencies {
