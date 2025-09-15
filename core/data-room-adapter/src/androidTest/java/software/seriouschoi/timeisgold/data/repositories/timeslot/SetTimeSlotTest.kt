@@ -23,7 +23,7 @@ internal class SetTimeSlotTest : BaseRoomTest() {
     @Before
     fun setup() {
         runTest {
-            timeRoutineRepo.addTimeRoutineComposition(routineForAdd1)
+            timeRoutineRepo.saveTimeRoutineComposition(routineForAdd1)
         }
     }
 

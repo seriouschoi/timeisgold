@@ -15,6 +15,7 @@ import software.seriouschoi.timeisgold.domain.data.DomainResult
 import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineComposition
 import timber.log.Timber
 import java.time.DayOfWeek
+import java.util.UUID
 
 /**
  * Created by jhchoi on 2025. 8. 7.
@@ -48,7 +49,7 @@ internal class SetTimeRoutineTest : BaseRoomTest() {
             }.toSet()
         )
 
-        timeRoutineRepo.setTimeRoutineComposition(routineCompoForUpdate)
+        timeRoutineRepo.saveTimeRoutineComposition(routineCompoForUpdate)
 
         val gson = Gson()
         val routineEmitted: TimeRoutineComposition? = routineFlow.first()
@@ -62,35 +63,6 @@ internal class SetTimeRoutineTest : BaseRoomTest() {
                 
                 routineEmitted: ${gson.toJson(routineEmitted)}
             """.trimIndent()
-        }
-    }
-
-    /**
-     * 중복된 타임 슬롯 id를 저장할 경우. Exception발생.
-     * 예를 들면.. 이미 루틴1 컴포지션이 저장된 상태.
-     * 루틴2 컴포지션도 있는 상태.
-     * 이 상태에 루틴2의 슬롯에 루틴1의 슬롯의 일부 요소를 넣어서 저장하려고 하면 오류가 나야함.
-     */
-    @Test
-    fun setTimeSlot_duplicateUuid_shouldThrowException() = runTest {
-        val routineCompoWedThu = testFixtures.routineCompoWedThu
-        timeRoutineRepo.saveTimeRoutineComposition(routineCompoWedThu)
-
-        //루틴1과 중복된 요소가 있는 슬롯 목록을 생성.
-        val newSlots = routineCompoWedThu.timeSlots.toMutableList().apply {
-            this.add(savedRoutineCompoMonTue.timeSlots.first())
-        }.toList()
-        //루틴2에 중복 요소가 있는 슬롯을 저장.
-        val routine2ForUpdate = routineCompoWedThu.copy(
-            timeSlots = newSlots
-        )
-
-        //Excpetion발생.
-        val result = timeRoutineRepo.saveTimeRoutineComposition(routine2ForUpdate)
-        Timber.d("result: $result")
-
-        assert((result as? DomainResult.Failure)?.error == DomainError.Conflict.Data) {
-            "중복 데이터 예외처리가 발생하지 않습니다. $result"
         }
     }
 

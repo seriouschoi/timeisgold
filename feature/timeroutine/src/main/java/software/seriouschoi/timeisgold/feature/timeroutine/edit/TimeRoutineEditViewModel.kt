@@ -30,7 +30,7 @@ import software.seriouschoi.timeisgold.core.common.ui.ResultState
 import software.seriouschoi.timeisgold.core.common.ui.UiText
 import software.seriouschoi.timeisgold.core.common.ui.asResultState
 import software.seriouschoi.timeisgold.core.common.ui.flowResultState
-import software.seriouschoi.timeisgold.core.common.ui.provider.UiTextProvider
+import software.seriouschoi.timeisgold.core.common.ui.provider.UiTextResolver
 import software.seriouschoi.timeisgold.core.common.util.Envelope
 import software.seriouschoi.timeisgold.core.domain.mapper.toUiText
 import software.seriouschoi.timeisgold.domain.data.DayOfWeekType
@@ -66,7 +66,7 @@ internal class TimeRoutineEditViewModel @Inject constructor(
     private val getAllDayOfWeeksUseCase: GetAllRoutinesDayOfWeeksUseCase,
     private val getDayOfWeeksTypeUseCase: GetDayOfWeeksTypeUseCase,
 
-    private val uiTextProvider: UiTextProvider,
+    private val uiTextProvider: UiTextResolver,
 ) : ViewModel() {
 
     private val route get() = savedStateHandle.toRoute<TimeRoutineEditScreenRoute>()
@@ -281,7 +281,8 @@ internal class TimeRoutineEditViewModel @Inject constructor(
     }.map {
         Envelope(it)
     }.shareIn(viewModelScope, SharingStarted.Lazily)
-    fun init() {
+
+    init {
         viewModelScope.launch {
             _uiIntentFlow.collect { envelope: Envelope<TimeRoutineEditUiIntent> ->
                 when (envelope.payload) {

@@ -13,7 +13,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import software.seriouschoi.timeisgold.core.common.ui.asString
 import software.seriouschoi.timeisgold.core.common.ui.components.TigAlert
 import software.seriouschoi.timeisgold.core.common.ui.components.TigBottomBar
@@ -30,10 +30,6 @@ import software.seriouschoi.timeisgold.core.common.ui.R as CommonR
 @Composable
 internal fun TimeRoutineEditScreen() {
     val viewModel = hiltViewModel<TimeRoutineEditViewModel>()
-
-    LaunchedEffect(viewModel) {
-        viewModel.init()
-    }
 
     //show uiState.
     val uiState by viewModel.uiStateFlow.collectAsState()

@@ -26,12 +26,12 @@ internal class AddTimeRoutineUseCaseTest {
     @Mock
     lateinit var timeRoutineRepo: TimeRoutineRepositoryPort
 
-    private lateinit var useCase: AddTimeRoutineCompositionUseCase
+    private lateinit var useCase: SetTimeRoutineCompositionUseCase
 
     @Before
     fun setup() {
         MockitoAnnotations.openMocks(this)
-        useCase = AddTimeRoutineCompositionUseCase(
+        useCase = SetTimeRoutineCompositionUseCase(
             timeRoutineRepo, TimeRoutineDomainService(
                 timeRoutineRepo
             )

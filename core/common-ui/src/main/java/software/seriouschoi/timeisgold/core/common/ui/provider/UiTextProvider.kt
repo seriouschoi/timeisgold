@@ -4,10 +4,14 @@ import android.content.Context
 import software.seriouschoi.timeisgold.core.common.ui.UiText
 import javax.inject.Inject
 
-class UiTextProvider @Inject internal constructor(
+interface UiTextResolver {
+    fun getString(uiText: UiText): String
+}
+
+internal class UiTextProvider @Inject constructor(
     private val context: Context,
-) {
-    fun getString(uiText: UiText): String {
+): UiTextResolver {
+    override fun getString(uiText: UiText): String {
         return when (uiText) {
             is UiText.MultipleResArgs -> {
                 val stringArgs = uiText.args.map {

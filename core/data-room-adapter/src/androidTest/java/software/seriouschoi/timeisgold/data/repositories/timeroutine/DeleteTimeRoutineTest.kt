@@ -16,8 +16,9 @@ internal class DeleteTimeRoutineTest : BaseRoomTest() {
     @Before
     fun setup() {
         runTest {
-            timeRoutineRepo.addTimeRoutineComposition(routine1)
-            timeRoutineRepo.addTimeRoutineComposition(routine2)
+            timeRoutineRepo.saveTimeRoutineComposition(routine1)
+            timeRoutineRepo.saveTimeRoutineComposition(routine2)
+
         }
     }
 

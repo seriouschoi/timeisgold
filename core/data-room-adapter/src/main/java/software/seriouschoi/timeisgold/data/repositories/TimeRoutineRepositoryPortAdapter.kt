@@ -53,49 +53,6 @@ internal class TimeRoutineRepositoryPortAdapter @Inject constructor(
     }
 
 
-    @Deprecated("use upsert")
-    override suspend fun addTimeRoutineComposition(timeRoutine: TimeRoutineComposition) {
-        appDatabase.withTransaction {
-            val timeRoutineId = appDatabase.TimeRoutineDao().add(
-                timeRoutine.timeRoutine.toTimeRoutineSchema(null)
-            )
-
-            timeRoutine.timeSlots.forEach {
-                appDatabase.TimeSlotDao().insert(
-                    it.toTimeSlotSchema(
-                        timeRoutineId = timeRoutineId
-                    )
-                )
-            }
-
-            updateDayOfWeekList(
-                routineDayOfWeekList = timeRoutine.dayOfWeeks,
-                timeRoutineUuid = timeRoutine.timeRoutine.uuid
-            )
-        }
-    }
-
-    @Deprecated("use upsert")
-    override suspend fun setTimeRoutineComposition(composition: TimeRoutineComposition) {
-        appDatabase.withTransaction {
-            val routineId =
-                appDatabase.TimeRoutineDao().observe(composition.timeRoutine.uuid).first()?.id
-                    ?: throw IllegalStateException("time routine is null")
-
-
-            appDatabase.TimeRoutineDao().update(
-                composition.timeRoutine.toTimeRoutineSchema(id = routineId)
-            )
-
-            //slots delete
-            updateTimeSlots(
-                incomingSlots = composition.timeSlots,
-                routineUuid = composition.timeRoutine.uuid,
-            )
-            updateDayOfWeekList(composition.dayOfWeeks, composition.timeRoutine.uuid)
-        }
-    }
-
     override fun observeCompositionByDayOfWeek(dayOfWeek: DayOfWeek): Flow<TimeRoutineComposition?> {
         return appDatabase.TimeRoutineJoinDayOfWeekViewDao()
             .getLatestByDayOfWeek(dayOfWeek)

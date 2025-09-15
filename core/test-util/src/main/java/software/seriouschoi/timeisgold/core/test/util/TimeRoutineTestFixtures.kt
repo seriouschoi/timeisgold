@@ -2,6 +2,7 @@ package software.seriouschoi.timeisgold.core.test.util
 
 import software.seriouschoi.timeisgold.core.common.util.toEpochMillis
 import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineComposition
+import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineDefinition
 import software.seriouschoi.timeisgold.domain.data.composition.TimeSlotComposition
 import software.seriouschoi.timeisgold.domain.data.entities.TimeRoutineDayOfWeekEntity
 import software.seriouschoi.timeisgold.domain.data.entities.TimeRoutineEntity
@@ -30,6 +31,12 @@ class TimeRoutineTestFixtures {
         }.toSet()
     )
 
+    val routineDefMonTue: TimeRoutineDefinition
+        get() = TimeRoutineDefinition(
+            timeRoutine = routineCompoMonTue.timeRoutine,
+            dayOfWeeks = routineCompoMonTue.dayOfWeeks
+        )
+
     val routineCompoWedThu: TimeRoutineComposition = TimeRoutineComposition(
         timeRoutine = generateTimeRoutine(
             routineTitle = "routine2",
@@ -44,6 +51,12 @@ class TimeRoutineTestFixtures {
         }.toSet()
     )
 
+    val routineDefWedThu: TimeRoutineDefinition
+        get() = TimeRoutineDefinition(
+            timeRoutine = routineCompoWedThu.timeRoutine,
+            dayOfWeeks = routineCompoWedThu.dayOfWeeks
+        )
+
     val routineCompoSun: TimeRoutineComposition = TimeRoutineComposition(
         timeRoutine = generateTimeRoutine(
             routineTitle = "routine3",
@@ -56,6 +69,13 @@ class TimeRoutineTestFixtures {
             TimeRoutineDayOfWeekEntity(it)
         }.toSet()
     )
+
+    val routineDefSun: TimeRoutineDefinition
+        get() = TimeRoutineDefinition(
+            timeRoutine = routineCompoSun.timeRoutine,
+            dayOfWeeks = routineCompoSun.dayOfWeeks
+        )
+
 
 
     fun generateTimeRoutine(

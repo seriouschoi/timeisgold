@@ -35,7 +35,7 @@ internal class GetTimeRoutineFlowTest : BaseRoomTest() {
         val mondayFlow = timeRoutineRepo.observeCompositionByDayOfWeek(DayOfWeek.MONDAY)
 
         val routineCompoMonTue = testFixtures.routineCompoMonTue
-        timeRoutineRepo.addTimeRoutineComposition(routineCompoMonTue)
+        timeRoutineRepo.saveTimeRoutineComposition(routineCompoMonTue)
 
         assert(mondayFlow.first() == routineCompoMonTue)
     }
@@ -57,10 +57,10 @@ internal class GetTimeRoutineFlowTest : BaseRoomTest() {
         val mondayRoutineFlow = timeRoutineRepo
             .observeCompositionByDayOfWeek(DayOfWeek.MONDAY)
 
-        timeRoutineRepo.addTimeRoutineComposition(routineCompoMonTue)
+        timeRoutineRepo.saveTimeRoutineComposition(routineCompoMonTue)
         assert(mondayRoutineFlow.first() == routineCompoMonTue)
 
-        timeRoutineRepo.addTimeRoutineComposition(routineCompoWedThu)
+        timeRoutineRepo.saveTimeRoutineComposition(routineCompoWedThu)
         assert(mondayRoutineFlow.first() == routineCompoWedThu)
     }
 
@@ -85,8 +85,8 @@ internal class GetTimeRoutineFlowTest : BaseRoomTest() {
         val sundayRoutineFlow = timeRoutineRepo
             .observeCompositionByDayOfWeek(sunDay.first())
 
-        timeRoutineRepo.addTimeRoutineComposition(routineCompoMonTue)
-        timeRoutineRepo.addTimeRoutineComposition(routineCompoWedThu)
+        timeRoutineRepo.saveTimeRoutineComposition(routineCompoMonTue)
+        timeRoutineRepo.saveTimeRoutineComposition(routineCompoWedThu)
 
         //routine2가 저장되어 수신이 되는가?
         assert(monRoutineFlow.first() == routineCompoMonTue)

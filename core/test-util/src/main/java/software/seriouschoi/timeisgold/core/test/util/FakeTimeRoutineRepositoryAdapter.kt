@@ -25,14 +25,6 @@ class FakeTimeRoutineRepositoryAdapter(
         val readThrow: Boolean = false
     )
 
-    @Deprecated("use upsert")
-    override suspend fun addTimeRoutineComposition(timeRoutine: TimeRoutineComposition) {
-    }
-
-    @Deprecated("use upsert")
-    override suspend fun setTimeRoutineComposition(composition: TimeRoutineComposition) {
-    }
-
     override suspend fun saveTimeRoutineComposition(composition: TimeRoutineComposition): DomainResult<String> {
         // Fake Adapter는 adapter의 동작을 검증하지 않으므로, 구현하지 않는다.
         // 구현할 경우, 불필요현 유지보수와 결합이 생기게 됨.
