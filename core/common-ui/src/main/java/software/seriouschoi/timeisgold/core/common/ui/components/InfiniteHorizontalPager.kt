@@ -8,6 +8,7 @@ import androidx.compose.runtime.remember
 @Composable
 fun InfiniteHorizontalPager(
     pageList: List<Any>,
+    startPageIndex: Int = 0,
     contentPage: @Composable (Int) -> Unit,
 ) {
     if (pageList.isEmpty()) return
@@ -16,7 +17,7 @@ fun InfiniteHorizontalPager(
     val startPage = remember(pageList) {
         val size = pageList.size
         if (size == 0) 0
-        else pageCount / 2 - (pageCount / 2) % size
+        else pageCount / 2 - (pageCount / 2) % size + startPageIndex
     }
 
     val pagerState = rememberPagerState(
