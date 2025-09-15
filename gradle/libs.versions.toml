@@ -97,6 +97,6 @@ timeisgold-android-library = { id = "timeisgold.android.library" }
 timeisgold-android-hilt = { id = "timeisgold.android.hilt" }
 timeisgold-android-compose = { id = "timeisgold.android.compose" }
 timeisgold-coroutine = { id = "timeisgold.coroutine" }
-timeisgold-merge-lint-sarif = { id = "timeisgold.merge.lint.sarif" }
+timeisgold-merge-lint = { id = "timeisgold.merge.lint" }
 timeisgold-kotlin-library = { id = "timeisgold.kotlin.library" }
 

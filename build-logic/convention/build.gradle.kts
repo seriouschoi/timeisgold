@@ -70,10 +70,10 @@ gradlePlugin {
             id = libs.plugins.timeisgold.coroutine.get().pluginId
             implementationClass = "CoroutineConventionPlugin"
         }
-        register("mergeLintSarif") {
+        register("mergeLint") {
             //timeisgold-android-compose
-            id = libs.plugins.timeisgold.merge.lint.sarif.get().pluginId
-            implementationClass = "MergeLintSarifPlugin"
+            id = libs.plugins.timeisgold.merge.lint.get().pluginId
+            implementationClass = "MergeLintPlugin"
         }
     }
 }
