@@ -9,9 +9,9 @@ import androidx.compose.ui.res.stringResource
  * jhchoi
  */
 sealed interface UiText {
-    data class Res(@get:StringRes val id: Int, val args: List<Any> = emptyList()) : UiText {
+    data class Res(@get:StringRes val id: Int, val args: List<String> = emptyList()) : UiText {
         companion object {
-            fun create(@StringRes id: Int, vararg args: Any) = Res(id, args.toList())
+            fun create(@StringRes id: Int, vararg args: String) = Res(id, args.toList())
         }
     }
 
@@ -41,7 +41,7 @@ fun UiText.asString(): String {
         }
 
         is UiText.Res -> {
-            stringResource(id, args)
+            stringResource(id, *args.toTypedArray())
         }
 
         is UiText.MultipleResArgs -> {
