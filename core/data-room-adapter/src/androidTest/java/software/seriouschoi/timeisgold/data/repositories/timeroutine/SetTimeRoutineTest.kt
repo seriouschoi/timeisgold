@@ -48,7 +48,7 @@ internal class SetTimeRoutineTest : BaseRoomTest() {
             }.toSet()
         )
 
-        timeRoutineRepo.setTimeRoutineComposition(routineCompoForUpdate)
+        timeRoutineRepo.saveTimeRoutineComposition(routineCompoForUpdate)
 
         val gson = Gson()
         val routineEmitted: TimeRoutineComposition? = routineFlow.first()

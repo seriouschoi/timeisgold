@@ -19,7 +19,7 @@ internal class DeleteTimeSlotTest : BaseRoomTest() {
     @Before
     fun setup() {
         runTest {
-            timeRoutineRepo.addTimeRoutineComposition(timeRoutine1Saved)
+            timeRoutineRepo.saveTimeRoutineComposition(timeRoutine1Saved)
         }
     }
 

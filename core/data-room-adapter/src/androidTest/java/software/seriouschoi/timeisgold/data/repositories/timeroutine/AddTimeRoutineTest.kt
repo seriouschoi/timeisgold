@@ -24,7 +24,7 @@ internal class AddTimeRoutineTest : BaseRoomTest() {
         val routineFlow = timeRoutineRepo
             .observeCompositionByUuidFlow(routineForAdd.timeRoutine.uuid)
 
-        timeRoutineRepo.addTimeRoutineComposition(routineForAdd)
+        timeRoutineRepo.saveTimeRoutineComposition(routineForAdd)
         assert(routineForAdd == routineFlow.first())
     }
 
@@ -45,8 +45,8 @@ internal class AddTimeRoutineTest : BaseRoomTest() {
             )
         }
 
-        timeRoutineRepo.addTimeRoutineComposition(routine1)
-        timeRoutineRepo.addTimeRoutineComposition(routine2)
+        timeRoutineRepo.saveTimeRoutineComposition(routine1)
+        timeRoutineRepo.saveTimeRoutineComposition(routine2)
     }
 
     /**
@@ -66,7 +66,7 @@ internal class AddTimeRoutineTest : BaseRoomTest() {
                 it.toTimeRoutineDayOfWeekEntity()
             }.toSet()
         )
-        timeRoutineRepo.addTimeRoutineComposition(routineCompo1)
+        timeRoutineRepo.saveTimeRoutineComposition(routineCompo1)
 
         //같은 요일 루틴 추가.
         val routine2Compo = TimeRoutineComposition(
@@ -79,7 +79,7 @@ internal class AddTimeRoutineTest : BaseRoomTest() {
                 it.toTimeRoutineDayOfWeekEntity()
             }.toSet()
         )
-        timeRoutineRepo.addTimeRoutineComposition(routine2Compo)
+        timeRoutineRepo.saveTimeRoutineComposition(routine2Compo)
 
 
         val testDayFlow = timeRoutineRepo
@@ -101,8 +101,8 @@ internal class AddTimeRoutineTest : BaseRoomTest() {
             ).flatten()
         )
 
-        timeRoutineRepo.addTimeRoutineComposition(routine1)
-        timeRoutineRepo.addTimeRoutineComposition(routine2)
+        timeRoutineRepo.saveTimeRoutineComposition(routine1)
+        timeRoutineRepo.saveTimeRoutineComposition(routine2)
     }
 
 }

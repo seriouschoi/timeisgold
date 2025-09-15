@@ -8,11 +8,6 @@ import software.seriouschoi.timeisgold.domain.data.entities.TimeRoutineEntity
 import java.time.DayOfWeek
 
 interface TimeRoutineRepositoryPort {
-    @Deprecated("use upsert")
-    suspend fun addTimeRoutineComposition(timeRoutine: TimeRoutineComposition)
-    @Deprecated("use upsert")
-    suspend fun setTimeRoutineComposition(composition: TimeRoutineComposition)
-
     suspend fun saveTimeRoutineComposition(composition: TimeRoutineComposition): DomainResult<String>
 
     fun observeCompositionByDayOfWeek(dayOfWeek: DayOfWeek): Flow<TimeRoutineComposition?>

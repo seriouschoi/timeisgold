@@ -24,7 +24,7 @@ internal class AddTimeSlotTest : BaseRoomTest() {
     @Before
     fun setup() {
         runTest {
-            timeRoutineRepo.addTimeRoutineComposition(timeRoutineAdded)
+            timeRoutineRepo.saveTimeRoutineComposition(timeRoutineAdded)
         }
     }
 
@@ -72,7 +72,7 @@ internal class AddTimeSlotTest : BaseRoomTest() {
                     it.toTimeRoutineDayOfWeekEntity()
                 }.toSet()
             )
-            timeRoutineRepo.addTimeRoutineComposition(routine1)
+            timeRoutineRepo.saveTimeRoutineComposition(routine1)
 
             val duplicatedSlot = routine1.timeSlots.first().copy(
                 title = "new slot",
