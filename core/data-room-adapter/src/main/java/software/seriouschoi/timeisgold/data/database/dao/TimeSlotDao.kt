@@ -18,9 +18,13 @@ internal abstract class TimeSlotDao {
     @Update
     abstract fun update(timeSlots: TimeSlotSchema)
 
-    fun upsert(timeSlot: TimeSlotSchema) {
-        if(timeSlot.id == null) { insert(timeSlot) }
-        else { update(timeSlot) }
+    suspend fun upsert(timeSlot: TimeSlotSchema): Long {
+        val slotId = get(timeSlot.uuid)?.id
+        return if(slotId == null) { insert(timeSlot) }
+        else {
+            update(timeSlot)
+            slotId
+        }
     }
 
     @Query("""

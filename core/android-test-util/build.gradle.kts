@@ -8,4 +8,8 @@ android {
 }
 
 dependencies {
+    implementation(project(":core:domain-data"))
+    implementation(project(":core:common-util"))
+    implementation(project(":core:common-ui"))
+
 }

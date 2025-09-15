@@ -11,6 +11,7 @@ import software.seriouschoi.timeisgold.data.BaseRoomTest
 import software.seriouschoi.timeisgold.data.mapper.toTimeRoutineDayOfWeekEntity
 import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineComposition
 import java.time.DayOfWeek
+import java.util.UUID
 
 @RunWith(AndroidJUnit4::class)
 internal class AddTimeRoutineTest : BaseRoomTest() {
@@ -26,27 +27,6 @@ internal class AddTimeRoutineTest : BaseRoomTest() {
 
         timeRoutineRepo.saveTimeRoutineComposition(routineForAdd)
         assert(routineForAdd == routineFlow.first())
-    }
-
-
-    /**
-     * 중복된 uuid를 추가할때 예외가 발생하는가?
-     */
-    @Test(expected = SQLiteConstraintException::class)
-    fun addTimeRoutine_duplicateUuid_shouldThrowException() = runTest {
-        val routine1 = testFixtures.routineCompoMonTue
-        //routine1과 같은 uuid를 가진 routine 생성.
-        val routine2 = testFixtures.routineCompoWedThu.let {
-            val routine = it.timeRoutine.copy(
-                uuid = routine1.timeRoutine.uuid
-            )
-            it.copy(
-                timeRoutine = routine
-            )
-        }
-
-        timeRoutineRepo.saveTimeRoutineComposition(routine1)
-        timeRoutineRepo.saveTimeRoutineComposition(routine2)
     }
 
     /**
@@ -86,23 +66,4 @@ internal class AddTimeRoutineTest : BaseRoomTest() {
             .observeCompositionByDayOfWeek(testDay)
         assert(testDayFlow.first() == routine2Compo)
     }
-
-
-    /**
-     * 중복된 타임 슬롯 id를 저장할 경우. Exception발생.
-     */
-    @Test(expected = SQLiteConstraintException::class)
-    fun addTimeSlot_duplicateUuid_shouldThrowException() = runTest {
-        val routine1 = testFixtures.routineCompoMonTue
-        val routine2 = testFixtures.routineCompoWedThu.copy(
-            timeSlots = listOf(
-                listOf(routine1.timeSlots.first()),
-                testFixtures.routineCompoWedThu.timeSlots
-            ).flatten()
-        )
-
-        timeRoutineRepo.saveTimeRoutineComposition(routine1)
-        timeRoutineRepo.saveTimeRoutineComposition(routine2)
-    }
-
 }

@@ -7,6 +7,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import software.seriouschoi.timeisgold.core.common.ui.provider.UiTextProvider
+import software.seriouschoi.timeisgold.core.common.ui.provider.UiTextResolver
 import javax.inject.Singleton
 
 @Module
@@ -16,7 +17,7 @@ internal class UiTextModule {
     @Provides
     fun provider(
         @ApplicationContext context: Context,
-    ): UiTextProvider {
+    ): UiTextResolver {
         return UiTextProvider(context)
     }
 

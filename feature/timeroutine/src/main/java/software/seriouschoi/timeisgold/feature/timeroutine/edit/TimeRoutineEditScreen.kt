@@ -31,10 +31,6 @@ import software.seriouschoi.timeisgold.core.common.ui.R as CommonR
 internal fun TimeRoutineEditScreen() {
     val viewModel = hiltViewModel<TimeRoutineEditViewModel>()
 
-    LaunchedEffect(viewModel) {
-        viewModel.init()
-    }
-
     //show uiState.
     val uiState by viewModel.uiStateFlow.collectAsState()
     val validState by viewModel.validStateFlow.collectAsState()
