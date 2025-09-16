@@ -11,6 +11,7 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -125,6 +126,7 @@ private fun PreviewRoutine() {
     }
 }
 
+@Deprecated("Include Routine()")
 @Composable
 private fun Error(currentState: TimeRoutinePageUiState.Error) {
     Column(
@@ -146,6 +148,7 @@ private fun PreviewError() {
     )
 }
 
+@Deprecated("Include Routine()")
 @Composable
 private fun Empty(
     currentState: TimeRoutinePageUiState.Empty,
