@@ -12,14 +12,14 @@ import androidx.compose.ui.Modifier
 
 @Composable
 fun TigScaffold(
-    topbar: @Composable () -> Unit = {},
+    topBar: @Composable () -> Unit = {},
     bottomBar: @Composable () -> Unit = {},
     content: @Composable (PaddingValues) -> Unit
 ) {
     Scaffold(
         contentWindowInsets = WindowInsets.Companion.safeDrawing,
         topBar = {
-            topbar()
+            topBar()
         },
         bottomBar = {
             bottomBar()

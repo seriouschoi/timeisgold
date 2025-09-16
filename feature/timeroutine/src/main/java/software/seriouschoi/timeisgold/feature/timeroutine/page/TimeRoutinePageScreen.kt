@@ -3,15 +3,14 @@ package software.seriouschoi.timeisgold.feature.timeroutine.page
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -28,7 +27,8 @@ import software.seriouschoi.timeisgold.core.common.ui.UiText
 import software.seriouschoi.timeisgold.core.common.ui.asString
 import software.seriouschoi.timeisgold.core.common.ui.components.TigCircleText
 import software.seriouschoi.timeisgold.core.common.ui.components.TigLabelButton
-import software.seriouschoi.timeisgold.core.common.ui.container.TigContainer
+import software.seriouschoi.timeisgold.core.common.ui.components.TigScaffold
+import software.seriouschoi.timeisgold.core.common.ui.container.TigBlurContainer
 import java.time.DayOfWeek
 import software.seriouschoi.timeisgold.core.common.ui.R as CommonR
 
@@ -83,29 +83,38 @@ fun TimeRoutinePageScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun Routine(
     state: TimeRoutinePageUiState.Routine,
     sendIntent: (TimeRoutinePageUiIntent) -> Unit,
 ) {
-    TigContainer {
-        Column(modifier = Modifier.fillMaxSize()) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                TigCircleText(text = state.dayOfWeekName)
-                Text(text = state.title)
-                IconButton(
-                    onClick = {
-                        sendIntent(TimeRoutinePageUiIntent.ModifyRoutine)
+    TigBlurContainer {
+        TigScaffold(
+            topBar = {
+                CenterAlignedTopAppBar(
+                    title = {
+                        Text(text = state.title)
+                    },
+                    navigationIcon = {
+                        TigCircleText(text = state.dayOfWeekName)
+                    },
+                    actions = {
+                        IconButton(
+                            onClick = {
+                                sendIntent(TimeRoutinePageUiIntent.ModifyRoutine)
+                            }
+                        ) {
+                            Icon(Icons.Default.Edit, contentDescription = null)
+                        }
                     }
-                ) {
-                    Icon(Icons.Default.Edit, contentDescription = null)
-                }
+                )
+            },
+            content = {
+                // TODO: jhchoi 2025. 9. 16. 루틴 내용.
             }
-        }
+        )
+
     }
 }
 

@@ -41,13 +41,13 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import software.seriouschoi.timeisgold.core.common.ui.TigTheme
 import software.seriouschoi.timeisgold.core.common.ui.TigThemePreview
-import software.seriouschoi.timeisgold.core.common.ui.container.TigContainer
+import software.seriouschoi.timeisgold.core.common.ui.container.TigBlurContainer
 
 @TigThemePreview
 @Composable
 private fun ComponentsPreview() {
     TigTheme {
-        TigContainer {
+        TigBlurContainer {
             Column(
                 modifier = Modifier.fillMaxSize()
             ) {
@@ -89,16 +89,6 @@ private fun ComponentsPreview() {
                 TigCircleProgress()
             }
         }
-    }
-}
-
-@Preview
-@Composable
-private fun LoadingBoxPreview() {
-    TigContainer(
-        loading = true
-    ) {
-        ComponentsPreview()
     }
 }
 

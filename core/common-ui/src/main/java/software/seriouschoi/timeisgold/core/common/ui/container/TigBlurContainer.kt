@@ -24,9 +24,9 @@ import software.seriouschoi.timeisgold.core.common.ui.components.tapClearFocus
  * jhchoi
  */
 @Composable
-fun TigContainer(
-    loading: Boolean = false,
-    loadingContent: @Composable () -> Unit = {
+fun TigBlurContainer(
+    enableBlur: Boolean = false,
+    blurOverlayContent: @Composable () -> Unit = {
         TigCircleProgress()
     },
     content: @Composable () -> Unit
@@ -34,26 +34,25 @@ fun TigContainer(
     val animationTime = 300
     val maxBlurRadius = 20f
     val dimAlpha by animateFloatAsState(
-        targetValue = if (loading) 0.3f else 0f,
+        targetValue = if (enableBlur) 0.3f else 0f,
         animationSpec = tween(durationMillis = animationTime), // 0.3초 페이드
         label = "LoadingDimAlpha"
     )
 
     val blurAlpha by animateFloatAsState(
-        targetValue = if (loading) maxBlurRadius else 0f,
+        targetValue = if (enableBlur) maxBlurRadius else 0f,
         animationSpec = tween(durationMillis = animationTime), // 0.3초 페이드
         label = "LoadingBlurAlpha"
     )
 
     val focusManager = LocalFocusManager.current
-    val blurModifier = Modifier
-        .tapClearFocus(focusManager)
+    val blurModifier = Modifier.Companion
         .graphicsLayer {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 val renderEffect = BlurEffect(
                     radiusX = blurAlpha,
                     radiusY = blurAlpha,
-                    edgeTreatment = TileMode.Clamp
+                    edgeTreatment = TileMode.Companion.Clamp
                 )
                 //require androidx.compose.ui.graphics
                 this.renderEffect = renderEffect
@@ -61,18 +60,19 @@ fun TigContainer(
         }
 
     Box(
-        modifier = Modifier
+        modifier = Modifier.Companion
             .fillMaxSize()
+            .tapClearFocus(focusManager)
             .then(
-                if (loading || blurAlpha > 0f) blurModifier
-                else Modifier
+                if (enableBlur || blurAlpha > 0f) blurModifier
+                else Modifier.Companion
             )
     ) {
         content()
     }
-    if (loading || dimAlpha > 0f) {
+    if (enableBlur || dimAlpha > 0f) {
         Box(
-            modifier = Modifier
+            modifier = Modifier.Companion
                 .fillMaxSize()
                 .clickable(
                     enabled = true,
@@ -81,10 +81,10 @@ fun TigContainer(
                     }
                 )
                 .then(
-                    Modifier.background(Color.Black.copy(alpha = dimAlpha))
+                    Modifier.Companion.background(Color.Companion.Black.copy(alpha = dimAlpha))
                 ),
-            contentAlignment = Alignment.Center) {
-            loadingContent()
+            contentAlignment = Alignment.Companion.Center) {
+            blurOverlayContent()
         }
     }
 }

@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -20,7 +19,7 @@ import software.seriouschoi.timeisgold.core.common.ui.components.TigBottomBar
 import software.seriouschoi.timeisgold.core.common.ui.components.TigCheckButton
 import software.seriouschoi.timeisgold.core.common.ui.components.TigLabelButton
 import software.seriouschoi.timeisgold.core.common.ui.components.TigSingleLineTextField
-import software.seriouschoi.timeisgold.core.common.ui.container.TigContainer
+import software.seriouschoi.timeisgold.core.common.ui.container.TigBlurContainer
 import software.seriouschoi.timeisgold.core.common.util.Envelope
 import java.time.DayOfWeek
 import java.time.format.TextStyle
@@ -68,7 +67,7 @@ private fun Screen(
     validState: TimeRoutineEditUiValidUiState,
     sendIntent: (TimeRoutineEditUiIntent) -> Unit,
 ) {
-    TigContainer(uiState.isLoading) {
+    TigBlurContainer(uiState.isLoading) {
         Routine(uiState, validState) {
             sendIntent(it)
         }
