@@ -1,11 +1,15 @@
 package software.seriouschoi.timeisgold.core.common.ui.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
@@ -26,54 +30,65 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusManager
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
+import software.seriouschoi.timeisgold.core.common.ui.TigTheme
+import software.seriouschoi.timeisgold.core.common.ui.TigThemePreview
 import software.seriouschoi.timeisgold.core.common.ui.container.TigContainer
 
-/**
- * Created by jhchoi on 2025. 9. 4.
- * jhchoi
- */
-@Preview
+@TigThemePreview
 @Composable
 private fun ComponentsPreview() {
-    Column(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        TigSingleLineTextField(
-            value = "test\naset",
-            onValueChange = {},
-            modifier = Modifier.fillMaxWidth()
-        )
-        TigSingleLineTextField(
-            hint = "hint",
-            onValueChange = {},
-            modifier = Modifier.fillMaxWidth()
-        )
-        TigCheckButton(label = "test", checked = true, onCheckedChange = {})
-        TigLabelButton(
-            onClick = {},
-            label = "enabled button"
-        )
-        TigLabelButton(
-            onClick = {},
-            label = "disabled button",
-            enabled = false
-        )
-        TigBottomBar(modifier = Modifier) {
-            TigLabelButton(
-                onClick = {},
-                label = "button1"
-            )
+    TigTheme {
+        TigContainer {
+            Column(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                Text("Just TextView.")
+                TigCircleText(
+                    "13"
+                )
+                TigSingleLineTextField(
+                    value = "TigSingleLine\nTextField",
+                    onValueChange = {},
+                    modifier = Modifier.fillMaxWidth()
+                )
+                TigSingleLineTextField(
+                    hint = "TigSingleLineTextFieldHint",
+                    onValueChange = {},
+                    modifier = Modifier.fillMaxWidth()
+                )
+                TigCheckButton(label = "TigCheckButton", checked = true, onCheckedChange = {})
+                TigLabelButton(
+                    onClick = {},
+                    label = "TigLabelButton"
+                )
+                TigLabelButton(
+                    onClick = {},
+                    label = "TigLabelButton disabled",
+                    enabled = false
+                )
+                TigBottomBar(modifier = Modifier) {
+                    TigLabelButton(
+                        onClick = {},
+                        label = "TigLabelButton1"
+                    )
 
-            TigLabelButton(
-                onClick = {},
-                label = "button2"
-            )
+                    TigLabelButton(
+                        onClick = {},
+                        label = "TigLabelButton2"
+                    )
+                }
+                TigCircleProgress()
+            }
         }
-        TigCircleProgress()
     }
 }
 
@@ -260,5 +275,27 @@ fun TigCheckButton(
             enabled = enabled
         )
         Text(text = label)
+    }
+}
+
+@Composable
+fun TigCircleText(
+    text: String,
+    size: Dp = 48.dp,
+    backgroundColor: Color = MaterialTheme.colorScheme.primary,
+    textColor: Color = MaterialTheme.colorScheme.onPrimary
+) {
+    Box(
+        modifier = Modifier
+            .size(size)
+            .clip(CircleShape)
+            .background(backgroundColor),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = text,
+            color = textColor,
+            textAlign = TextAlign.Center
+        )
     }
 }

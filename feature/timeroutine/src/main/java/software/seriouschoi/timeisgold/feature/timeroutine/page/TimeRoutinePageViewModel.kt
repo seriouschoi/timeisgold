@@ -114,7 +114,7 @@ internal class TimeRoutinePageViewModel @Inject constructor(
             is DomainResult.Failure -> return TimeRoutinePageUiState.Empty(
                 emptyMessage = UiText.Res.create(
                     CommonR.string.message_format_routine_create_confirm,
-                    dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault())
+                    dayOfWeek.getDisplayName(TextStyle.FULL, Locale.getDefault())
                 )
             )
 

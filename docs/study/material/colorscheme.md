@@ -1,0 +1,24 @@
+Material 3 컬러 기본 개념
+
+- Primary	
+  - 앱의 브랜드 컬러. 주요 버튼, FAB, 강조 요소에 사용
+- OnPrimary	
+  - Primary 위에 올 텍스트/아이콘 색 (대비 확보됨)
+- Secondary	
+  - 보조 강조 컬러. 보조 버튼, 선택 상태 등에 사용
+- OnSecondary	
+  - Secondary 위 텍스트/아이콘
+- Tertiary	
+  - 추가 보조 컬러. 특정 강조나 서브 기능용
+- Background	
+  - 화면 배경
+- OnBackground	
+  - 배경 위 텍스트/아이콘
+- Surface	
+  - 카드, 다이얼로그, BottomSheet 같은 표면
+- OnSurface	
+  - Surface 위 텍스트/아이콘
+- Error	
+  - 오류 상태를 표현하는 색
+- OnError	
+  - Error 위 텍스트/아이콘

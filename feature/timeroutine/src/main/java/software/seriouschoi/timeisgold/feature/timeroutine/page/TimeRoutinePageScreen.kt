@@ -3,7 +3,13 @@ package software.seriouschoi.timeisgold.feature.timeroutine.page
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -15,9 +21,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import software.seriouschoi.timeisgold.core.common.ui.TigTheme
+import software.seriouschoi.timeisgold.core.common.ui.TigThemePreview
 import software.seriouschoi.timeisgold.core.common.ui.UiText
 import software.seriouschoi.timeisgold.core.common.ui.asString
+import software.seriouschoi.timeisgold.core.common.ui.components.TigCircleText
 import software.seriouschoi.timeisgold.core.common.ui.components.TigLabelButton
+import software.seriouschoi.timeisgold.core.common.ui.container.TigContainer
 import java.time.DayOfWeek
 import software.seriouschoi.timeisgold.core.common.ui.R as CommonR
 
@@ -77,30 +87,41 @@ private fun Routine(
     state: TimeRoutinePageUiState.Routine,
     sendIntent: (TimeRoutinePageUiIntent) -> Unit,
 ) {
-    Column(modifier = Modifier.fillMaxSize()) {
-        Text(text = state.dayOfWeekName)
-        Text(text = state.title)
-        TigLabelButton(
-            label = stringResource(CommonR.string.text_edit),
-            onClick = {
-                sendIntent(TimeRoutinePageUiIntent.ModifyRoutine)
+    TigContainer {
+        Column(modifier = Modifier.fillMaxSize()) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                TigCircleText(text = state.dayOfWeekName)
+                Text(text = state.title)
+                IconButton(
+                    onClick = {
+                        sendIntent(TimeRoutinePageUiIntent.ModifyRoutine)
+                    }
+                ) {
+                    Icon(Icons.Default.Edit, contentDescription = null)
+                }
             }
-        )
+        }
     }
 }
 
+@TigThemePreview
 @Composable
-@Preview
 private fun PreviewRoutine() {
-    Routine(
-        TimeRoutinePageUiState.Routine(
-            title = "루틴 1",
-            dayOfWeekName = "월요일",
-            slotItemList = listOf(),
-            dayOfWeeks = listOf()
-        )
-    ) {
+    TigTheme {
+        Routine(
+            TimeRoutinePageUiState.Routine(
+                title = "루틴 1",
+                dayOfWeekName = "월",
+                slotItemList = listOf(),
+                dayOfWeeks = listOf()
+            )
+        ) {
 
+        }
     }
 }
 
