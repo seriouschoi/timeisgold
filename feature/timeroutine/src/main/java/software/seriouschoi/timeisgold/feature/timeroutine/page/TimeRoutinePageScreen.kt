@@ -90,31 +90,7 @@ private fun Routine(
     sendIntent: (TimeRoutinePageUiIntent) -> Unit,
 ) {
     TigBlurContainer {
-        TigScaffold(
-            topBar = {
-                CenterAlignedTopAppBar(
-                    title = {
-                        Text(text = state.title)
-                    },
-                    navigationIcon = {
-                        TigCircleText(text = state.dayOfWeekName)
-                    },
-                    actions = {
-                        IconButton(
-                            onClick = {
-                                sendIntent(TimeRoutinePageUiIntent.ModifyRoutine)
-                            }
-                        ) {
-                            Icon(Icons.Default.Edit, contentDescription = null)
-                        }
-                    }
-                )
-            },
-            content = {
-                // TODO: jhchoi 2025. 9. 16. 루틴 내용.
-            }
-        )
-
+        // TODO: jhchoi 2025. 9. 17. show time slot
     }
 }
 

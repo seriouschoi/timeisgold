@@ -112,12 +112,22 @@ TimeRoutineEntity와 TimeRoutineDayOfWeekEntity로만
 # rememberSavable??
 
 # SharedFlow, StateFlow, Flow???
+1. SharedFlow
+2. StateFlow
+   1. 위 두개는 HotFlow
+3. Flow
+   1. 이건 ColdFlow
 
 # build.gradle과 build.gradle.kts 차이???
 
 # Compose에서 쓰는 Unit은 뭐지?
 
 # focus??
+
+# 각 SharindStarted의 동작??
+1. SharingStarted.Eagerly
+2. SharingStarted.Lazily
+3. SharingStarted.WhileSubscribed
 
 # someFlow.first() 와 someFlow.value의 차이는
 first()는 flow를 collect해서 가장 처음 emit된 값을 가져오고 즉시 종료한다.

@@ -13,6 +13,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.navigation.NavBackStackEntry
+import androidx.navigation.NavGraphBuilder
+import androidx.navigation.compose.composable
+import kotlinx.serialization.Serializable
+import software.seriouschoi.navigator.NavigatorRoute
 import software.seriouschoi.timeisgold.core.common.ui.asString
 import software.seriouschoi.timeisgold.core.common.ui.components.TigAlert
 import software.seriouschoi.timeisgold.core.common.ui.components.TigBottomBar
@@ -26,8 +31,22 @@ import java.time.format.TextStyle
 import java.util.Locale
 import software.seriouschoi.timeisgold.core.common.ui.R as CommonR
 
+
+@Serializable
+internal data class TimeRoutineEditScreenRoute(
+    val dayOfWeekOrdinal: Int,
+) : NavigatorRoute {
+    companion object {
+        fun routes(navGraphBuilder: NavGraphBuilder) {
+            navGraphBuilder.composable<TimeRoutineEditScreenRoute> { it: NavBackStackEntry ->
+                Screen()
+            }
+        }
+    }
+}
+
 @Composable
-internal fun TimeRoutineEditScreen() {
+private fun Screen() {
     val viewModel = hiltViewModel<TimeRoutineEditViewModel>()
 
     //show uiState.

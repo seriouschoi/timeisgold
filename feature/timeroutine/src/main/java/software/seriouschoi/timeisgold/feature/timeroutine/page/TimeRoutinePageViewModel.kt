@@ -16,7 +16,7 @@ import software.seriouschoi.timeisgold.core.common.ui.asResultState
 import software.seriouschoi.timeisgold.core.common.util.Envelope
 import software.seriouschoi.timeisgold.domain.data.DomainResult
 import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineComposition
-import software.seriouschoi.timeisgold.domain.usecase.timeroutine.GetTimeRoutineCompositionUseCase
+import software.seriouschoi.timeisgold.domain.usecase.timeroutine.WatchTimeRoutineCompositionUseCase
 import software.seriouschoi.timeisgold.feature.timeroutine.edit.TimeRoutineEditScreenRoute
 import java.time.DayOfWeek
 import java.time.format.TextStyle
@@ -30,7 +30,7 @@ import software.seriouschoi.timeisgold.core.common.ui.R as CommonR
  */
 @HiltViewModel
 internal class TimeRoutinePageViewModel @Inject constructor(
-    val getTimeRoutineCompositionUseCase: GetTimeRoutineCompositionUseCase,
+    val watchTimeRoutineCompositionUseCase: WatchTimeRoutineCompositionUseCase,
     val navigator: DestNavigatorPort,
     val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
@@ -67,7 +67,7 @@ internal class TimeRoutinePageViewModel @Inject constructor(
             savedStateHandle["data"] = ViewModelData(
                 dayOfWeekOrdinal = dayOfWeek.ordinal
             )
-            getTimeRoutineCompositionUseCase(dayOfWeek).asResultState().collect { resultState ->
+            watchTimeRoutineCompositionUseCase(dayOfWeek).asResultState().collect { resultState ->
                 _uiState.update {
                     it.reduceResultState(resultState, dayOfWeek)
                 }

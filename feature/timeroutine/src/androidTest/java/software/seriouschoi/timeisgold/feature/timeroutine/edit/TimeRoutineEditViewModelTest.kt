@@ -1,8 +1,6 @@
 package software.seriouschoi.timeisgold.feature.timeroutine.edit
 
-import androidx.test.platform.app.InstrumentationRegistry
 import app.cash.turbine.test
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
@@ -14,7 +12,7 @@ import software.seriouschoi.timeisgold.domain.services.TimeRoutineDomainService
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.DeleteTimeRoutineUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.GetAllRoutinesDayOfWeeksUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.GetDayOfWeeksTypeUseCase
-import software.seriouschoi.timeisgold.domain.usecase.timeroutine.GetTimeRoutineDefinitionUseCase
+import software.seriouschoi.timeisgold.domain.usecase.timeroutine.WatchTimeRoutineDefinitionUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.GetValidTimeRoutineUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.SetTimeRoutineUseCase
 import software.seriouschoi.timeisgold.feature.timeroutine.fake.FakeDestNavigatorPortAdapter
@@ -42,7 +40,7 @@ class TimeRoutineEditViewModelTest {
 
         viewModel = TimeRoutineEditViewModel(
             navigator = FakeDestNavigatorPortAdapter,
-            getTimeRoutineUseCase = GetTimeRoutineDefinitionUseCase(
+            getTimeRoutineUseCase = WatchTimeRoutineDefinitionUseCase(
                 timeRoutineRepositoryPort = routineAdapter,
             ),
             setTimeRoutineUseCase = SetTimeRoutineUseCase(

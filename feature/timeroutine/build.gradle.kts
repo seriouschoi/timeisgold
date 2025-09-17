@@ -11,7 +11,7 @@ android {
 dependencies {
     implementation(project(":core:domain"))
     implementation(project(":core:domain-data"))
-    implementation(project(":core:domain-uimapper"))
+    implementation(project(":core:domain-ui-util"))
     implementation(project(":core:navigator-api"))
     implementation(project(":core:common-ui"))
     implementation(project(":core:common-util"))
