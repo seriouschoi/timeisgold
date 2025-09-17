@@ -149,7 +149,7 @@ private fun Empty(
             label = stringResource(CommonR.string.text_create),
             onClick = {
                 sendIntent(TimeRoutinePageUiIntent.CreateRoutine)
-            }
+            },
         )
     }
 }

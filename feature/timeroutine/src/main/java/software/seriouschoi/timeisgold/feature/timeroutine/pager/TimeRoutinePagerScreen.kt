@@ -2,11 +2,11 @@ package software.seriouschoi.timeisgold.feature.timeroutine.pager
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -17,6 +17,7 @@ import kotlinx.serialization.Serializable
 import software.seriouschoi.navigator.NavigatorRoute
 import software.seriouschoi.timeisgold.core.common.ui.TigTheme
 import software.seriouschoi.timeisgold.core.common.ui.TigThemePreview
+import software.seriouschoi.timeisgold.core.common.ui.UiText
 import software.seriouschoi.timeisgold.core.common.ui.asString
 import software.seriouschoi.timeisgold.core.common.ui.components.InfiniteHorizontalPager
 import software.seriouschoi.timeisgold.core.common.ui.components.TigCircleText
@@ -69,7 +70,7 @@ private fun TopBar(
     uiState: TimeRoutinePagerUiState,
     sendIntent: (TimeRoutinePagerUiIntent) -> Unit
 ) {
-    CenterAlignedTopAppBar(
+    TopAppBar(
         title = {
             Text(text = uiState.title.asString())
         },
@@ -100,7 +101,7 @@ private fun PagerView(
         initialPageIndex = uiState.initialPageIndex,
         onSelectPage = {
             val dayOfWeek = pagerItems.getOrNull(it)
-            if(dayOfWeek != null) {
+            if (dayOfWeek != null) {
                 sendIntent(TimeRoutinePagerUiIntent.LoadRoutine(dayOfWeek))
             }
         }
@@ -116,9 +117,14 @@ private fun PagerView(
 @Composable
 private fun Preview() {
     TigTheme {
-        TimeRoutinePagerRootView(uiState = TimeRoutinePagerUiState(), sendIntent = {
+        TimeRoutinePagerRootView(
+            uiState = TimeRoutinePagerUiState(
+                title = UiText.Raw("제목"),
+                dayOfWeekName = UiText.Raw("금")
+            ),
+            sendIntent = {
 
-        })
+            })
     }
 }
 
