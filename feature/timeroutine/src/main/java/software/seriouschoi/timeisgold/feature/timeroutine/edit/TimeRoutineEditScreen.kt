@@ -6,8 +6,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -28,6 +33,7 @@ import software.seriouschoi.timeisgold.core.common.ui.TigThemePreview
 import software.seriouschoi.timeisgold.core.common.ui.asString
 import software.seriouschoi.timeisgold.core.common.ui.components.TigAlert
 import software.seriouschoi.timeisgold.core.common.ui.components.TigBottomBar
+import software.seriouschoi.timeisgold.core.common.ui.components.TigButtonTypes
 import software.seriouschoi.timeisgold.core.common.ui.components.TigCheckButton
 import software.seriouschoi.timeisgold.core.common.ui.components.TigLabelButton
 import software.seriouschoi.timeisgold.core.common.ui.components.TigScaffold
@@ -176,7 +182,16 @@ private fun RoutineTopBar(
                 hint = currentRoutine.subTitle.takeIf { it.isNotEmpty() }
                     ?: stringResource(CommonR.string.text_routine_title)
             )
-        }
+        },
+        navigationIcon = {
+            IconButton(
+                onClick = {
+                    sendIntent(TimeRoutineEditUiIntent.Exit)
+                }
+            ) {
+                Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
+            }
+        },
     )
 }
 
@@ -241,7 +256,7 @@ private fun BottomButtons(
                 onClick = {
                     sendIntent(TimeRoutineEditUiIntent.Save)
                 },
-                buttonType = software.seriouschoi.timeisgold.core.common.ui.components.TigButtonTypes.Primary
+                buttonType = TigButtonTypes.Primary
             )
         }
     }
