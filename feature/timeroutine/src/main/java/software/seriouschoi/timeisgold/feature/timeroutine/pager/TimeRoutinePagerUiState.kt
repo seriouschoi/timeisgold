@@ -9,4 +9,5 @@ internal data class TimeRoutinePagerUiState(
 
     val title: UiText = UiText.Raw(""),
     val dayOfWeekName: UiText = UiText.Raw(""),
+    val showAddTimeSlotButton: Boolean = false,
 )

@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 fun TigScaffold(
     topBar: @Composable () -> Unit = {},
     bottomBar: @Composable () -> Unit = {},
+    floatingActionButton: @Composable () -> Unit = {},
     content: @Composable (PaddingValues) -> Unit
 ) {
     Scaffold(
@@ -22,7 +23,8 @@ fun TigScaffold(
         },
         bottomBar = {
             bottomBar()
-        }
+        },
+        floatingActionButton = floatingActionButton,
     ) { innerPadding ->
         Box(
             Modifier.Companion

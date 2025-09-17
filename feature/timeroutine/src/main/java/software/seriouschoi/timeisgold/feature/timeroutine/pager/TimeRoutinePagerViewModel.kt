@@ -89,7 +89,8 @@ internal class TimeRoutinePagerViewModel @Inject constructor(
         ) ?: ""
         UiPreState.PagerState(
             title = UiText.Raw(routineTitle),
-            dayOfWeekName = UiText.Raw(dayOfWeekName)
+            dayOfWeekName = UiText.Raw(dayOfWeekName),
+            showAddTimeSlotButton = routine != null
         )
     }
 
@@ -106,7 +107,8 @@ internal class TimeRoutinePagerViewModel @Inject constructor(
             is UiPreState.PagerState -> {
                 acc.copy(
                     title = value.title,
-                    dayOfWeekName = value.dayOfWeekName
+                    dayOfWeekName = value.dayOfWeekName,
+                    showAddTimeSlotButton = value.showAddTimeSlotButton
                 )
             }
         }
@@ -176,7 +178,8 @@ private sealed interface UiPreState {
 
     data class PagerState(
         val title: UiText = UiText.Raw(""),
-        val dayOfWeekName: UiText = UiText.Raw("")
+        val dayOfWeekName: UiText = UiText.Raw(""),
+        val showAddTimeSlotButton: Boolean = false
     ) : UiPreState
 }
 
