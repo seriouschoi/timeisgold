@@ -26,6 +26,7 @@ import software.seriouschoi.timeisgold.core.common.util.Envelope
 import software.seriouschoi.timeisgold.core.domain.mapper.onlySuccess
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.WatchTimeRoutineDefinitionUseCase
 import software.seriouschoi.timeisgold.feature.timeroutine.edit.TimeRoutineEditScreenRoute
+import software.seriouschoi.timeisgold.feature.timeroutine.timeslot.edit.TimeSlotEditScreenRoute
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.format.TextStyle
@@ -130,10 +131,23 @@ internal class TimeRoutinePagerViewModel @Inject constructor(
             TimeRoutinePagerUiIntent.ModifyRoutine -> {
                 moveToRoutineEdit()
             }
+            is TimeRoutinePagerUiIntent.AddRoutine -> {
+                moveToTimeSlotEdit()
+            }
 
             else -> {
                 //no work.
             }
+        }
+    }
+
+    private fun moveToTimeSlotEdit() {
+        viewModelScope.launch {
+            // TODO: show time slot edit screen.
+            /*
+            파라미터 보내야함. 루틴 uuid, slot uuid.
+             */
+            navigator.navigate(TimeSlotEditScreenRoute)
         }
     }
 
