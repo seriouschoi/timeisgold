@@ -1,9 +1,11 @@
 name: Android Connected Tests
 on:
-  workflow_dispatch: { }
+  workflow_dispatch: {}
   push:
     branches: [ master ]   # merge된 커밋에서 실행
     paths-ignore: [ '**.md', 'docs/**' ]
+#  schedule:
+#    - cron: '0 18 * * *'   # 매일 03:00 KST (UTC 18:00)
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -20,10 +22,6 @@ jobs:
 
       - uses: ./.github/actions/setup
 
-      - name: Clean
-        run: |
-          ./gradlew clean
-
       - name: Emulator version
         run: $ANDROID_HOME/emulator/emulator -version || true
 
@@ -31,10 +29,9 @@ jobs:
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 33
-          target: google_apis
+          target: default
           arch: x86_64
           profile: pixel_2
-          disk-size: 2G
           force-avd-creation: true
           emulator-options: >-
             -no-window -gpu swiftshader_indirect -no-boot-anim
@@ -45,7 +42,6 @@ jobs:
           script: |
             adb wait-for-device
             adb shell 'while [[ -z "$(getprop sys.boot_completed)" ]]; do sleep 1; done; input keyevent 82'
-            ./gradlew clean
             ./gradlew --stacktrace connectedDebugAndroidTest
 
       - name: Upload connected test reports

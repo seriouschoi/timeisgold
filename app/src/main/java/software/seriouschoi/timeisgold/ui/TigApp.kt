@@ -1,6 +1,8 @@
 package software.seriouschoi.timeisgold.ui
 
 import androidx.compose.runtime.Composable
+import software.seriouschoi.timeisgold.core.common.ui.TigTheme
+import software.seriouschoi.timeisgold.core.common.ui.components.TigScaffold
 import software.seriouschoi.timeisgold.navigation.ui.AppNavHost
 
 /**
@@ -8,14 +10,12 @@ import software.seriouschoi.timeisgold.navigation.ui.AppNavHost
  * jhchoi
  */
 @Composable
-fun TigApp(
-
-) {
-    AppTheme {
-        AppScaffold(
+fun TigApp() {
+    TigTheme {
+        TigScaffold(
             content = { inner ->
                 AppNavHost()
-            }
+            },
         )
     }
 }

@@ -1,24 +1,34 @@
 package software.seriouschoi.timeisgold.core.common.ui.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material3.BasicAlertDialog
-import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -26,64 +36,66 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusManager
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.tooling.preview.Preview
-import software.seriouschoi.timeisgold.core.common.ui.container.TigContainer
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
+import software.seriouschoi.timeisgold.core.common.ui.TigTheme
+import software.seriouschoi.timeisgold.core.common.ui.TigThemePreview
+import software.seriouschoi.timeisgold.core.common.ui.container.TigBlurContainer
 
-/**
- * Created by jhchoi on 2025. 9. 4.
- * jhchoi
- */
-@Preview
+@TigThemePreview
 @Composable
 private fun ComponentsPreview() {
-    Column(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        TigSingleLineTextField(
-            value = "test\naset",
-            onValueChange = {},
-            modifier = Modifier.fillMaxWidth()
-        )
-        TigSingleLineTextField(
-            hint = "hint",
-            onValueChange = {},
-            modifier = Modifier.fillMaxWidth()
-        )
-        TigCheckButton(label = "test", checked = true, onCheckedChange = {})
-        TigLabelButton(
-            onClick = {},
-            label = "enabled button"
-        )
-        TigLabelButton(
-            onClick = {},
-            label = "disabled button",
-            enabled = false
-        )
-        TigBottomBar(modifier = Modifier) {
-            TigLabelButton(
-                onClick = {},
-                label = "button1"
-            )
+    TigTheme {
+        TigBlurContainer {
+            Column(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                Text("Just TextView.")
+                TigCircleText(
+                    "13"
+                )
+                TigSingleLineTextField(
+                    value = "TigSingleLine\nTextField",
+                    onValueChange = {},
+                    modifier = Modifier.fillMaxWidth()
+                )
+                TigSingleLineTextField(
+                    hint = "TigSingleLineTextFieldHint",
+                    onValueChange = {},
+                    modifier = Modifier.fillMaxWidth()
+                )
+                TigCheckButton(label = "TigCheckButton", checked = true, onCheckedChange = {})
+                TigLabelButton(
+                    label = "TigLabelButton",
+                    onClick = {},
+                )
+                TigLabelButton(
+                    label = "TigLabelButton disabled",
+                    enabled = false,
+                    onClick = {},
+                )
+                TigBottomBar(modifier = Modifier) {
+                    TigLabelButton(
+                        label = "TigLabelButton1",
+                        onClick = {},
+                        buttonType = TigButtonTypes.Primary
+                    )
 
-            TigLabelButton(
-                onClick = {},
-                label = "button2"
-            )
+                    TigLabelButton(
+                        label = "TigLabelButton2",
+                        onClick = {},
+                        buttonType = TigButtonTypes.Normal
+                    )
+                }
+                TigCircleProgress()
+            }
         }
-        TigCircleProgress()
-    }
-}
-
-@Preview
-@Composable
-private fun LoadingBoxPreview() {
-    TigContainer(
-        loading = true
-    ) {
-        ComponentsPreview()
     }
 }
 
@@ -95,18 +107,6 @@ fun Modifier.tapClearFocus(focusManager: FocusManager): Modifier {
     }
 }
 
-@Preview
-@Composable
-private fun TigAlertPreview() {
-    TigAlert(
-        message = "message",
-        confirmButtonText = "confirm",
-        onClickConfirm = {},
-        cancelButtonText = "cancel",
-        onClickCancel = {},
-        alertId = "alertId"
-    )
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -129,27 +129,44 @@ fun TigAlert(
 //            show = false
         },
     ) {
-        Column {
-            Text(text = message)
+        Surface(
+            shape = MaterialTheme.shapes.medium,
+            tonalElevation = 10.dp,
+            color = MaterialTheme.colorScheme.surface,
+        ) {
+            Column(
+                modifier = Modifier.padding(20.dp)
+            ) {
 
-            TigBottomBar {
-                if (onClickCancel != null && cancelButtonText != null) {
+                Text(text = message)
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                TigBottomBar(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.End)
+                ) {
+                    if (onClickCancel != null && cancelButtonText != null) {
+                        TigLabelButton(
+                            label = cancelButtonText,
+                            onClick = {
+                                onClickCancel()
+                                show = false
+                            },
+                        )
+                    }
+
                     TigLabelButton(
+                        label = confirmButtonText,
+                        modifier = Modifier.fillMaxWidth(),
                         onClick = {
-                            onClickCancel()
+                            onClickConfirm()
                             show = false
                         },
-                        label = cancelButtonText,
+                        buttonType = TigButtonTypes.Primary
                     )
                 }
-
-                TigLabelButton(
-                    onClick = {
-                        onClickConfirm()
-                        show = false
-                    },
-                    label = confirmButtonText,
-                )
             }
         }
     }
@@ -166,12 +183,14 @@ fun TigLabelButton(
     label: String,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
+    buttonType: TigButtonTypes = TigButtonTypes.Normal,
     onClick: () -> Unit,
 ) {
     TigButton(
         onClick = onClick,
         modifier = modifier,
-        enabled = enabled
+        enabled = enabled,
+        buttonType = buttonType
     ) {
         Text(text = label)
     }
@@ -182,9 +201,18 @@ fun TigButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
+    buttonType: TigButtonTypes = TigButtonTypes.Normal,
     content: @Composable () -> Unit,
 ) {
-    Button(onClick = onClick, modifier = modifier, enabled = enabled) {
+    FilledTonalButton(
+        onClick = onClick,
+        modifier = modifier,
+        enabled = enabled,
+        colors = ButtonDefaults.filledTonalButtonColors(
+            containerColor = buttonType.containerColor(),
+            contentColor = buttonType.onColor(),
+        )
+    ) {
         content()
     }
 }
@@ -193,7 +221,7 @@ fun TigButton(
 fun TigBottomBar(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
     Row(
         modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceAround
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         content()
     }
@@ -207,12 +235,18 @@ fun TigSingleLineTextField(
     onValueChange: (String) -> Unit,
     hint: String = "",
 ) {
+
     val focusManager = LocalFocusManager.current
     TextField(
         value = value,
         onValueChange = onValueChange,
         modifier = modifier,
         singleLine = true,
+        colors = TextFieldDefaults.colors(
+            disabledContainerColor = Color.Transparent,
+            focusedContainerColor = Color.Transparent,
+            unfocusedContainerColor = Color.Transparent,
+        ),
         maxLines = 1,
         keyboardActions = KeyboardActions(
             onDone = {
@@ -260,5 +294,27 @@ fun TigCheckButton(
             enabled = enabled
         )
         Text(text = label)
+    }
+}
+
+@Composable
+fun TigCircleText(
+    text: String,
+    size: Dp = 48.dp,
+    backgroundColor: Color = MaterialTheme.colorScheme.primary,
+    textColor: Color = MaterialTheme.colorScheme.onPrimary
+) {
+    Box(
+        modifier = Modifier
+            .size(size)
+            .clip(CircleShape)
+            .background(backgroundColor),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = text,
+            color = textColor,
+            textAlign = TextAlign.Center
+        )
     }
 }

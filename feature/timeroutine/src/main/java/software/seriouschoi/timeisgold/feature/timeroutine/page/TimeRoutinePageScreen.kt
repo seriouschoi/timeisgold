@@ -4,6 +4,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -15,9 +21,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import software.seriouschoi.timeisgold.core.common.ui.TigTheme
+import software.seriouschoi.timeisgold.core.common.ui.TigThemePreview
 import software.seriouschoi.timeisgold.core.common.ui.UiText
 import software.seriouschoi.timeisgold.core.common.ui.asString
+import software.seriouschoi.timeisgold.core.common.ui.components.TigCircleText
 import software.seriouschoi.timeisgold.core.common.ui.components.TigLabelButton
+import software.seriouschoi.timeisgold.core.common.ui.components.TigScaffold
+import software.seriouschoi.timeisgold.core.common.ui.container.TigBlurContainer
 import java.time.DayOfWeek
 import software.seriouschoi.timeisgold.core.common.ui.R as CommonR
 
@@ -72,38 +83,35 @@ fun TimeRoutinePageScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun Routine(
     state: TimeRoutinePageUiState.Routine,
     sendIntent: (TimeRoutinePageUiIntent) -> Unit,
 ) {
-    Column(modifier = Modifier.fillMaxSize()) {
-        Text(text = state.dayOfWeekName)
-        Text(text = state.title)
-        TigLabelButton(
-            label = stringResource(CommonR.string.text_edit),
-            onClick = {
-                sendIntent(TimeRoutinePageUiIntent.ModifyRoutine)
-            }
-        )
+    TigBlurContainer {
+        // TODO: jhchoi 2025. 9. 17. show time slot
     }
 }
 
+@TigThemePreview
 @Composable
-@Preview
 private fun PreviewRoutine() {
-    Routine(
-        TimeRoutinePageUiState.Routine(
-            title = "루틴 1",
-            dayOfWeekName = "월요일",
-            slotItemList = listOf(),
-            dayOfWeeks = listOf()
-        )
-    ) {
+    TigTheme {
+        Routine(
+            TimeRoutinePageUiState.Routine(
+                title = "루틴 1",
+                dayOfWeekName = "월",
+                slotItemList = listOf(),
+                dayOfWeeks = listOf()
+            )
+        ) {
 
+        }
     }
 }
 
+@Deprecated("Include Routine()")
 @Composable
 private fun Error(currentState: TimeRoutinePageUiState.Error) {
     Column(
@@ -125,6 +133,7 @@ private fun PreviewError() {
     )
 }
 
+@Deprecated("Include Routine()")
 @Composable
 private fun Empty(
     currentState: TimeRoutinePageUiState.Empty,
@@ -140,7 +149,7 @@ private fun Empty(
             label = stringResource(CommonR.string.text_create),
             onClick = {
                 sendIntent(TimeRoutinePageUiIntent.CreateRoutine)
-            }
+            },
         )
     }
 }

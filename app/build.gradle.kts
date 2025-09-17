@@ -26,4 +26,5 @@ dependencies {
     implementation(project(":core:data-room-adapter"))
     implementation(project(":core:navigator-api"))
     implementation(project(":core:navigator-adapter"))
+    implementation(project(":core:common-ui"))
 }

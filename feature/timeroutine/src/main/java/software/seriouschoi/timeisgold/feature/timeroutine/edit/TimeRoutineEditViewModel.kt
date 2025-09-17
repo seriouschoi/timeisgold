@@ -42,7 +42,7 @@ import software.seriouschoi.timeisgold.domain.data.entities.TimeRoutineEntity
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.DeleteTimeRoutineUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.GetAllRoutinesDayOfWeeksUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.GetDayOfWeeksTypeUseCase
-import software.seriouschoi.timeisgold.domain.usecase.timeroutine.GetTimeRoutineDefinitionUseCase
+import software.seriouschoi.timeisgold.domain.usecase.timeroutine.WatchTimeRoutineDefinitionUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.GetValidTimeRoutineUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.SetTimeRoutineUseCase
 import timber.log.Timber
@@ -59,7 +59,7 @@ internal class TimeRoutineEditViewModel @Inject constructor(
 
     private val navigator: DestNavigatorPort,
 
-    private val getTimeRoutineUseCase: GetTimeRoutineDefinitionUseCase,
+    private val getTimeRoutineUseCase: WatchTimeRoutineDefinitionUseCase,
     private val setTimeRoutineUseCase: SetTimeRoutineUseCase,
     private val deleteTimeRoutineUseCase: DeleteTimeRoutineUseCase,
     private val getValidTimeRoutineUseCase: GetValidTimeRoutineUseCase,
