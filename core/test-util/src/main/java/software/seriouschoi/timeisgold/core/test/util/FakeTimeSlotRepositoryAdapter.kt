@@ -20,7 +20,7 @@ class FakeTimeSlotRepositoryAdapter(
     ) {
     }
 
-    override suspend fun getTimeSlotDetail(timeslotUuid: String): Flow<TimeSlotComposition?> {
+    override suspend fun watchTimeSlotDetail(timeslotUuid: String): Flow<TimeSlotComposition?> {
         val result = mockTimeRoutines.map {
             it.timeSlots.filter {
                 it.uuid == timeslotUuid

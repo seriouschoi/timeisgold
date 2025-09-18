@@ -35,7 +35,7 @@ internal class SetTimeSlotTest : BaseRoomTest() {
         )
 
         val slotDetailFlow = timeSlotRepo
-            .getTimeSlotDetail(slotFotUpdate.uuid)
+            .watchTimeSlotDetail(slotFotUpdate.uuid)
 
         timeSlotRepo.setTimeSlot(
             timeSlotData = TimeSlotComposition(

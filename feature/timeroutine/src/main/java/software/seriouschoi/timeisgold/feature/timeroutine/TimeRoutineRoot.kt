@@ -17,6 +17,6 @@ fun NavGraphBuilder.timeRoutineBarSection() {
     ) {
         TimeRoutinePagerScreenRoute.routes(this)
         TimeRoutineEditScreenRoute.Companion.routes(this)
-        TimeSlotEditScreenRoute.routes(this)
+        TimeSlotEditScreenRoute.Companion.routes(this)
     }
 }

@@ -28,7 +28,7 @@ internal class TimeSlotRepositoryAdapter @Inject constructor(
         }
     }
 
-    override suspend fun getTimeSlotDetail(timeslotUuid: String): Flow<TimeSlotComposition?> {
+    override suspend fun watchTimeSlotDetail(timeslotUuid: String): Flow<TimeSlotComposition?> {
         return database.TimeSlotDao()
             .observe(timeslotUuid)
             .distinctUntilChanged()

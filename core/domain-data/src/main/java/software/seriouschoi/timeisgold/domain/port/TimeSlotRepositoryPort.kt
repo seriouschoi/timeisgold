@@ -6,7 +6,7 @@ import software.seriouschoi.timeisgold.domain.data.entities.TimeSlotEntity
 
 interface TimeSlotRepositoryPort {
     suspend fun addTimeSlot(timeSlotData: TimeSlotComposition, timeRoutineUuid: String)
-    suspend fun getTimeSlotDetail(timeslotUuid: String): Flow<TimeSlotComposition?>
+    suspend fun watchTimeSlotDetail(timeslotUuid: String): Flow<TimeSlotComposition?>
     suspend fun observeTimeSlotList(timeRoutineUuid: String): Flow<List<TimeSlotEntity>>
     suspend fun setTimeSlot(timeSlotData: TimeSlotComposition)
     suspend fun deleteTimeSlot(timeslotUuid: String)

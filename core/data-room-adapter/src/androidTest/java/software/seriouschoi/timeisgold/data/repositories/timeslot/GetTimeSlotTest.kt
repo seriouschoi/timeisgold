@@ -46,7 +46,7 @@ internal class GetTimeSlotTest : BaseRoomTest() {
     @Test
     fun getTimeSlot_should_ReturnTimeSlot() = runTest {
         val timeSlot = routine.timeSlots.first()
-        val slotFlow = timeSlotRepo.getTimeSlotDetail(timeSlot.uuid)
+        val slotFlow = timeSlotRepo.watchTimeSlotDetail(timeSlot.uuid)
 
         val emitted = slotFlow.first()
         assert(timeSlot == emitted?.timeSlotData) {
@@ -65,7 +65,7 @@ internal class GetTimeSlotTest : BaseRoomTest() {
     @Test
     fun getTimeSlot_withDeletedTimeSlot_should_ReturnNull() = runTest {
         //없는 데이터상태 요청.
-        val slotFlow = timeSlotRepo.getTimeSlotDetail(UUID.randomUUID().toString())
+        val slotFlow = timeSlotRepo.watchTimeSlotDetail(UUID.randomUUID().toString())
 
         assertNull(slotFlow.first())
     }

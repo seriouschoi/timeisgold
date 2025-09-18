@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
@@ -56,7 +57,6 @@ internal class TimeRoutinePagerViewModel @Inject constructor(
         )
     }
 
-
     private val intentState = MutableSharedFlow<Envelope<TimeRoutinePagerUiIntent>>()
 
     @OptIn(FlowPreview::class)
@@ -71,7 +71,7 @@ internal class TimeRoutinePagerViewModel @Inject constructor(
     ).debounce(200)
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    private val pagerStateRoutineFlow =
+    private val currentRoutineFlow =
         currentDayOfWeekFlow.mapNotNull { it }.flatMapLatest { dayOfWeek ->
             watchTimeRoutineDefinitionUseCase.invoke(dayOfWeek)
         }.asResultState().onlySuccess().stateIn(
@@ -80,9 +80,9 @@ internal class TimeRoutinePagerViewModel @Inject constructor(
             initialValue = null
         )
 
-    private val pagerUiPreStateFlow = combine(
+    private val routineUiPreStateFlow = combine(
         currentDayOfWeekFlow,
-        pagerStateRoutineFlow
+        currentRoutineFlow
     ) { dayOfWeek, routine ->
         val routineTitle = routine?.timeRoutine?.title ?: ""
         val dayOfWeekName = dayOfWeek?.getDisplayName(
@@ -97,7 +97,7 @@ internal class TimeRoutinePagerViewModel @Inject constructor(
 
     val uiState: StateFlow<TimeRoutinePagerUiState> = merge(
         initPagerFlow,
-        pagerUiPreStateFlow
+        routineUiPreStateFlow
     ).scan(TimeRoutinePagerUiState()) { acc, value ->
         when (value) {
             is UiPreState.Init -> acc.copy(
@@ -131,6 +131,7 @@ internal class TimeRoutinePagerViewModel @Inject constructor(
             TimeRoutinePagerUiIntent.ModifyRoutine -> {
                 moveToRoutineEdit()
             }
+
             is TimeRoutinePagerUiIntent.AddRoutine -> {
                 moveToTimeSlotEdit()
             }
@@ -143,11 +144,13 @@ internal class TimeRoutinePagerViewModel @Inject constructor(
 
     private fun moveToTimeSlotEdit() {
         viewModelScope.launch {
-            // TODO: show time slot edit screen.
-            /*
-            파라미터 보내야함. 루틴 uuid, slot uuid.
-             */
-            navigator.navigate(TimeSlotEditScreenRoute)
+            val routineDefinition = currentRoutineFlow.first() ?: return@launch
+            val routineUuid = routineDefinition.timeRoutine.uuid
+
+            navigator.navigate(TimeSlotEditScreenRoute(
+                timeRoutineUuid = routineUuid,
+                timeSlotUuid = null,
+            ))
         }
     }
 

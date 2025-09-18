@@ -36,9 +36,9 @@ fun DomainError.toUiText(): UiText = when (this) {
 
     is DomainError.NotFound -> {
         when (this) {
-            DomainError.NotFound.TimeRoutine -> UiText.Res(
-                id = CommonR.string.message_error_not_found_time_routine
-            )
+            DomainError.NotFound.TimeRoutine -> UiText.MultipleResArgs.create(CommonR.string.message_format_notfound_data, CommonR.string.text_routine)
+
+            DomainError.NotFound.TimeSlot -> UiText.MultipleResArgs.create(CommonR.string.message_format_notfound_data, CommonR.string.text_timeslot)
         }
     }
 
