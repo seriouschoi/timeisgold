@@ -1,10 +1,12 @@
 package software.seriouschoi.timeisgold.feature.timeroutine.timeslot.edit
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -13,9 +15,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -25,16 +24,19 @@ import kotlinx.serialization.Serializable
 import software.seriouschoi.navigator.NavigatorRoute
 import software.seriouschoi.timeisgold.core.common.ui.TigTheme
 import software.seriouschoi.timeisgold.core.common.ui.TigThemePreview
+import software.seriouschoi.timeisgold.core.common.ui.asString
+import software.seriouschoi.timeisgold.core.common.ui.components.TigAlert
 import software.seriouschoi.timeisgold.core.common.ui.components.TigBottomBar
 import software.seriouschoi.timeisgold.core.common.ui.components.TigButtonTypes
 import software.seriouschoi.timeisgold.core.common.ui.components.TigIconButton
 import software.seriouschoi.timeisgold.core.common.ui.components.TigLabelButton
 import software.seriouschoi.timeisgold.core.common.ui.components.TigScaffold
 import software.seriouschoi.timeisgold.core.common.ui.components.TigSingleLineTextField
+import software.seriouschoi.timeisgold.core.common.ui.container.TigBlurContainer
 import software.seriouschoi.timeisgold.core.common.ui.dialog.TigTimePickerDialog
+import software.seriouschoi.timeisgold.core.common.util.Envelope
 import software.seriouschoi.timeisgold.core.common.util.formatToString
 import java.time.LocalTime
-import java.util.UUID
 import software.seriouschoi.timeisgold.core.common.ui.R as CommonR
 
 @Serializable
@@ -56,34 +58,75 @@ private fun Screen() {
     val viewModel = hiltViewModel<TimeSlotEditViewModel>()
 
     val uiState by viewModel.uiState.collectAsState()
-
     UiStateView(uiState) {
+        viewModel.sendIntent(it)
+    }
+
+    val uiEvent by viewModel.uiEvent.collectAsState(
+        initial = null
+    )
+    UiEventView(uiEvent) {
         viewModel.sendIntent(it)
     }
 }
 
 @Composable
-private fun UiStateView(uiState: TimeSlotEditUiState, sendIntent: (TimeSlotEditIntent) -> Unit) {
-    TigScaffold(
-        topBar = {
-            UiStateViewTopBar(
-                uiState = uiState,
-                sendIntent = sendIntent,
-            )
-        },
-        content = {
-            UiStateViewContentView(
-                uiState = uiState,
-                sendIntent = sendIntent,
-            )
-        },
-        bottomBar = {
-            UiStateViewBottomBar(
-                uiState = uiState,
-                sendIntent = sendIntent,
+private fun UiEventView(
+    envelope: Envelope<TimeSlotEditUiEvent>?,
+    sendIntent: (TimeSlotEditIntent) -> Unit,
+) {
+    val event = envelope?.payload
+    when (event) {
+        is TimeSlotEditUiEvent.SelectTime -> {
+            TigTimePickerDialog(
+                time = event.time,
+                dialogId = envelope.uuid.toString(),
+            ) {
+                sendIntent(TimeSlotEditIntent.SelectedTime(it, event.isStartTime))
+            }
+        }
+
+        is TimeSlotEditUiEvent.ShowConfirm -> {
+            TigAlert(
+                alertId = envelope.uuid.toString(),
+                message = event.message.asString(),
+                confirmButtonText = stringResource(CommonR.string.text_confirm),
+                onClickConfirm = {
+                    sendIntent(event.confirmIntent)
+                },
             )
         }
-    )
+
+        else -> {
+            //no work.
+        }
+    }
+}
+
+@Composable
+private fun UiStateView(uiState: TimeSlotEditUiState, sendIntent: (TimeSlotEditIntent) -> Unit) {
+    TigBlurContainer {
+        TigScaffold(
+            topBar = {
+                UiStateViewTopBar(
+                    uiState = uiState,
+                    sendIntent = sendIntent,
+                )
+            },
+            content = {
+                UiStateViewContentView(
+                    uiState = uiState,
+                    sendIntent = sendIntent,
+                )
+            },
+            bottomBar = {
+                UiStateViewBottomBar(
+                    uiState = uiState,
+                    sendIntent = sendIntent,
+                )
+            }
+        )
+    }
 }
 
 @Composable
@@ -91,20 +134,22 @@ private fun UiStateViewBottomBar(
     uiState: TimeSlotEditUiState,
     sendIntent: (TimeSlotEditIntent) -> Unit,
 ) {
-    TigBottomBar {
-        if (uiState.visibleDelete) {
-            TigLabelButton(
-                label = stringResource(CommonR.string.text_delete),
-            ) {
-                sendIntent(TimeSlotEditIntent.Delete)
+    BottomAppBar {
+        TigBottomBar {
+            if (uiState.visibleDelete) {
+                TigLabelButton(
+                    label = stringResource(CommonR.string.text_delete),
+                ) {
+                    sendIntent(TimeSlotEditIntent.Delete)
+                }
             }
-        }
-        TigLabelButton(
-            label = stringResource(CommonR.string.text_save),
-            buttonType = TigButtonTypes.Primary,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            sendIntent(TimeSlotEditIntent.Save)
+            TigLabelButton(
+                label = stringResource(CommonR.string.text_save),
+                buttonType = TigButtonTypes.Primary,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                sendIntent(TimeSlotEditIntent.Save)
+            }
         }
     }
 }
@@ -121,27 +166,33 @@ private fun UiStateViewContentView(
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
-        TextButton(
-            onClick = {
-                sendIntent(TimeSlotEditIntent.SelectTime(uiState.startTime, true))
-            }
+        Row(
+            modifier = Modifier.fillMaxWidth()
         ) {
-            Text(
-                text = startTime,
-                style = MaterialTheme.typography.displaySmall
-            )
+            TextButton(
+                onClick = {
+                    sendIntent(TimeSlotEditIntent.SelectTime(uiState.startTime, true))
+                },
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(
+                    text = startTime,
+                    style = MaterialTheme.typography.displaySmall
+                )
+            }
+            TextButton(
+                onClick = {
+                    sendIntent(TimeSlotEditIntent.SelectTime(uiState.endTime, false))
+                },
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(
+                    text = endTime,
+                    style = MaterialTheme.typography.displaySmall
+                )
+            }
         }
 
-        TextButton(
-            onClick = {
-                sendIntent(TimeSlotEditIntent.SelectTime(uiState.endTime, false))
-            }
-        ) {
-            Text(
-                text = endTime,
-                style = MaterialTheme.typography.displaySmall
-            )
-        }
     }
 }
 
@@ -172,7 +223,7 @@ private fun UiStateViewTopBar(
 
 @Composable
 @TigThemePreview
-fun Preview() {
+private fun Preview() {
     TigTheme {
         UiStateView(
             uiState = TimeSlotEditUiState(

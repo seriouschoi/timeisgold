@@ -1,5 +1,17 @@
 package software.seriouschoi.timeisgold.feature.timeroutine.timeslot.edit
 
+import software.seriouschoi.timeisgold.core.common.ui.UiText
+import java.time.LocalTime
+
 sealed interface TimeSlotEditUiEvent {
+    data class SelectTime(
+        val time: LocalTime,
+        val isStartTime: Boolean,
+    ) : TimeSlotEditUiEvent
+
+    data class ShowConfirm(
+        val message: UiText,
+        val confirmIntent: TimeSlotEditIntent,
+    ) : TimeSlotEditUiEvent
 
 }

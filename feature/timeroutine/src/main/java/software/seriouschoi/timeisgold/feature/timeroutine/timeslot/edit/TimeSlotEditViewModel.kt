@@ -6,19 +6,23 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.scan
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import software.seriouschoi.navigator.DestNavigatorPort
 import software.seriouschoi.timeisgold.core.common.ui.ResultState
+import software.seriouschoi.timeisgold.core.common.ui.UiText
 import software.seriouschoi.timeisgold.core.common.ui.asResultState
 import software.seriouschoi.timeisgold.core.common.util.Envelope
 import software.seriouschoi.timeisgold.core.domain.mapper.onlyDomainResult
@@ -28,12 +32,13 @@ import software.seriouschoi.timeisgold.domain.data.entities.TimeSlotEntity
 import software.seriouschoi.timeisgold.domain.usecase.timeslot.WatchTimeSlotDetailUseCase
 import java.time.LocalTime
 import javax.inject.Inject
+import software.seriouschoi.timeisgold.core.common.ui.R as CommonR
 
 @HiltViewModel
 internal class TimeSlotEditViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
     private val watchTimeSlotDetailUseCase: WatchTimeSlotDetailUseCase,
-    private val navigator: DestNavigatorPort
+    private val navigator: DestNavigatorPort,
 ) : ViewModel() {
     private val currentRoute get() = savedStateHandle.toRoute<TimeSlotEditScreenRoute>()
     private val intentFlow = MutableSharedFlow<Envelope<TimeSlotEditIntent>>()
@@ -79,7 +84,16 @@ internal class TimeSlotEditViewModel @Inject constructor(
         TimeSlotEditUiState()
     )
 
-    val uiEvent: StateFlow<TimeSlotEditUiEvent> = TODO()
+    val uiEvent: SharedFlow<Envelope<TimeSlotEditUiEvent>> = merge(intentFlow.mapNotNull {
+        UiPreEvent.Intent(it.payload)
+    }).mapNotNull { preEvent: UiPreEvent ->
+        preEvent.asEvent()
+    }.map {
+        Envelope(it)
+    }.shareIn(
+        viewModelScope,
+        SharingStarted.Lazily
+    )
 
     fun sendIntent(intent: TimeSlotEditIntent) {
         viewModelScope.launch {
@@ -108,8 +122,37 @@ internal class TimeSlotEditViewModel @Inject constructor(
     }
 }
 
-private fun TimeSlotEditUiState.reduce(preState: UiPreState.Init): TimeSlotEditUiState {
-    return when (preState.domainResult) {
+private fun UiPreEvent.asEvent(): TimeSlotEditUiEvent? = when (this) {
+    is UiPreEvent.Intent -> {
+        when (val intent = this.intent) {
+            TimeSlotEditIntent.Delete -> TimeSlotEditUiEvent.ShowConfirm(
+                UiText.MultipleResArgs.create(
+                    CommonR.string.message_format_confirm,
+                    CommonR.string.text_delete
+                ),
+                TimeSlotEditIntent.DeleteConfirm
+            )
+
+            TimeSlotEditIntent.Save -> TimeSlotEditUiEvent.ShowConfirm(
+                UiText.MultipleResArgs.create(
+                    CommonR.string.message_format_confirm,
+                    CommonR.string.text_save
+                ),
+                TimeSlotEditIntent.SaveConfirm
+            )
+
+            is TimeSlotEditIntent.SelectTime -> TimeSlotEditUiEvent.SelectTime(
+                time = intent.time,
+                isStartTime = intent.isStartTime,
+            )
+
+            else -> null
+        }
+    }
+}
+
+private fun TimeSlotEditUiState.reduce(preState: UiPreState.Init): TimeSlotEditUiState =
+    when (preState.domainResult) {
         is DomainResult.Failure -> this.copy(
             slotName = "",
             startTime = LocalTime.now(),
@@ -122,17 +165,27 @@ private fun TimeSlotEditUiState.reduce(preState: UiPreState.Init): TimeSlotEditU
             endTime = preState.domainResult.value.endTime
         )
     }
-}
 
-private fun TimeSlotEditUiState.reduce(preState: UiPreState.Intent): TimeSlotEditUiState {
-    return when (preState.intent) {
+private fun TimeSlotEditUiState.reduce(preState: UiPreState.Intent): TimeSlotEditUiState =
+    when (preState.intent) {
         is TimeSlotEditIntent.UpdateSlotName -> {
             copy(slotName = preState.intent.newName)
         }
 
+        is TimeSlotEditIntent.SelectedTime -> {
+            if (preState.intent.isStartTime) {
+                this.copy(
+                    startTime = preState.intent.selectedTime
+                )
+            } else {
+                this.copy(
+                    endTime = preState.intent.selectedTime
+                )
+            }
+        }
+
         else -> this
     }
-}
 
 private sealed interface UiPreState {
     data class Init(
@@ -140,4 +193,9 @@ private sealed interface UiPreState {
     ) : UiPreState
 
     data class Intent(val intent: TimeSlotEditIntent) : UiPreState
+}
+
+private sealed interface UiPreEvent {
+    data class Intent(val intent: TimeSlotEditIntent) : UiPreEvent
+
 }

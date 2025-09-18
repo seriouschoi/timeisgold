@@ -1,10 +1,10 @@
 # TODOs
 
-## 루틴 정의 편집에 Scaffold적용.
-- [x] 적용.
 
-## 다이얼로그에 material 적용.
-- [x] 적용.
+## TimeSlot추가.
+- [ ] 사용자가 시간을 선택해서 오지 않았다면, 현재 루틴의 빈시간을 자동으로 기본 선택하기.
+- [ ] valid check개발.
+- [ ] 저장 기능 개발.
 
 ## Routine Page.
 - 상단
@@ -33,7 +33,7 @@
       - 루틴 수정/삭제 버튼.
 
 ## time routine edit test.
-- [ ] 우선 deprecated 된 함수들 제거.
+- [x] 우선 deprecated 된 함수들 제거.
 - [ ] time routine edit viewmodel test 추가. (intent의 테스트 전부 작성.)
 
 ## time routine edit
