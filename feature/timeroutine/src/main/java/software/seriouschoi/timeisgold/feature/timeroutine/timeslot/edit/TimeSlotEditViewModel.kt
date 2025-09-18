@@ -79,6 +79,8 @@ internal class TimeSlotEditViewModel @Inject constructor(
         TimeSlotEditUiState()
     )
 
+    val uiEvent: StateFlow<TimeSlotEditUiEvent> = TODO()
+
     fun sendIntent(intent: TimeSlotEditIntent) {
         viewModelScope.launch {
             intentFlow.emit(Envelope(intent))

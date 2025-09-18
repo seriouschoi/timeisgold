@@ -1,7 +1,6 @@
 package software.seriouschoi.timeisgold.feature.timeroutine.timeslot.edit
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
@@ -10,9 +9,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TimePicker
-import androidx.compose.material3.TimePickerLayoutType
-import androidx.compose.material3.TimePickerState
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -35,8 +31,10 @@ import software.seriouschoi.timeisgold.core.common.ui.components.TigIconButton
 import software.seriouschoi.timeisgold.core.common.ui.components.TigLabelButton
 import software.seriouschoi.timeisgold.core.common.ui.components.TigScaffold
 import software.seriouschoi.timeisgold.core.common.ui.components.TigSingleLineTextField
+import software.seriouschoi.timeisgold.core.common.ui.dialog.TigTimePickerDialog
 import software.seriouschoi.timeisgold.core.common.util.formatToString
 import java.time.LocalTime
+import java.util.UUID
 import software.seriouschoi.timeisgold.core.common.ui.R as CommonR
 
 @Serializable
@@ -120,37 +118,30 @@ private fun UiStateViewContentView(
     val startTime = uiState.startTime.formatToString()
     val endTime = uiState.endTime.formatToString()
 
-    var visibleTimePicker by remember { mutableStateOf(true) }
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
-//        Row(
-//            modifier = Modifier.fillMaxWidth()
-//        ) {
-//            TextButton(
-//                modifier = Modifier.weight(1f),
-//                onClick = {
-//                    visibleTimePicker = !visibleTimePicker
-//                }
-//            ) {
-//                Text(
-//                    text = startTime,
-//                    style = MaterialTheme.typography.displaySmall
-//                )
-//            }
-//
-//            TextButton(
-//                modifier = Modifier.weight(1f),
-//                onClick = {
-//                    visibleTimePicker = !visibleTimePicker
-//                }
-//            ) {
-//                Text(
-//                    text = endTime,
-//                    style = MaterialTheme.typography.displaySmall
-//                )
-//            }
-//        }
+        TextButton(
+            onClick = {
+                sendIntent(TimeSlotEditIntent.SelectTime(uiState.startTime, true))
+            }
+        ) {
+            Text(
+                text = startTime,
+                style = MaterialTheme.typography.displaySmall
+            )
+        }
+
+        TextButton(
+            onClick = {
+                sendIntent(TimeSlotEditIntent.SelectTime(uiState.endTime, false))
+            }
+        ) {
+            Text(
+                text = endTime,
+                style = MaterialTheme.typography.displaySmall
+            )
+        }
     }
 }
 
