@@ -14,7 +14,9 @@ sealed class ResultState<out T> {
 }
 
 fun <T> Flow<T>.asResultState(): Flow<ResultState<T>> {
-    return this.map<T, ResultState<T>> { ResultState.Success(it) }
+    return this.map<T, ResultState<T>> {
+        ResultState.Success(it)
+    }
         .onStart { emit(ResultState.Loading) }
         .catch { e -> emit(ResultState.Error(e)) }
 }
