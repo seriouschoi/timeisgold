@@ -43,10 +43,14 @@ internal class TimeRoutinePageViewModel @Inject constructor(
     private val watchTimeSlotUseCase: WatchTimeSlotUseCase
 ) : ViewModel() {
 
+    // TODO: jhchoi 2025. 9. 19. 현재 뷰모델의 루틴 읽어오는 파이프라인 만들기. 요일 파이프라인을 만들어서 그걸 수신하자.
+
+    // TODO: jhchoi 2025. 9. 19. 이건 지우자.
     private data class ViewModelData(
         val dayOfWeekOrdinal: Int,
     ) : Serializable
 
+    // TODO: jhchoi 2025. 9. 19. 아래의 flow는 파이프라인으로 정리. 
     private val _uiState = MutableStateFlow<TimeRoutinePageUiState>(
         TimeRoutinePageUiState.Loading(
             UiText.MultipleResArgs.create(
@@ -59,6 +63,7 @@ internal class TimeRoutinePageViewModel @Inject constructor(
 
     private val _intent = MutableSharedFlow<Envelope<TimeRoutinePageUiIntent>>()
 
+    // TODO: jhchoi 2025. 9. 19. 이건 지우자.
     private val viewModelData
         get() = savedStateHandle.get<ViewModelData>("data")
 
