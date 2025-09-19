@@ -2,8 +2,10 @@ package software.seriouschoi.timeisgold.feature.timeroutine.timeslot.edit
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.BottomAppBar
@@ -17,6 +19,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
@@ -24,6 +28,7 @@ import kotlinx.serialization.Serializable
 import software.seriouschoi.navigator.NavigatorRoute
 import software.seriouschoi.timeisgold.core.common.ui.TigTheme
 import software.seriouschoi.timeisgold.core.common.ui.TigThemePreview
+import software.seriouschoi.timeisgold.core.common.ui.UiText
 import software.seriouschoi.timeisgold.core.common.ui.asString
 import software.seriouschoi.timeisgold.core.common.ui.components.TigAlert
 import software.seriouschoi.timeisgold.core.common.ui.components.TigBottomBar
@@ -58,9 +63,14 @@ private fun Screen() {
     val viewModel = hiltViewModel<TimeSlotEditViewModel>()
 
     val uiState by viewModel.uiState.collectAsState()
-    UiStateView(uiState) {
-        viewModel.sendIntent(it)
-    }
+    val validUiState by viewModel.validStateFlow.collectAsState()
+    UiStateView(
+        uiState = uiState,
+        uiValidState = validUiState,
+        sendIntent = {
+            viewModel.sendIntent(it)
+        },
+    )
 
     val uiEvent by viewModel.uiEvent.collectAsState(
         initial = null
@@ -120,7 +130,11 @@ private fun UiEventView(
 }
 
 @Composable
-private fun UiStateView(uiState: TimeSlotEditUiState, sendIntent: (TimeSlotEditIntent) -> Unit) {
+private fun UiStateView(
+    uiState: TimeSlotEditUiState,
+    uiValidState: TimeSlotEditValidUiState,
+    sendIntent: (TimeSlotEditIntent) -> Unit
+) {
     TigBlurContainer(
         enableBlur = uiState.loading,
     ) {
@@ -128,18 +142,21 @@ private fun UiStateView(uiState: TimeSlotEditUiState, sendIntent: (TimeSlotEditI
             topBar = {
                 UiStateViewTopBar(
                     uiState = uiState,
+                    validState = uiValidState,
                     sendIntent = sendIntent,
                 )
             },
             content = {
                 UiStateViewContentView(
                     uiState = uiState,
+                    validState = uiValidState,
                     sendIntent = sendIntent,
                 )
             },
             bottomBar = {
                 UiStateViewBottomBar(
                     uiState = uiState,
+                    validState = uiValidState,
                     sendIntent = sendIntent,
                 )
             }
@@ -150,6 +167,7 @@ private fun UiStateView(uiState: TimeSlotEditUiState, sendIntent: (TimeSlotEditI
 @Composable
 private fun UiStateViewBottomBar(
     uiState: TimeSlotEditUiState,
+    validState: TimeSlotEditValidUiState,
     sendIntent: (TimeSlotEditIntent) -> Unit,
 ) {
     BottomAppBar {
@@ -164,7 +182,8 @@ private fun UiStateViewBottomBar(
             TigLabelButton(
                 label = stringResource(CommonR.string.text_save),
                 buttonType = TigButtonTypes.Primary,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                enabled = validState.enableSaveButton
             ) {
                 sendIntent(TimeSlotEditIntent.Save)
             }
@@ -176,6 +195,7 @@ private fun UiStateViewBottomBar(
 @Composable
 private fun UiStateViewContentView(
     uiState: TimeSlotEditUiState,
+    validState: TimeSlotEditValidUiState,
     sendIntent: (TimeSlotEditIntent) -> Unit,
 ) {
     val startTime = uiState.startTime.formatToString()
@@ -211,6 +231,18 @@ private fun UiStateViewContentView(
             }
         }
 
+        Spacer(
+            modifier = Modifier.height(10.dp)
+        )
+
+        if (validState.invalidMessage != null) {
+            Text(
+                modifier = Modifier.fillMaxWidth(),
+                text = validState.invalidMessage.asString(),
+                color = MaterialTheme.colorScheme.error,
+                textAlign = TextAlign.Center
+            )
+        }
     }
 }
 
@@ -218,6 +250,7 @@ private fun UiStateViewContentView(
 @Composable
 private fun UiStateViewTopBar(
     uiState: TimeSlotEditUiState,
+    validState: TimeSlotEditValidUiState,
     sendIntent: (TimeSlotEditIntent) -> Unit,
 ) {
     TopAppBar(
@@ -248,6 +281,10 @@ private fun Preview() {
                 slotName = "test",
                 startTime = LocalTime.of(13, 0),
                 endTime = LocalTime.of(14, 30)
+            ),
+            uiValidState = TimeSlotEditValidUiState(
+                enableSaveButton = false,
+                invalidMessage = UiText.Res(CommonR.string.message_error_valid_empty_title)
             ),
             sendIntent = {}
 

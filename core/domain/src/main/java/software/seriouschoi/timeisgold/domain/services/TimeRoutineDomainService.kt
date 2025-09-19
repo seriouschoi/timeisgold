@@ -2,9 +2,7 @@ package software.seriouschoi.timeisgold.domain.services
 
 import software.seriouschoi.timeisgold.domain.data.DomainError
 import software.seriouschoi.timeisgold.domain.data.DomainResult
-import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineComposition
 import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineDefinition
-import software.seriouschoi.timeisgold.domain.exception.TIGException
 import software.seriouschoi.timeisgold.domain.port.TimeRoutineRepositoryPort
 import javax.inject.Inject
 
@@ -12,11 +10,13 @@ class TimeRoutineDomainService @Inject constructor(
     private val timeRoutineRepository: TimeRoutineRepositoryPort,
 ) {
     suspend fun isValidForAdd(newRoutine: TimeRoutineDefinition): DomainResult<Unit> {
-        if(newRoutine.timeRoutine.title.isEmpty()) {
-            return DomainResult.Failure(DomainError.Validation.EmptyTitle)
+        val newRoutineTitle = newRoutine.timeRoutine.title
+        if (newRoutineTitle.length !in 1..15) {
+            return DomainResult.Failure(DomainError.Validation.TitleLength)
         }
+
         val newDays = newRoutine.dayOfWeeks.map { it.dayOfWeek }
-        if(newDays.isEmpty()) {
+        if (newDays.isEmpty()) {
             return DomainResult.Failure(DomainError.Validation.NoSelectedDayOfWeek)
         }
 

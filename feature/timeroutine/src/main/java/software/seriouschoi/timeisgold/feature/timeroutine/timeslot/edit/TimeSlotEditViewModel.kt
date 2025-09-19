@@ -5,10 +5,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
@@ -32,6 +34,7 @@ import software.seriouschoi.timeisgold.domain.data.DomainError
 import software.seriouschoi.timeisgold.domain.data.DomainResult
 import software.seriouschoi.timeisgold.domain.data.entities.TimeSlotEntity
 import software.seriouschoi.timeisgold.domain.usecase.timeslot.DeleteTimeSlotUseCase
+import software.seriouschoi.timeisgold.domain.usecase.timeslot.GetTimeSlotValidUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeslot.SetTimeSlotUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeslot.WatchTimeSlotDetailUseCase
 import java.time.LocalTime
@@ -44,7 +47,8 @@ internal class TimeSlotEditViewModel @Inject constructor(
     private val watchTimeSlotDetailUseCase: WatchTimeSlotDetailUseCase,
     private val navigator: DestNavigatorPort,
     private val saveTimeSlotUseCase: SetTimeSlotUseCase,
-    private val deleteTimeSlotUseCase: DeleteTimeSlotUseCase
+    private val deleteTimeSlotUseCase: DeleteTimeSlotUseCase,
+    private val getTimeSlotValidUseCase: GetTimeSlotValidUseCase,
 ) : ViewModel() {
     private val currentRoute get() = savedStateHandle.toRoute<TimeSlotEditScreenRoute>()
     private val intentFlow = MutableSharedFlow<Envelope<TimeSlotEditIntent>>()
@@ -102,6 +106,31 @@ internal class TimeSlotEditViewModel @Inject constructor(
         )
     )
 
+    @OptIn(FlowPreview::class)
+    val validStateFlow = currentTimeSlotFlow
+        .debounce(500)
+        .map {
+        getTimeSlotValidUseCase.invoke(it, currentRoute.timeRoutineUuid)
+    }.scan(
+        TimeSlotEditValidUiState()
+    ){ acc, domainResult ->
+        when(domainResult) {
+            is DomainResult.Failure -> {
+                acc.copy(
+                    invalidMessage = domainResult.error.toUiText(),
+                    enableSaveButton = false
+                )
+            }
+            is DomainResult.Success -> TimeSlotEditValidUiState(
+                enableSaveButton = true,
+            )
+        }
+    }.stateIn(
+        viewModelScope,
+        SharingStarted.Lazily,
+        TimeSlotEditValidUiState()
+    )
+
     private val _uiEvent = MutableSharedFlow<Envelope<TimeSlotEditUiEvent>>()
     val uiEvent: SharedFlow<Envelope<TimeSlotEditUiEvent>> = merge(intentFlow.mapNotNull {
         UiPreEvent.Intent(it.payload)
@@ -131,6 +160,7 @@ internal class TimeSlotEditViewModel @Inject constructor(
             TimeSlotEditIntent.Delete -> {
                 deleteTimeSlot()
             }
+
             TimeSlotEditIntent.Save -> {
                 saveTimeSlot()
             }
@@ -141,44 +171,54 @@ internal class TimeSlotEditViewModel @Inject constructor(
         }
     }
 
-    private fun deleteTimeSlot() {
-        flowResultState {
-            val timeSlot = currentTimeSlotFlow.first()
-            deleteTimeSlotUseCase.invoke(timeSlot.uuid)
-        }.onEach {
-            updateLoading(it)
+    private fun deleteTimeSlot() = flowResultState {
+        val timeSlot = currentTimeSlotFlow.first()
+        deleteTimeSlotUseCase.invoke(timeSlot.uuid)
+    }.onEach {
+        updateLoading(it)
+    }.onlyDomainResult().mapNotNull { it }.mapNotNull { domainResult ->
+        when (domainResult) {
+            is DomainResult.Failure -> TimeSlotEditUiEvent.ShowAlert(
+                domainResult.error.toUiText()
+            )
+
+            is DomainResult.Success -> TimeSlotEditUiEvent.ShowAlert(
+                UiText.MultipleResArgs.create(
+                    CommonR.string.message_format_complete, CommonR.string.text_delete
+                ),
+                TimeSlotEditIntent.Back
+            )
         }
-        TODO("Not yet implemented")
-    }
+    }.onEach {
+        _uiEvent.emit(Envelope(it))
+    }.launchIn(viewModelScope)
 
-    private fun saveTimeSlot() {
-        flowResultState {
-            val timeSlot = currentTimeSlotFlow.first()
-            val routineUuid = currentRoute.timeRoutineUuid
-            saveTimeSlotUseCase.invoke(routineUuid, timeSlot)
-        }.onEach {
-            updateLoading(it)
-        }.onlyDomainResult().mapNotNull { it }.mapNotNull { domainResult ->
-            when (domainResult) {
-                is DomainResult.Failure -> {
-                    TimeSlotEditUiEvent.ShowAlert(
-                        domainResult.error.toUiText(),
-                    )
-                }
-
-                is DomainResult.Success -> {
-                    TimeSlotEditUiEvent.ShowAlert(
-                        UiText.MultipleResArgs.create(
-                            CommonR.string.message_format_complete, CommonR.string.text_save
-                        ),
-                        TimeSlotEditIntent.Back
-                    )
-                }
+    private fun saveTimeSlot() = flowResultState {
+        val timeSlot = currentTimeSlotFlow.first()
+        val routineUuid = currentRoute.timeRoutineUuid
+        saveTimeSlotUseCase.invoke(routineUuid, timeSlot)
+    }.onEach {
+        updateLoading(it)
+    }.onlyDomainResult().mapNotNull { it }.mapNotNull { domainResult ->
+        when (domainResult) {
+            is DomainResult.Failure -> {
+                TimeSlotEditUiEvent.ShowAlert(
+                    domainResult.error.toUiText(),
+                )
             }
-        }.onEach {
-            _uiEvent.emit(Envelope(it))
-        }.launchIn(viewModelScope)
-    }
+
+            is DomainResult.Success -> {
+                TimeSlotEditUiEvent.ShowAlert(
+                    UiText.MultipleResArgs.create(
+                        CommonR.string.message_format_complete, CommonR.string.text_save
+                    ),
+                    TimeSlotEditIntent.Back
+                )
+            }
+        }
+    }.onEach {
+        _uiEvent.emit(Envelope(it))
+    }.launchIn(viewModelScope)
 
     private suspend fun updateLoading(resultState: ResultState<DomainResult<*>>) {
         when (resultState) {

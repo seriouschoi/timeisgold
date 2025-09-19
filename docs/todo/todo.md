@@ -1,11 +1,8 @@
 # TODOs
 
-## Data 모듈에서 DomainResult를 리턴하는 구조 제거..?
-## DomainResult<Boolean> -> DomainResult<Unit>
-
 ## TimeSlot추가.
 - [ ] 사용자가 시간을 선택해서 오지 않았다면, 현재 루틴의 빈시간을 자동으로 기본 선택하기.
-- [ ] 저장 기능 개발.
+- [x] 저장 기능 개발.
 - [ ] valid check개발.
 
 ## Routine Page.
@@ -74,3 +71,5 @@
 - [x] 우선 테스트를 차라리 다 지우고,
   - 한 피쳐를 만든 이후 테스트를 만들자.
 - [ ] 향후 테스트는 자동화 도구에 의해 자동 생성 시키는것도 고민해보자.(Gemini CLI)
+
+## Data모듈에서 모든 리턴을 DataResult로 하는게 좋아보이는데..?

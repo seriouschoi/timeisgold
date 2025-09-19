@@ -14,14 +14,24 @@ class TimeSlotDomainService @Inject constructor(
     suspend fun isValid(
         routineUuid: String,
         timeSlotData: TimeSlotEntity,
-    ) : DomainResult<Unit> {
+    ): DomainResult<Unit> {
+        val newSlotTitle = timeSlotData.title
+        if (newSlotTitle.length !in 1..15) {
+            return DomainResult.Failure(DomainError.Validation.TitleLength)
+        }
+
         val allTimeSlotList = timeSlotRepository.watchTimeSlotList(routineUuid).first()
+
+        if (timeSlotData.endTime <= timeSlotData.startTime) {
+            return DomainResult.Failure(DomainError.Conflict.Time)
+        }
+
         //timeslot의 시간이 겹치는지 확인하는 로직.
         val isDuplicateTime = allTimeSlotList.any {
             timeSlotData.startTime in (it.startTime..it.endTime)
                     || timeSlotData.endTime in (it.startTime..it.endTime)
         }
-        if(isDuplicateTime) {
+        if (isDuplicateTime) {
             return DomainResult.Failure(DomainError.Conflict.Data)
         }
         return DomainResult.Success(Unit)

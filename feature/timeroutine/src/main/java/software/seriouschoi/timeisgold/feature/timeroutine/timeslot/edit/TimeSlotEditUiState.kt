@@ -1,5 +1,6 @@
 package software.seriouschoi.timeisgold.feature.timeroutine.timeslot.edit
 
+import software.seriouschoi.timeisgold.core.common.ui.UiText
 import java.time.LocalTime
 
 internal data class TimeSlotEditUiState(
@@ -8,4 +9,9 @@ internal data class TimeSlotEditUiState(
     val startTime: LocalTime = LocalTime.now(),
     val endTime: LocalTime = LocalTime.now(),
     val loading: Boolean = false
+)
+
+internal data class TimeSlotEditValidUiState(
+    val enableSaveButton: Boolean = false,
+    val invalidMessage: UiText? = null
 )
