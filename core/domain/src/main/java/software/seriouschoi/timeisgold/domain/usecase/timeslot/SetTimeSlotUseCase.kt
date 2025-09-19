@@ -1,6 +1,9 @@
 package software.seriouschoi.timeisgold.domain.usecase.timeslot
 
-import software.seriouschoi.timeisgold.domain.data.composition.TimeSlotComposition
+import software.seriouschoi.timeisgold.domain.data.DomainError
+import software.seriouschoi.timeisgold.domain.data.DomainResult
+import software.seriouschoi.timeisgold.domain.data.asDomainResult
+import software.seriouschoi.timeisgold.domain.data.entities.TimeSlotEntity
 import software.seriouschoi.timeisgold.domain.port.TimeSlotRepositoryPort
 import software.seriouschoi.timeisgold.domain.services.TimeSlotDomainService
 import javax.inject.Inject
@@ -10,8 +13,19 @@ class SetTimeSlotUseCase @Inject constructor(
     private val timeSlotDomainService: TimeSlotDomainService
 ) {
 
-    suspend operator fun invoke(timeRoutineUuid: String, timeSlotData: TimeSlotComposition) {
-        timeSlotDomainService.checkCanAdd(timeRoutineUuid, timeSlotData.timeSlotData)
-        timeslotRepositoryPort.setTimeSlot(timeSlotData)
+    suspend operator fun invoke(
+        timeRoutineUuid: String,
+        timeSlotData: TimeSlotEntity
+    ): DomainResult<String> {
+        val validResult = timeSlotDomainService.isValid(timeRoutineUuid, timeSlotData)
+        if(validResult is DomainResult.Failure) return validResult
+
+        val dataResult = timeslotRepositoryPort.setTimeSlot(
+            timeSlotData,
+            timeRoutineUuid
+        )
+        return dataResult.asDomainResult()
     }
 }
+
+

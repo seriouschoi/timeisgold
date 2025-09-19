@@ -4,12 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -25,9 +20,7 @@ import software.seriouschoi.timeisgold.core.common.ui.TigTheme
 import software.seriouschoi.timeisgold.core.common.ui.TigThemePreview
 import software.seriouschoi.timeisgold.core.common.ui.UiText
 import software.seriouschoi.timeisgold.core.common.ui.asString
-import software.seriouschoi.timeisgold.core.common.ui.components.TigCircleText
 import software.seriouschoi.timeisgold.core.common.ui.components.TigLabelButton
-import software.seriouschoi.timeisgold.core.common.ui.components.TigScaffold
 import software.seriouschoi.timeisgold.core.common.ui.container.TigBlurContainer
 import java.time.DayOfWeek
 import software.seriouschoi.timeisgold.core.common.ui.R as CommonR
@@ -91,6 +84,7 @@ private fun Routine(
 ) {
     TigBlurContainer {
         // TODO: jhchoi 2025. 9. 17. show time slot
+
     }
 }
 
@@ -111,7 +105,6 @@ private fun PreviewRoutine() {
     }
 }
 
-@Deprecated("Include Routine()")
 @Composable
 private fun Error(currentState: TimeRoutinePageUiState.Error) {
     Column(
@@ -133,7 +126,6 @@ private fun PreviewError() {
     )
 }
 
-@Deprecated("Include Routine()")
 @Composable
 private fun Empty(
     currentState: TimeRoutinePageUiState.Empty,

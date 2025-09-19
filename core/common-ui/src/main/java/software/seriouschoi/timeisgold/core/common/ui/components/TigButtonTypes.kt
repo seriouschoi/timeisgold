@@ -27,6 +27,5 @@ sealed interface TigButtonTypes {
 
         @Composable
         override fun onColor(): Color = MaterialTheme.colorScheme.onPrimaryContainer
-
     }
 }

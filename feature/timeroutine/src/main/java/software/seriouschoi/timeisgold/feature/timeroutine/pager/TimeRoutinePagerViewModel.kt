@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
@@ -26,6 +27,7 @@ import software.seriouschoi.timeisgold.core.common.util.Envelope
 import software.seriouschoi.timeisgold.core.domain.mapper.onlySuccess
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.WatchTimeRoutineDefinitionUseCase
 import software.seriouschoi.timeisgold.feature.timeroutine.edit.TimeRoutineEditScreenRoute
+import software.seriouschoi.timeisgold.feature.timeroutine.timeslot.edit.TimeSlotEditScreenRoute
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.format.TextStyle
@@ -55,7 +57,6 @@ internal class TimeRoutinePagerViewModel @Inject constructor(
         )
     }
 
-
     private val intentState = MutableSharedFlow<Envelope<TimeRoutinePagerUiIntent>>()
 
     @OptIn(FlowPreview::class)
@@ -70,7 +71,7 @@ internal class TimeRoutinePagerViewModel @Inject constructor(
     ).debounce(200)
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    private val pagerStateRoutineFlow =
+    private val currentRoutineFlow =
         currentDayOfWeekFlow.mapNotNull { it }.flatMapLatest { dayOfWeek ->
             watchTimeRoutineDefinitionUseCase.invoke(dayOfWeek)
         }.asResultState().onlySuccess().stateIn(
@@ -79,9 +80,9 @@ internal class TimeRoutinePagerViewModel @Inject constructor(
             initialValue = null
         )
 
-    private val pagerUiPreStateFlow = combine(
+    private val routineUiPreStateFlow = combine(
         currentDayOfWeekFlow,
-        pagerStateRoutineFlow
+        currentRoutineFlow
     ) { dayOfWeek, routine ->
         val routineTitle = routine?.timeRoutine?.title ?: ""
         val dayOfWeekName = dayOfWeek?.getDisplayName(
@@ -89,13 +90,14 @@ internal class TimeRoutinePagerViewModel @Inject constructor(
         ) ?: ""
         UiPreState.PagerState(
             title = UiText.Raw(routineTitle),
-            dayOfWeekName = UiText.Raw(dayOfWeekName)
+            dayOfWeekName = UiText.Raw(dayOfWeekName),
+            showAddTimeSlotButton = routine != null
         )
     }
 
     val uiState: StateFlow<TimeRoutinePagerUiState> = merge(
         initPagerFlow,
-        pagerUiPreStateFlow
+        routineUiPreStateFlow
     ).scan(TimeRoutinePagerUiState()) { acc, value ->
         when (value) {
             is UiPreState.Init -> acc.copy(
@@ -106,7 +108,8 @@ internal class TimeRoutinePagerViewModel @Inject constructor(
             is UiPreState.PagerState -> {
                 acc.copy(
                     title = value.title,
-                    dayOfWeekName = value.dayOfWeekName
+                    dayOfWeekName = value.dayOfWeekName,
+                    showAddTimeSlotButton = value.showAddTimeSlotButton
                 )
             }
         }
@@ -129,9 +132,25 @@ internal class TimeRoutinePagerViewModel @Inject constructor(
                 moveToRoutineEdit()
             }
 
+            is TimeRoutinePagerUiIntent.AddRoutine -> {
+                moveToTimeSlotEdit()
+            }
+
             else -> {
                 //no work.
             }
+        }
+    }
+
+    private fun moveToTimeSlotEdit() {
+        viewModelScope.launch {
+            val routineDefinition = currentRoutineFlow.first() ?: return@launch
+            val routineUuid = routineDefinition.timeRoutine.uuid
+
+            navigator.navigate(TimeSlotEditScreenRoute(
+                timeRoutineUuid = routineUuid,
+                timeSlotUuid = null,
+            ))
         }
     }
 
@@ -176,7 +195,8 @@ private sealed interface UiPreState {
 
     data class PagerState(
         val title: UiText = UiText.Raw(""),
-        val dayOfWeekName: UiText = UiText.Raw("")
+        val dayOfWeekName: UiText = UiText.Raw(""),
+        val showAddTimeSlotButton: Boolean = false
     ) : UiPreState
 }
 

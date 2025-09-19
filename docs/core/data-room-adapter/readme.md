@@ -71,3 +71,26 @@ room에서 insert or update를 해주는 어노테이션이다.
 편리해보이지만, conflict발생시, 기존 중복 row를 삭제하고,   
 새 row를 추가하므로, 예상치 못한 덮어쓰는 일이 발생하므로,  
 사용을 지양하는 것이 옳다고 본다.
+
+
+# DataResult를 사용한 오류 핸들링.
+throw 를 통한 전파는 의도치 않은 오류 전파가 일어난다.
+가급적 오류는 모듈 안에서 끊고 가는게 더 깔끔함.
+DomainResult.Success, DomainResult.Failure로 나누어 
+성공 실패에 대한 결과 리턴을 나누는 방식을 도입하고,
+패턴화 된 오류 처리가 가능해졌다.
+
+DomainResult.Failure의 에러코드는 데이터 오류도 같이 담고 있어서, 
+데이터 모듈의 RepositoryPortAdapter에도 일부 리턴형에 적용을 했지만,
+사실 Domain오류 코드에는 불필요한 예외가 너무 많으며,
+Data에서만 담아서 처리한 오류코드가 도메인오류코드 까지 전파되어,
+오류코드 sealed interface가 매우 지저분해 지는 상황이 나왔다.
+
+따라서, DataResult.Success, DataResult.Failure를 나누어,
+데이터 모듈에서의 결과 처리는 이 범위에서 끝낸다.
+물론 맵핑이 많아 지는건 사실이다.
+하지만 한 결과 상태가 너무 많은 책임을 지는것 보다는
+이렇게 맵핑을 통해서 전파되는게 더 깔끔하다.
+
+
+

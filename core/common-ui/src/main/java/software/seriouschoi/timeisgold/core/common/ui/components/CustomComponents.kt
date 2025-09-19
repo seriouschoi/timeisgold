@@ -39,6 +39,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.style.TextAlign
@@ -107,6 +108,19 @@ fun Modifier.tapClearFocus(focusManager: FocusManager): Modifier {
     }
 }
 
+@Composable
+fun TigSurface(
+    content: @Composable () -> Unit
+) {
+    Surface(
+        shape = MaterialTheme.shapes.medium,
+        tonalElevation = 10.dp,
+        color = MaterialTheme.colorScheme.surface,
+    ) {
+        content()
+    }
+}
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -129,11 +143,7 @@ fun TigAlert(
 //            show = false
         },
     ) {
-        Surface(
-            shape = MaterialTheme.shapes.medium,
-            tonalElevation = 10.dp,
-            color = MaterialTheme.colorScheme.surface,
-        ) {
+        TigSurface {
             Column(
                 modifier = Modifier.padding(20.dp)
             ) {
@@ -316,5 +326,22 @@ fun TigCircleText(
             color = textColor,
             textAlign = TextAlign.Center
         )
+    }
+}
+
+@Composable
+fun TigIconButton(
+    imageVector: ImageVector,
+    contentDescription: String? = null,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    onClick: () -> Unit,
+) {
+    IconButton(
+        onClick = onClick,
+        modifier = modifier,
+        enabled = enabled,
+    ) {
+        Icon(imageVector = imageVector, contentDescription = contentDescription)
     }
 }

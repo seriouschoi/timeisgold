@@ -3,7 +3,6 @@ package software.seriouschoi.timeisgold.core.test.util
 import software.seriouschoi.timeisgold.core.common.util.toEpochMillis
 import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineComposition
 import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineDefinition
-import software.seriouschoi.timeisgold.domain.data.composition.TimeSlotComposition
 import software.seriouschoi.timeisgold.domain.data.entities.TimeRoutineDayOfWeekEntity
 import software.seriouschoi.timeisgold.domain.data.entities.TimeRoutineEntity
 import software.seriouschoi.timeisgold.domain.data.entities.TimeSlotEntity
@@ -77,7 +76,6 @@ class TimeRoutineTestFixtures {
         )
 
 
-
     fun generateTimeRoutine(
         routineTitle: String,
         createDayAgo: Long = 0
@@ -102,12 +100,6 @@ class TimeRoutineTestFixtures {
                 endTime = timeSlotStartTime.plusHours(i.toLong() + 1),
                 createTime = LocalDateTime.now().toEpochMillis()
             )
-        }
-    }
-
-    fun generateTimeSlotCompositionList(startHour: Int = 0, endHour: Int = 23): List<TimeSlotComposition> {
-        return generateTimeSlotList(startHour, endHour).map {
-            TimeSlotComposition(it)
         }
     }
 }

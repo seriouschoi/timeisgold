@@ -134,3 +134,15 @@ first()는 flow를 collect해서 가장 처음 emit된 값을 가져오고 즉�
 즉 collect { it -> } 을 호출해서 첫번째 값 나오면 바로 종료된다.
 value는 flow가 현재 메모리에 들고 있는 값을 바로 가져온다.
 즉 기다려주지 않는다.
+
+
+# uiState와 validUiState를 분리하는 이유.
+미리 요약하자면, 순환 의존을 방지하려는 것이다.
+입력값의 의해 uiState가 바뀌고,
+uiState가 바뀔때마다 입력된 폼에 의한 data를 갱신하고,
+data의 유효성을 체크해서, valid를 uiState에서 갱신해버리면,
+순환되버린다.
+이 문제를 해결하는 가장 단순한 방법은
+valid와 ui를 나누는 것이다.
+data의 유효성을 체크해서 validUiState가 갱신된다.
+validUiState는 data를 갱신하지 않으므로, 순환되지 않는다.

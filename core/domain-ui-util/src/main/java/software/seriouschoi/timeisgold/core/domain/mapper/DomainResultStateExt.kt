@@ -17,12 +17,16 @@ fun <T> Flow<ResultState<DomainResult<T>>>.onlySuccess(): Flow<T?> =
 
 fun <T> Flow<ResultState<DomainResult<T>>>.onlyDomainResult(): Flow<DomainResult<T>?> {
     return this.map { resultState ->
-        when(resultState) {
-            is ResultState.Error -> DomainResult.Failure(DomainError.Technical.Unknown)
-            ResultState.Loading -> null
-            is ResultState.Success -> {
-                resultState.data
-            }
+        resultState.onlyDomainResult()
+    }
+}
+
+fun <T> ResultState<DomainResult<T>>.onlyDomainResult(): DomainResult<T>? {
+    return when (this) {
+        is ResultState.Error -> DomainResult.Failure(DomainError.Technical.Unknown)
+        ResultState.Loading -> null
+        is ResultState.Success -> {
+            this.data
         }
     }
 }

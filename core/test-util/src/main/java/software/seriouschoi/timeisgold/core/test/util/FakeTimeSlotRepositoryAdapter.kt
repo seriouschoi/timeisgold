@@ -1,9 +1,8 @@
 package software.seriouschoi.timeisgold.core.test.util
 
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOf
+import software.seriouschoi.timeisgold.domain.data.DataResult
 import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineComposition
-import software.seriouschoi.timeisgold.domain.data.composition.TimeSlotComposition
 import software.seriouschoi.timeisgold.domain.data.entities.TimeSlotEntity
 import software.seriouschoi.timeisgold.domain.port.TimeSlotRepositoryPort
 
@@ -14,39 +13,26 @@ import software.seriouschoi.timeisgold.domain.port.TimeSlotRepositoryPort
 class FakeTimeSlotRepositoryAdapter(
     private val mockTimeRoutines: List<TimeRoutineComposition>
 ) : TimeSlotRepositoryPort {
-    override suspend fun addTimeSlot(
-        timeSlotData: TimeSlotComposition,
-        timeRoutineUuid: String
-    ) {
+    override suspend fun watchTimeSlotDetail(timeslotUuid: String): Flow<TimeSlotEntity?> {
+        TODO("Not yet implemented")
     }
 
-    override suspend fun getTimeSlotDetail(timeslotUuid: String): Flow<TimeSlotComposition?> {
-        val result = mockTimeRoutines.map {
-            it.timeSlots.filter {
-                it.uuid == timeslotUuid
-            }
-        }.flatten().first().let {
-            TimeSlotComposition(it)
-        }
-        return flowOf(result)
-    }
-
-    override suspend fun observeTimeSlotList(timeRoutineUuid: String): Flow<List<TimeSlotEntity>> {
-        val result= mockTimeRoutines.find {
-            it.timeRoutine.uuid == timeRoutineUuid
-        }?.timeSlots ?: emptyList()
-        return flowOf(result)
-    }
-
-    override suspend fun setTimeSlot(timeSlotData: TimeSlotComposition) {
-    }
-
-    override suspend fun deleteTimeSlot(timeslotUuid: String) {
+    override suspend fun watchTimeSlotList(timeRoutineUuid: String): Flow<List<TimeSlotEntity>> {
+        TODO("Not yet implemented")
     }
 
     override suspend fun getTimeSlotList(timeRoutineUuid: String): List<TimeSlotEntity> {
-        return  mockTimeRoutines.find {
-            it.timeRoutine.uuid == timeRoutineUuid
-        }?.timeSlots ?: emptyList()
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun deleteTimeSlot(timeslotUuid: String): DataResult<Unit> {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun setTimeSlot(
+        timeSlotData: TimeSlotEntity,
+        timeRoutineUuid: String
+    ): DataResult<String> {
+        TODO("Not yet implemented")
     }
 }

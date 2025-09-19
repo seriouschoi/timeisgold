@@ -1,8 +1,10 @@
 package software.seriouschoi.timeisgold.feature.timeroutine.pager
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -60,6 +62,20 @@ private fun TimeRoutinePagerRootView(
         },
         content = {
             PagerView(uiState, sendIntent)
+        },
+        floatingActionButton = {
+            if (uiState.showAddTimeSlotButton) {
+                FloatingActionButton(
+                    onClick = {
+                        sendIntent(TimeRoutinePagerUiIntent.AddRoutine)
+                    }
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Add,
+                        contentDescription = null
+                    )
+                }
+            }
         }
     )
 }
@@ -68,7 +84,7 @@ private fun TimeRoutinePagerRootView(
 @Composable
 private fun TopBar(
     uiState: TimeRoutinePagerUiState,
-    sendIntent: (TimeRoutinePagerUiIntent) -> Unit
+    sendIntent: (TimeRoutinePagerUiIntent) -> Unit,
 ) {
     TopAppBar(
         title = {
@@ -92,7 +108,7 @@ private fun TopBar(
 @Composable
 private fun PagerView(
     uiState: TimeRoutinePagerUiState,
-    sendIntent: (TimeRoutinePagerUiIntent) -> Unit
+    sendIntent: (TimeRoutinePagerUiIntent) -> Unit,
 ) {
     val pagerItems = uiState.pagerItems
 

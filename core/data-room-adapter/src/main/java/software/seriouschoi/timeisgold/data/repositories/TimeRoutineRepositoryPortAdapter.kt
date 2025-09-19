@@ -16,12 +16,11 @@ import software.seriouschoi.timeisgold.data.database.AppDatabase
 import software.seriouschoi.timeisgold.data.mapper.toTimeRoutineDayOfWeekEntity
 import software.seriouschoi.timeisgold.data.mapper.toTimeRoutineDayOfWeekSchema
 import software.seriouschoi.timeisgold.data.mapper.toTimeRoutineEntity
-import software.seriouschoi.timeisgold.data.mapper.toTimeRoutineSchema
 import software.seriouschoi.timeisgold.data.mapper.toTimeSlotEntity
 import software.seriouschoi.timeisgold.data.mapper.toTimeSlotSchema
-import software.seriouschoi.timeisgold.data.util.toDomainResult
-import software.seriouschoi.timeisgold.domain.data.DomainError
-import software.seriouschoi.timeisgold.domain.data.DomainResult
+import software.seriouschoi.timeisgold.data.util.asDataResult
+import software.seriouschoi.timeisgold.domain.data.DataError
+import software.seriouschoi.timeisgold.domain.data.DataResult
 import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineComposition
 import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineDefinition
 import software.seriouschoi.timeisgold.domain.data.entities.TimeRoutineDayOfWeekEntity
@@ -37,7 +36,7 @@ internal class TimeRoutineRepositoryPortAdapter @Inject constructor(
     private val appDatabase: AppDatabase,
 ) : TimeRoutineRepositoryPort {
 
-    override suspend fun saveTimeRoutineComposition(composition: TimeRoutineComposition): DomainResult<String> {
+    override suspend fun saveTimeRoutineComposition(composition: TimeRoutineComposition): DataResult<String> {
         return runSuspendCatching {
             appDatabase.withTransaction {
                 appDatabase.TimeRoutineDao().upsert(composition.timeRoutine)
@@ -49,7 +48,7 @@ internal class TimeRoutineRepositoryPortAdapter @Inject constructor(
                 updateDayOfWeekList(composition.dayOfWeeks, composition.timeRoutine.uuid)
             }
             composition.timeRoutine.uuid
-        }.toDomainResult()
+        }.asDataResult()
     }
 
 
@@ -148,18 +147,16 @@ internal class TimeRoutineRepositoryPortAdapter @Inject constructor(
         }
     }
 
-    override suspend fun deleteTimeRoutine(timeRoutineUuid: String): DomainResult<Int> {
-        return withContext(Dispatchers.IO) {
-            appDatabase.withTransaction {
-                val timeRoutineSchema =
-                    appDatabase.TimeRoutineDao().observe(timeRoutineUuid).first()
-                        ?: return@withTransaction DomainResult.Failure(DomainError.NotFound.TimeRoutine)
+    override suspend fun deleteTimeRoutine(timeRoutineUuid: String): DataResult<Unit> {
+        val routineDao = appDatabase.TimeRoutineDao()
+        return appDatabase.withTransaction {
+            val routineSchema = routineDao.get(timeRoutineUuid)
+                ?: return@withTransaction DataResult.Failure(DataError.NotFound)
 
-                // remove time routine.
-                val deletedCount = appDatabase.TimeRoutineDao().delete(timeRoutineSchema)
-                Timber.d("deletedCount: $deletedCount")
-                return@withTransaction DomainResult.Success(deletedCount)
-            }
+            val deletedCount = routineDao.delete(routineSchema)
+            if (deletedCount != 1) return@withTransaction DataResult.Failure(DataError.Conflict)
+
+            return@withTransaction DataResult.Success(Unit)
         }
     }
 
@@ -168,7 +165,7 @@ internal class TimeRoutineRepositoryPortAdapter @Inject constructor(
         return appDatabase.TimeRoutineJoinDayOfWeekViewDao().observeAllDayOfWeeks()
     }
 
-    override suspend fun saveTimeRoutineDefinition(routine: TimeRoutineDefinition): DomainResult<String> {
+    override suspend fun saveTimeRoutineDefinition(routine: TimeRoutineDefinition): DataResult<String> {
         return withContext(Dispatchers.IO) {
             runSuspendCatching {
                 appDatabase.withTransaction {
@@ -176,7 +173,7 @@ internal class TimeRoutineRepositoryPortAdapter @Inject constructor(
                     updateDayOfWeekList(routine.dayOfWeeks, routine.timeRoutine.uuid)
                     routine.timeRoutine.uuid
                 }
-            }.toDomainResult()
+            }.asDataResult()
         }
     }
 
