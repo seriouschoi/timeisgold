@@ -16,9 +16,4 @@ interface TimeSlotRepositoryPort {
         timeSlotData: TimeSlotEntity,
         timeRoutineUuid: String
     ): DataResult<String>
-
-    @Deprecated("use upsert")
-    suspend fun addTimeSlot(timeSlotData: TimeSlotComposition, timeRoutineUuid: String)
-    @Deprecated("use setTimeSlot")
-    suspend fun setTimeSlot(timeSlotData: TimeSlotComposition): String?
 }

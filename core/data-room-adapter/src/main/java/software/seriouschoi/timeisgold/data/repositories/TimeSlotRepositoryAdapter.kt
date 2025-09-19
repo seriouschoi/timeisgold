@@ -19,18 +19,6 @@ import javax.inject.Inject
 internal class TimeSlotRepositoryAdapter @Inject constructor(
     private val database: AppDatabase,
 ) : TimeSlotRepositoryPort {
-    @Deprecated("use upsert")
-    override suspend fun addTimeSlot(timeSlotData: TimeSlotComposition, timeRoutineUuid: String) {
-        database.withTransaction {
-            val timeRoutine = database.TimeRoutineDao().observe(timeRoutineUuid).first()
-            val timeRoutineId =
-                timeRoutine?.id ?: throw IllegalStateException("time routine is null")
-
-            timeSlotData.timeSlotData.toTimeSlotSchema(timeRoutineId).let {
-                database.TimeSlotDao().insert(it)
-            }.takeIf { it > 0 } ?: throw IllegalStateException("time slot insert failed.")
-        }
-    }
 
     override suspend fun watchTimeSlotDetail(timeslotUuid: String): Flow<TimeSlotEntity?> {
         return database.TimeSlotDao()
@@ -51,14 +39,6 @@ internal class TimeSlotRepositoryAdapter @Inject constructor(
     override suspend fun getTimeSlotList(timeRoutineUuid: String): List<TimeSlotEntity> {
         val dao = database.TimeRoutineJoinTimeSlotViewDao()
         return dao.getTimeSlotsByTimeRoutine(timeRoutineUuid).map { it.toTimeSlotEntity() }
-    }
-
-    @Deprecated("use setTimeSlot")
-    override suspend fun setTimeSlot(timeSlotData: TimeSlotComposition): String? {
-        database.withTransaction {
-            updateTimeSlot(timeSlotData.timeSlotData)
-        }
-        return null
     }
 
     override suspend fun setTimeSlot(
@@ -90,21 +70,6 @@ internal class TimeSlotRepositoryAdapter @Inject constructor(
             database.TimeSlotDao().delete(timeslotUuid)
         }
     }.asDataResult()
-
-    @Deprecated("use upsert")
-    private suspend fun updateTimeSlot(timeSlotData: TimeSlotEntity) {
-        database.withTransaction {
-            val timeSlotSchema = database.TimeSlotDao().observe(timeSlotData.uuid).first()
-                ?: throw IllegalStateException("time slot is null")
-
-            timeSlotData.toTimeSlotSchema(
-                timeRoutineId = timeSlotSchema.timeRoutineId,
-                timeSlotId = timeSlotSchema.id
-            ).let {
-                database.TimeSlotDao().update(it)
-            }
-        }
-    }
 }
 
 
