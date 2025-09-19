@@ -10,7 +10,7 @@ data class TimeRoutineEntity(
     val createTime: Long,
 ) {
     companion object {
-        fun create(title: String): TimeRoutineEntity {
+        fun newEntity(title: String): TimeRoutineEntity {
             return TimeRoutineEntity(
                 title = title,
                 uuid = UUID.randomUUID().toString(),

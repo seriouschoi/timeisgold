@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
@@ -90,46 +91,64 @@ internal class TimeSlotEditViewModel @Inject constructor(
         TimeSlotEditUiState()
     )
 
-    private val currentTimeSlotFlow: StateFlow<TimeSlotEntity> = merge(uiState).scan(
-        TimeSlotEntity.create(title = "")
-    ) { acc, value ->
-        acc.copy(
-            title = value.slotName,
-            startTime = value.startTime,
-            endTime = value.endTime,
+    private val currentTimeSlotFlow: StateFlow<TimeSlotEntity?> = combine(
+        uiState,
+        initFlow.map {
+            when (it) {
+                is ResultState.Error,
+                ResultState.Loading -> null
+
+                is ResultState.Success -> {
+                    when (val domainResult = it.data) {
+                        is DomainResult.Failure -> TimeSlotEntity.newEntity("")
+
+                        is DomainResult.Success -> domainResult.value
+                    }
+                }
+            }
+        }
+    ) { uiState: TimeSlotEditUiState, initedResultState: TimeSlotEntity? ->
+        val defaultEntity = initedResultState ?: return@combine null
+        TimeSlotEntity(
+            uuid = defaultEntity.uuid,
+            createTime = defaultEntity.createTime,
+            title = uiState.slotName,
+            startTime = uiState.startTime,
+            endTime = uiState.endTime,
         )
     }.stateIn(
         viewModelScope,
         SharingStarted.Lazily,
-        TimeSlotEntity.create(
-            title = "",
-        )
+        null
     )
+
 
     @OptIn(FlowPreview::class)
     val validStateFlow = currentTimeSlotFlow
         .debounce(500)
+        .mapNotNull { it }
         .map {
-        getTimeSlotValidUseCase.invoke(it, currentRoute.timeRoutineUuid)
-    }.scan(
-        TimeSlotEditValidUiState()
-    ){ acc, domainResult ->
-        when(domainResult) {
-            is DomainResult.Failure -> {
-                acc.copy(
-                    invalidMessage = domainResult.error.toUiText(),
-                    enableSaveButton = false
+            getTimeSlotValidUseCase.invoke(it, currentRoute.timeRoutineUuid)
+        }.scan(
+            TimeSlotEditValidUiState()
+        ) { acc, domainResult ->
+            when (domainResult) {
+                is DomainResult.Failure -> {
+                    acc.copy(
+                        invalidMessage = domainResult.error.toUiText(),
+                        enableSaveButton = false
+                    )
+                }
+
+                is DomainResult.Success -> TimeSlotEditValidUiState(
+                    enableSaveButton = true,
                 )
             }
-            is DomainResult.Success -> TimeSlotEditValidUiState(
-                enableSaveButton = true,
-            )
-        }
-    }.stateIn(
-        viewModelScope,
-        SharingStarted.Lazily,
-        TimeSlotEditValidUiState()
-    )
+        }.stateIn(
+            viewModelScope,
+            SharingStarted.Lazily,
+            TimeSlotEditValidUiState()
+        )
 
     private val _uiEvent = MutableSharedFlow<Envelope<TimeSlotEditUiEvent>>()
     val uiEvent: SharedFlow<Envelope<TimeSlotEditUiEvent>> = merge(intentFlow.mapNotNull {
@@ -157,11 +176,11 @@ internal class TimeSlotEditViewModel @Inject constructor(
                 navigator.back()
             }
 
-            TimeSlotEditIntent.Delete -> {
+            TimeSlotEditIntent.DeleteConfirm -> {
                 deleteTimeSlot()
             }
 
-            TimeSlotEditIntent.Save -> {
+            TimeSlotEditIntent.SaveConfirm -> {
                 saveTimeSlot()
             }
 
@@ -172,7 +191,7 @@ internal class TimeSlotEditViewModel @Inject constructor(
     }
 
     private fun deleteTimeSlot() = flowResultState {
-        val timeSlot = currentTimeSlotFlow.first()
+        val timeSlot = currentTimeSlotFlow.mapNotNull { it }.first()
         deleteTimeSlotUseCase.invoke(timeSlot.uuid)
     }.onEach {
         updateLoading(it)
@@ -194,7 +213,7 @@ internal class TimeSlotEditViewModel @Inject constructor(
     }.launchIn(viewModelScope)
 
     private fun saveTimeSlot() = flowResultState {
-        val timeSlot = currentTimeSlotFlow.first()
+        val timeSlot = currentTimeSlotFlow.mapNotNull { it }.first()
         val routineUuid = currentRoute.timeRoutineUuid
         saveTimeSlotUseCase.invoke(routineUuid, timeSlot)
     }.onEach {
