@@ -6,4 +6,5 @@ internal data class TimeRoutinePageSlotItemUiState(
     val title: String,
     val startTime: LocalTime,
     val endTime: LocalTime,
+    val slotClickIntent: TimeRoutinePageUiIntent,
 )

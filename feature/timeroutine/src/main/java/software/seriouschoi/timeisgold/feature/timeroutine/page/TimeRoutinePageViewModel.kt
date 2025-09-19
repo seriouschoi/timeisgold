@@ -18,6 +18,7 @@ import software.seriouschoi.timeisgold.domain.data.DomainResult
 import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineComposition
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.WatchTimeRoutineCompositionUseCase
 import software.seriouschoi.timeisgold.feature.timeroutine.edit.TimeRoutineEditScreenRoute
+import software.seriouschoi.timeisgold.feature.timeroutine.timeslot.edit.TimeSlotEditScreenRoute
 import java.time.DayOfWeek
 import java.time.format.TextStyle
 import java.util.Locale
@@ -135,7 +136,10 @@ internal class TimeRoutinePageViewModel @Inject constructor(
                 TimeRoutinePageSlotItemUiState(
                     title = it.title,
                     startTime = it.startTime,
-                    endTime = it.endTime
+                    endTime = it.endTime,
+                    slotClickIntent = TimeRoutinePageUiIntent.ShowSlotEdit(
+                        it.uuid, routineComposition.timeRoutine.uuid
+                    )
                 )
             },
             dayOfWeeks = routineComposition.dayOfWeeks.map {
@@ -154,6 +158,13 @@ internal class TimeRoutinePageViewModel @Inject constructor(
                     navigator.navigate(TimeRoutineEditScreenRoute(dayOfWeekOrdinal))
             }
 
+            is TimeRoutinePageUiIntent.ShowSlotEdit -> {
+                val route = TimeSlotEditScreenRoute(
+                    timeSlotUuid = intent.slotId,
+                    timeRoutineUuid = intent.routineId
+                )
+                navigator.navigate(route)
+            }
         }
     }
 
