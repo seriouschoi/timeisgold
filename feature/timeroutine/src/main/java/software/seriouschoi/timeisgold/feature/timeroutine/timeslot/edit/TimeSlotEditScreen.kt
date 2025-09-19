@@ -222,9 +222,6 @@ private fun UiStateViewTopBar(
 ) {
     TopAppBar(
         title = {
-            Text(
-                text = stringResource(CommonR.string.message_format_select),
-            )
             TigSingleLineTextField(
                 value = uiState.slotName,
                 onValueChange = {

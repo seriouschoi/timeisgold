@@ -11,7 +11,7 @@ import javax.inject.Inject
 class TimeRoutineDomainService @Inject constructor(
     private val timeRoutineRepository: TimeRoutineRepositoryPort,
 ) {
-    suspend fun isValidForAdd(newRoutine: TimeRoutineDefinition): DomainResult<Boolean> {
+    suspend fun isValidForAdd(newRoutine: TimeRoutineDefinition): DomainResult<Unit> {
         if(newRoutine.timeRoutine.title.isEmpty()) {
             return DomainResult.Failure(DomainError.Validation.EmptyTitle)
         }
@@ -33,7 +33,7 @@ class TimeRoutineDomainService @Inject constructor(
             return DomainResult.Failure(DomainError.Conflict.DayOfWeek)
         }
 
-        return DomainResult.Success(true)
+        return DomainResult.Success(Unit)
     }
 
 }

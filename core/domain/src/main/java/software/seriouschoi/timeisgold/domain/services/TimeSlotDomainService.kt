@@ -4,7 +4,6 @@ import kotlinx.coroutines.flow.first
 import software.seriouschoi.timeisgold.domain.data.DomainError
 import software.seriouschoi.timeisgold.domain.data.DomainResult
 import software.seriouschoi.timeisgold.domain.data.entities.TimeSlotEntity
-import software.seriouschoi.timeisgold.domain.exception.TIGException
 import software.seriouschoi.timeisgold.domain.port.TimeSlotRepositoryPort
 import javax.inject.Inject
 
@@ -15,7 +14,7 @@ class TimeSlotDomainService @Inject constructor(
     suspend fun isValid(
         routineUuid: String,
         timeSlotData: TimeSlotEntity,
-    ) : DomainResult<Boolean> {
+    ) : DomainResult<Unit> {
         val allTimeSlotList = timeSlotRepository.watchTimeSlotList(routineUuid).first()
         //timeslot의 시간이 겹치는지 확인하는 로직.
         val isDuplicateTime = allTimeSlotList.any {
@@ -25,6 +24,6 @@ class TimeSlotDomainService @Inject constructor(
         if(isDuplicateTime) {
             return DomainResult.Failure(DomainError.Conflict.Data)
         }
-        return DomainResult.Success(true)
+        return DomainResult.Success(Unit)
     }
 }

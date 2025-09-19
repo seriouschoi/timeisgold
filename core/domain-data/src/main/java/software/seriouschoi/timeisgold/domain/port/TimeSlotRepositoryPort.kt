@@ -2,7 +2,6 @@ package software.seriouschoi.timeisgold.domain.port
 
 import kotlinx.coroutines.flow.Flow
 import software.seriouschoi.timeisgold.domain.data.DataResult
-import software.seriouschoi.timeisgold.domain.data.composition.TimeSlotComposition
 import software.seriouschoi.timeisgold.domain.data.entities.TimeSlotEntity
 
 interface TimeSlotRepositoryPort {

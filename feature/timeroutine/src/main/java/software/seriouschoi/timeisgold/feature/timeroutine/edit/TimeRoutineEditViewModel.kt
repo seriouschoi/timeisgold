@@ -202,7 +202,7 @@ internal class TimeRoutineEditViewModel @Inject constructor(
             timeRoutine?.let { getValidTimeRoutineUseCase.invoke(it) }
         }.asResultState()
         .onlyDomainResult().mapNotNull { it }
-        .map { domainResult: DomainResult<Boolean> ->
+        .map { domainResult: DomainResult<Unit> ->
             when (domainResult) {
                 is DomainResult.Failure -> {
                     TimeRoutineEditUiValidUiState(
@@ -212,7 +212,7 @@ internal class TimeRoutineEditViewModel @Inject constructor(
                 }
 
                 is DomainResult.Success -> {
-                    TimeRoutineEditUiValidUiState(isValid = domainResult.value)
+                    TimeRoutineEditUiValidUiState(isValid = true)
                 }
             }
         }.stateIn(viewModelScope, SharingStarted.Lazily, TimeRoutineEditUiValidUiState())
@@ -308,7 +308,7 @@ internal class TimeRoutineEditViewModel @Inject constructor(
             deleteTimeRoutineUseCase.invoke(routineDefinition.timeRoutine.uuid)
         }.onEach { resultState ->
             updateLoadingState(resultState)
-        }.onlyDomainResult().mapNotNull { it }.mapNotNull { domainResult: DomainResult<Boolean> ->
+        }.onlyDomainResult().mapNotNull { it }.mapNotNull { domainResult: DomainResult<Unit> ->
             domainResult.convertDeleteResultToEvent()
         }.onEach {
             _uiEvent.emit(Envelope(it))
@@ -440,7 +440,7 @@ private fun DomainResult<*>.convertSaveResultToEvent(): TimeRoutineEditUiEvent =
         }
     }
 
-private fun DomainResult<Boolean>.convertDeleteResultToEvent(): TimeRoutineEditUiEvent {
+private fun DomainResult<Unit>.convertDeleteResultToEvent(): TimeRoutineEditUiEvent {
     return when (this) {
         is DomainResult.Success -> TimeRoutineEditUiEvent.ShowAlert(
             message = UiText.MultipleResArgs.create(

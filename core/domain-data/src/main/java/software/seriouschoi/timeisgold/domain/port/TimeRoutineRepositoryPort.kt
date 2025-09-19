@@ -1,14 +1,14 @@
 package software.seriouschoi.timeisgold.domain.port
 
 import kotlinx.coroutines.flow.Flow
-import software.seriouschoi.timeisgold.domain.data.DomainResult
+import software.seriouschoi.timeisgold.domain.data.DataResult
 import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineComposition
 import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineDefinition
 import software.seriouschoi.timeisgold.domain.data.entities.TimeRoutineEntity
 import java.time.DayOfWeek
 
 interface TimeRoutineRepositoryPort {
-    suspend fun saveTimeRoutineComposition(composition: TimeRoutineComposition): DomainResult<String>
+    suspend fun saveTimeRoutineComposition(composition: TimeRoutineComposition): DataResult<String>
 
     fun observeCompositionByDayOfWeek(dayOfWeek: DayOfWeek): Flow<TimeRoutineComposition?>
     suspend fun getCompositionByUuid(timeRoutineUuid: String): TimeRoutineComposition?
@@ -16,10 +16,10 @@ interface TimeRoutineRepositoryPort {
     fun observeCompositionByUuidFlow(timeRoutineUuid: String): Flow<TimeRoutineComposition?>
 
     fun observeTimeRoutineByDayOfWeek(day: DayOfWeek): Flow<TimeRoutineEntity?>
-    suspend fun deleteTimeRoutine(timeRoutineUuid: String): DomainResult<Int>
+    suspend fun deleteTimeRoutine(timeRoutineUuid: String): DataResult<Unit>
     fun observeAllRoutinesDayOfWeeks(): Flow<List<DayOfWeek>>
 
-    suspend fun saveTimeRoutineDefinition(routine: TimeRoutineDefinition): DomainResult<String>
+    suspend fun saveTimeRoutineDefinition(routine: TimeRoutineDefinition): DataResult<String>
     fun observeTimeRoutineDefinitionByDayOfWeek(dayOfWeek: DayOfWeek): Flow<TimeRoutineDefinition?>
     suspend fun getAllTimeRoutineDefinitions() : List<TimeRoutineDefinition>
     suspend fun getAllDayOfWeeks(): List<DayOfWeek>

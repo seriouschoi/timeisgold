@@ -10,9 +10,5 @@ class GetValidTimeRoutineUseCase @Inject constructor(
 ) {
     suspend fun invoke(
         timeRoutineDefinition: TimeRoutineDefinition
-    ): DomainResult<Boolean> {
-        return service.isValidForAdd(
-            timeRoutineDefinition
-        )
-    }
+    ): DomainResult<Unit> = service.isValidForAdd(timeRoutineDefinition)
 }

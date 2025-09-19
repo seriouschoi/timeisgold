@@ -1,7 +1,7 @@
 # TODOs
 
 ## Data 모듈에서 DomainResult를 리턴하는 구조 제거..?
-
+## DomainResult<Boolean> -> DomainResult<Unit>
 
 ## TimeSlot추가.
 - [ ] 사용자가 시간을 선택해서 오지 않았다면, 현재 루틴의 빈시간을 자동으로 기본 선택하기.
