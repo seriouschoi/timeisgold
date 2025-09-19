@@ -18,3 +18,7 @@ fun LocalDateTime.toEpochMillis(zoneId: ZoneId = ZoneId.systemDefault()): Long {
 fun LocalTime.asFormattedString(pattern: String = "HH:mm"): String {
     return this.format(DateTimeFormatter.ofPattern(pattern))
 }
+
+fun LocalTime.asMinutes(): Int {
+    return this.hour * 60 + this.minute
+}

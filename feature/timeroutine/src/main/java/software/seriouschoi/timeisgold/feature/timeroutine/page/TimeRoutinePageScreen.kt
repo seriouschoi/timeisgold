@@ -6,18 +6,21 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -25,14 +28,15 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.times
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import software.seriouschoi.timeisgold.core.common.ui.TigTheme
 import software.seriouschoi.timeisgold.core.common.ui.TigThemePreview
 import software.seriouschoi.timeisgold.core.common.ui.UiText
 import software.seriouschoi.timeisgold.core.common.ui.asString
 import software.seriouschoi.timeisgold.core.common.ui.components.TigLabelButton
-import software.seriouschoi.timeisgold.core.common.ui.container.TigBlurContainer
 import software.seriouschoi.timeisgold.core.common.util.asFormattedString
+import software.seriouschoi.timeisgold.core.common.util.asMinutes
 import java.time.DayOfWeek
 import java.time.LocalTime
 import software.seriouschoi.timeisgold.core.common.ui.R as CommonR
@@ -93,14 +97,57 @@ private fun Routine(
     state: TimeRoutinePageUiState.Routine,
     sendIntent: (TimeRoutinePageUiIntent) -> Unit,
 ) {
-    val slotItems by remember { mutableStateOf(state.slotItemList) }
-    TigBlurContainer {
-        LazyColumn {
-            items(slotItems) { item ->
-                TimeSlot(
-                    item,
-                    sendIntent
-                )
+    val hourHeight = 60.dp
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(
+                rememberScrollState()
+            )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(hourHeight * 24)
+        ) {
+            repeat(24) { hour ->
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(hourHeight)
+                ) {
+                    HorizontalDivider()
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxSize()
+                    ) {
+                        Text(
+                            text = "$hour:00",
+                            modifier = Modifier.fillMaxWidth(),
+                            style = MaterialTheme.typography.labelSmall
+                        )
+                    }
+
+                    HorizontalDivider()
+                }
+            }
+        }
+        state.slotItemList.forEach { slot ->
+            val startMinutes = slot.startTime.asMinutes()
+            val endMinutes = slot.endTime.asMinutes()
+            val topOffset = (startMinutes / 60f) * hourHeight
+            val slotHeight = ((endMinutes - startMinutes) / 60f) * hourHeight
+
+            TimeSlot(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(slotHeight)
+                    .padding(start = 40.dp)
+                    .offset(y = topOffset),
+                slotItem = slot,
+            ) {
+                sendIntent(it)
             }
         }
     }
@@ -108,12 +155,12 @@ private fun Routine(
 
 @Composable
 private fun TimeSlot(
+    modifier: Modifier = Modifier,
     slotItem: TimeRoutinePageSlotItemUiState,
     sendIntent: (TimeRoutinePageUiIntent) -> Unit
 ) {
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
+        modifier = modifier
             .padding(10.dp),
         onClick = {
             sendIntent(slotItem.slotClickIntent)
@@ -152,12 +199,13 @@ private fun TimeSlotCardPreview() {
             modifier = Modifier.fillMaxWidth()
         ) {
             TimeSlot(
-                TimeRoutinePageSlotItemUiState(
+                slotItem = TimeRoutinePageSlotItemUiState(
                     title = "타이틀",
                     startTime = LocalTime.now(),
                     endTime = LocalTime.now(),
                     slotClickIntent = TimeRoutinePageUiIntent.CreateRoutine
-                )
+                ),
+                modifier = Modifier.fillMaxWidth()
             ) {
                 //no work.
             }
@@ -173,8 +221,17 @@ private fun PreviewRoutine() {
             TimeRoutinePageUiState.Routine(
                 title = "루틴 1",
                 dayOfWeekName = "월",
-                slotItemList = listOf(),
-                dayOfWeeks = listOf()
+                slotItemList = listOf(
+                    TimeRoutinePageSlotItemUiState(
+                        title = "타이틀",
+                        startTime = LocalTime.of(0, 30),
+                        endTime = LocalTime.of(3, 0),
+                        slotClickIntent = TimeRoutinePageUiIntent.CreateRoutine
+                    )
+                ),
+                dayOfWeeks = listOf(
+                    DayOfWeek.MONDAY,
+                )
             )
         ) {
 

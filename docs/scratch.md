@@ -146,3 +146,6 @@ data의 유효성을 체크해서, valid를 uiState에서 갱신해버리면,
 valid와 ui를 나누는 것이다.
 data의 유효성을 체크해서 validUiState가 갱신된다.
 validUiState는 data를 갱신하지 않으므로, 순환되지 않는다.
+
+# rememberScrollState..를 비롯한 수많은 remember들은 누가 다 일일히 만들어 놓은걸까?
+그리고 이 함수들의 존재 기준은 뭘까?
