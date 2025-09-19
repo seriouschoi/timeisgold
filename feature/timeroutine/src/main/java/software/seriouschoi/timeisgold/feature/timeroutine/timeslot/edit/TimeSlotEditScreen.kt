@@ -92,20 +92,38 @@ private fun UiEventView(
                 message = event.message.asString(),
                 confirmButtonText = stringResource(CommonR.string.text_confirm),
                 onClickConfirm = {
-                    sendIntent(event.confirmIntent)
+                    event.confirmIntent?.let { sendIntent(it) }
+                },
+                cancelButtonText = stringResource(CommonR.string.text_cancel),
+                onClickCancel = {
+                    //no work.
                 },
             )
         }
 
-        else -> {
+        is TimeSlotEditUiEvent.ShowAlert -> {
+            TigAlert(
+                alertId = envelope.uuid.toString(),
+                message = event.message.asString(),
+                confirmButtonText = stringResource(CommonR.string.text_confirm),
+                onClickConfirm = {
+                    event.confirmIntent?.let { sendIntent(it) }
+                },
+            )
+        }
+
+        null -> {
             //no work.
         }
+
     }
 }
 
 @Composable
 private fun UiStateView(uiState: TimeSlotEditUiState, sendIntent: (TimeSlotEditIntent) -> Unit) {
-    TigBlurContainer {
+    TigBlurContainer(
+        enableBlur = uiState.loading,
+    ) {
         TigScaffold(
             topBar = {
                 UiStateViewTopBar(
@@ -204,6 +222,9 @@ private fun UiStateViewTopBar(
 ) {
     TopAppBar(
         title = {
+            Text(
+                text = stringResource(CommonR.string.message_format_select),
+            )
             TigSingleLineTextField(
                 value = uiState.slotName,
                 onValueChange = {

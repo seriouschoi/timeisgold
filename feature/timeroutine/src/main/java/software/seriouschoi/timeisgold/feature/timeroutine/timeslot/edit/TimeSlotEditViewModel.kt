@@ -24,11 +24,15 @@ import software.seriouschoi.navigator.DestNavigatorPort
 import software.seriouschoi.timeisgold.core.common.ui.ResultState
 import software.seriouschoi.timeisgold.core.common.ui.UiText
 import software.seriouschoi.timeisgold.core.common.ui.asResultState
+import software.seriouschoi.timeisgold.core.common.ui.flowResultState
 import software.seriouschoi.timeisgold.core.common.util.Envelope
 import software.seriouschoi.timeisgold.core.domain.mapper.onlyDomainResult
+import software.seriouschoi.timeisgold.core.domain.mapper.toUiText
 import software.seriouschoi.timeisgold.domain.data.DomainError
 import software.seriouschoi.timeisgold.domain.data.DomainResult
 import software.seriouschoi.timeisgold.domain.data.entities.TimeSlotEntity
+import software.seriouschoi.timeisgold.domain.usecase.timeslot.DeleteTimeSlotUseCase
+import software.seriouschoi.timeisgold.domain.usecase.timeslot.SetTimeSlotUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeslot.WatchTimeSlotDetailUseCase
 import java.time.LocalTime
 import javax.inject.Inject
@@ -39,6 +43,8 @@ internal class TimeSlotEditViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
     private val watchTimeSlotDetailUseCase: WatchTimeSlotDetailUseCase,
     private val navigator: DestNavigatorPort,
+    private val saveTimeSlotUseCase: SetTimeSlotUseCase,
+    private val deleteTimeSlotUseCase: DeleteTimeSlotUseCase
 ) : ViewModel() {
     private val currentRoute get() = savedStateHandle.toRoute<TimeSlotEditScreenRoute>()
     private val intentFlow = MutableSharedFlow<Envelope<TimeSlotEditIntent>>()
@@ -59,6 +65,7 @@ internal class TimeSlotEditViewModel @Inject constructor(
         ResultState.Loading
     )
 
+    private val _loadingStateFlow = MutableSharedFlow<Boolean>()
 
     val uiState: StateFlow<TimeSlotEditUiState> = merge(
         initFlow.onlyDomainResult()
@@ -67,25 +74,39 @@ internal class TimeSlotEditViewModel @Inject constructor(
             },
         intentFlow.mapNotNull {
             UiPreState.Intent(it.payload)
+        },
+        _loadingStateFlow.mapNotNull {
+            UiPreState.Loading(it)
         }
     ).scan(TimeSlotEditUiState()) { currentState, preState: UiPreState ->
-        when (preState) {
-            is UiPreState.Init -> {
-                currentState.reduce(preState)
-            }
-
-            is UiPreState.Intent -> {
-                currentState.reduce(preState)
-            }
-        }
+        preState.applyTo(currentState)
     }.stateIn(
         viewModelScope,
         SharingStarted.Lazily,
         TimeSlotEditUiState()
     )
 
+    private val currentTimeSlotFlow: StateFlow<TimeSlotEntity> = merge(uiState).scan(
+        TimeSlotEntity.create(title = "")
+    ) { acc, value ->
+        acc.copy(
+            title = value.slotName,
+            startTime = value.startTime,
+            endTime = value.endTime,
+        )
+    }.stateIn(
+        viewModelScope,
+        SharingStarted.Lazily,
+        TimeSlotEntity.create(
+            title = "",
+        )
+    )
+
+    private val _uiEvent = MutableSharedFlow<Envelope<TimeSlotEditUiEvent>>()
     val uiEvent: SharedFlow<Envelope<TimeSlotEditUiEvent>> = merge(intentFlow.mapNotNull {
         UiPreEvent.Intent(it.payload)
+    }, _uiEvent.map {
+        UiPreEvent.Event(it.payload)
     }).mapNotNull { preEvent: UiPreEvent ->
         preEvent.asEvent()
     }.map {
@@ -107,11 +128,63 @@ internal class TimeSlotEditViewModel @Inject constructor(
                 navigator.back()
             }
 
-            TimeSlotEditIntent.Delete -> TODO()
-            TimeSlotEditIntent.Save -> TODO()
-            else -> {
-
+            TimeSlotEditIntent.Delete -> {
+                deleteTimeSlot()
             }
+            TimeSlotEditIntent.Save -> {
+                saveTimeSlot()
+            }
+
+            else -> {
+                //no work.
+            }
+        }
+    }
+
+    private fun deleteTimeSlot() {
+        flowResultState {
+            val timeSlot = currentTimeSlotFlow.first()
+            deleteTimeSlotUseCase.invoke(timeSlot.uuid)
+        }.onEach {
+            updateLoading(it)
+        }
+        TODO("Not yet implemented")
+    }
+
+    private fun saveTimeSlot() {
+        flowResultState {
+            val timeSlot = currentTimeSlotFlow.first()
+            val routineUuid = currentRoute.timeRoutineUuid
+            saveTimeSlotUseCase.invoke(routineUuid, timeSlot)
+        }.onEach {
+            updateLoading(it)
+        }.onlyDomainResult().mapNotNull { it }.mapNotNull { domainResult ->
+            when (domainResult) {
+                is DomainResult.Failure -> {
+                    TimeSlotEditUiEvent.ShowAlert(
+                        domainResult.error.toUiText(),
+                    )
+                }
+
+                is DomainResult.Success -> {
+                    TimeSlotEditUiEvent.ShowAlert(
+                        UiText.MultipleResArgs.create(
+                            CommonR.string.message_format_complete, CommonR.string.text_save
+                        ),
+                        TimeSlotEditIntent.Back
+                    )
+                }
+            }
+        }.onEach {
+            _uiEvent.emit(Envelope(it))
+        }.launchIn(viewModelScope)
+    }
+
+    private suspend fun updateLoading(resultState: ResultState<DomainResult<*>>) {
+        when (resultState) {
+            ResultState.Loading -> _loadingStateFlow.emit(true)
+            is ResultState.Error,
+            is ResultState.Success<*> -> _loadingStateFlow.emit(false)
         }
     }
 
@@ -119,6 +192,24 @@ internal class TimeSlotEditViewModel @Inject constructor(
         intentFlow.onEach {
             handleIntentSideEffect(it.payload)
         }.launchIn(viewModelScope)
+    }
+}
+
+private fun UiPreState.applyTo(
+    currentState: TimeSlotEditUiState
+): TimeSlotEditUiState = when (this) {
+    is UiPreState.Init -> {
+        currentState.reduce(this)
+    }
+
+    is UiPreState.Intent -> {
+        currentState.reduce(this)
+    }
+
+    is UiPreState.Loading -> {
+        currentState.copy(
+            loading = loading
+        )
     }
 }
 
@@ -149,6 +240,8 @@ private fun UiPreEvent.asEvent(): TimeSlotEditUiEvent? = when (this) {
             else -> null
         }
     }
+
+    is UiPreEvent.Event -> this.payload
 }
 
 private fun TimeSlotEditUiState.reduce(preState: UiPreState.Init): TimeSlotEditUiState =
@@ -156,13 +249,15 @@ private fun TimeSlotEditUiState.reduce(preState: UiPreState.Init): TimeSlotEditU
         is DomainResult.Failure -> this.copy(
             slotName = "",
             startTime = LocalTime.now(),
-            endTime = LocalTime.now()
+            endTime = LocalTime.now(),
+            visibleDelete = false
         )
 
         is DomainResult.Success -> this.copy(
             slotName = preState.domainResult.value.title,
             startTime = preState.domainResult.value.startTime,
-            endTime = preState.domainResult.value.endTime
+            endTime = preState.domainResult.value.endTime,
+            visibleDelete = true
         )
     }
 
@@ -193,9 +288,12 @@ private sealed interface UiPreState {
     ) : UiPreState
 
     data class Intent(val intent: TimeSlotEditIntent) : UiPreState
+
+    data class Loading(val loading: Boolean) : UiPreState
 }
 
 private sealed interface UiPreEvent {
     data class Intent(val intent: TimeSlotEditIntent) : UiPreEvent
+    data class Event(val payload: TimeSlotEditUiEvent) : UiPreEvent
 
 }

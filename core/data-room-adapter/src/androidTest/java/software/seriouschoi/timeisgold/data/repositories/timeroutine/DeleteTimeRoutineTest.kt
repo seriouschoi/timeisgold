@@ -30,8 +30,8 @@ internal class DeleteTimeRoutineTest : BaseRoomTest() {
         val routine1Flow = timeRoutineRepo.observeCompositionByUuidFlow(routine1.timeRoutine.uuid)
         val routine2Flow = timeRoutineRepo.observeCompositionByUuidFlow(routine2.timeRoutine.uuid)
 
-        val routine1SlotFlow = timeSlotRepo.observeTimeSlotList(routine1.timeRoutine.uuid)
-        val routine2SlotFlow = timeSlotRepo.observeTimeSlotList(routine2.timeRoutine.uuid)
+        val routine1SlotFlow = timeSlotRepo.watchTimeSlotList(routine1.timeRoutine.uuid)
+        val routine2SlotFlow = timeSlotRepo.watchTimeSlotList(routine2.timeRoutine.uuid)
 
         //루틴 1 삭제 확인.
         assert(routine1Flow.first() == null) { "routine1 is not deleted" }

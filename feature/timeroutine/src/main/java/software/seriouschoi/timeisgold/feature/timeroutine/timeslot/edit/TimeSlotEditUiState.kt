@@ -7,4 +7,5 @@ internal data class TimeSlotEditUiState(
     val visibleDelete: Boolean = false,
     val startTime: LocalTime = LocalTime.now(),
     val endTime: LocalTime = LocalTime.now(),
+    val loading: Boolean = false
 )

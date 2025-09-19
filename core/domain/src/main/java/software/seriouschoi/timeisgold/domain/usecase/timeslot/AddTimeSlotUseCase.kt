@@ -5,6 +5,7 @@ import software.seriouschoi.timeisgold.domain.port.TimeSlotRepositoryPort
 import software.seriouschoi.timeisgold.domain.services.TimeSlotDomainService
 import javax.inject.Inject
 
+@Deprecated("use set time slot usecase")
 class AddTimeSlotUseCase @Inject constructor(
     private val timeSlotRepo: TimeSlotRepositoryPort,
     private val timeSlotDomainService: TimeSlotDomainService

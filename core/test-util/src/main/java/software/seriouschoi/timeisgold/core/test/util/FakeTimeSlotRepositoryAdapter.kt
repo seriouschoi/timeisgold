@@ -31,7 +31,7 @@ class FakeTimeSlotRepositoryAdapter(
         return flowOf(result)
     }
 
-    override suspend fun observeTimeSlotList(timeRoutineUuid: String): Flow<List<TimeSlotEntity>> {
+    override suspend fun watchTimeSlotList(timeRoutineUuid: String): Flow<List<TimeSlotEntity>> {
         val result= mockTimeRoutines.find {
             it.timeRoutine.uuid == timeRoutineUuid
         }?.timeSlots ?: emptyList()

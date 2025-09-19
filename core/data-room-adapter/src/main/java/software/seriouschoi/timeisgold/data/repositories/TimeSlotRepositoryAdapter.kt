@@ -5,9 +5,12 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import software.seriouschoi.timeisgold.core.common.util.runSuspendCatching
 import software.seriouschoi.timeisgold.data.database.AppDatabase
 import software.seriouschoi.timeisgold.data.mapper.toTimeSlotEntity
 import software.seriouschoi.timeisgold.data.mapper.toTimeSlotSchema
+import software.seriouschoi.timeisgold.data.util.asDataResult
+import software.seriouschoi.timeisgold.domain.data.DataResult
 import software.seriouschoi.timeisgold.domain.data.composition.TimeSlotComposition
 import software.seriouschoi.timeisgold.domain.data.entities.TimeSlotEntity
 import software.seriouschoi.timeisgold.domain.port.TimeSlotRepositoryPort
@@ -16,6 +19,7 @@ import javax.inject.Inject
 internal class TimeSlotRepositoryAdapter @Inject constructor(
     private val database: AppDatabase,
 ) : TimeSlotRepositoryPort {
+    @Deprecated("use upsert")
     override suspend fun addTimeSlot(timeSlotData: TimeSlotComposition, timeRoutineUuid: String) {
         database.withTransaction {
             val timeRoutine = database.TimeRoutineDao().observe(timeRoutineUuid).first()
@@ -28,20 +32,16 @@ internal class TimeSlotRepositoryAdapter @Inject constructor(
         }
     }
 
-    override suspend fun watchTimeSlotDetail(timeslotUuid: String): Flow<TimeSlotComposition?> {
+    override suspend fun watchTimeSlotDetail(timeslotUuid: String): Flow<TimeSlotEntity?> {
         return database.TimeSlotDao()
             .observe(timeslotUuid)
             .distinctUntilChanged()
             .map {
-                it?.toTimeSlotEntity()?.let {
-                    TimeSlotComposition(
-                        timeSlotData = it
-                    )
-                }
+                it?.toTimeSlotEntity()
             }
     }
 
-    override suspend fun observeTimeSlotList(timeRoutineUuid: String): Flow<List<TimeSlotEntity>> {
+    override suspend fun watchTimeSlotList(timeRoutineUuid: String): Flow<List<TimeSlotEntity>> {
         val dao = database.TimeRoutineJoinTimeSlotViewDao()
         return dao.observeTimeSlotsByTimeRoutine(timeRoutineUuid).distinctUntilChanged().map {
             it.map { it.toTimeSlotEntity() }
@@ -53,26 +53,53 @@ internal class TimeSlotRepositoryAdapter @Inject constructor(
         return dao.getTimeSlotsByTimeRoutine(timeRoutineUuid).map { it.toTimeSlotEntity() }
     }
 
-    override suspend fun setTimeSlot(timeSlotData: TimeSlotComposition) {
+    @Deprecated("use setTimeSlot")
+    override suspend fun setTimeSlot(timeSlotData: TimeSlotComposition): String? {
         database.withTransaction {
             updateTimeSlot(timeSlotData.timeSlotData)
         }
+        return null
     }
 
-    override suspend fun deleteTimeSlot(timeslotUuid: String) {
+    override suspend fun setTimeSlot(
+        timeSlotData: TimeSlotEntity,
+        timeRoutineUuid: String
+    ): DataResult<String> = runSuspendCatching {
+        val routineDao = database.TimeRoutineDao()
+        val slotDao = database.TimeSlotDao()
+        database.withTransaction {
+            val routineId = routineDao.get(timeRoutineUuid)?.id
+                ?: throw IllegalStateException("time routine is null")
+
+            val slotId = slotDao.get(timeSlotData.uuid)?.id
+
+            val slotSchema = timeSlotData.toTimeSlotSchema(
+                timeRoutineId = routineId,
+                timeSlotId = slotId
+            )
+            database.TimeSlotDao().upsert(slotSchema)
+
+            slotSchema.uuid
+        }
+    }.asDataResult()
+
+    override suspend fun deleteTimeSlot(
+        timeslotUuid: String
+    ): DataResult<Unit> = runSuspendCatching {
         database.withTransaction {
             database.TimeSlotDao().delete(timeslotUuid)
         }
-    }
+    }.asDataResult()
 
+    @Deprecated("use upsert")
     private suspend fun updateTimeSlot(timeSlotData: TimeSlotEntity) {
         database.withTransaction {
-            val timeSlotEntity = database.TimeSlotDao().observe(timeSlotData.uuid).first()
+            val timeSlotSchema = database.TimeSlotDao().observe(timeSlotData.uuid).first()
                 ?: throw IllegalStateException("time slot is null")
 
             timeSlotData.toTimeSlotSchema(
-                timeRoutineId = timeSlotEntity.timeRoutineId,
-                timeSlotId = timeSlotEntity.id
+                timeRoutineId = timeSlotSchema.timeRoutineId,
+                timeSlotId = timeSlotSchema.id
             ).let {
                 database.TimeSlotDao().update(it)
             }

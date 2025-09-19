@@ -11,7 +11,12 @@ sealed interface TimeSlotEditUiEvent {
 
     data class ShowConfirm(
         val message: UiText,
-        val confirmIntent: TimeSlotEditIntent,
+        val confirmIntent: TimeSlotEditIntent? = null,
+    ) : TimeSlotEditUiEvent
+
+    data class ShowAlert(
+        val message: UiText,
+        val confirmIntent: TimeSlotEditIntent? = null
     ) : TimeSlotEditUiEvent
 
 }

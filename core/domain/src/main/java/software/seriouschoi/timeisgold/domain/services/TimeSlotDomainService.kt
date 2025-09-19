@@ -1,6 +1,8 @@
 package software.seriouschoi.timeisgold.domain.services
 
 import kotlinx.coroutines.flow.first
+import software.seriouschoi.timeisgold.domain.data.DomainError
+import software.seriouschoi.timeisgold.domain.data.DomainResult
 import software.seriouschoi.timeisgold.domain.data.entities.TimeSlotEntity
 import software.seriouschoi.timeisgold.domain.exception.TIGException
 import software.seriouschoi.timeisgold.domain.port.TimeSlotRepositoryPort
@@ -10,11 +12,12 @@ class TimeSlotDomainService @Inject constructor(
     val timeSlotRepository: TimeSlotRepositoryPort,
 ) {
 
+    @Deprecated("use isValid")
     suspend fun checkCanAdd(
         routineUuid: String,
         timeSlotDataForAdd: TimeSlotEntity,
     ) {
-        val allTimeSlotList = timeSlotRepository.observeTimeSlotList(routineUuid).first()
+        val allTimeSlotList = timeSlotRepository.watchTimeSlotList(routineUuid).first()
         //timeslot의 시간이 겹치는지 확인하는 로직.
         val isDuplicateTime = allTimeSlotList.any {
             timeSlotDataForAdd.startTime in (it.startTime..it.endTime)
@@ -24,5 +27,21 @@ class TimeSlotDomainService @Inject constructor(
             // TODO: jhchoi 2025. 9. 2. domain의 오류는 예측 가능한 오류이므로, throw하지 않는다.
             throw TIGException.TimeSlotConflict(timeSlotDataForAdd)
         }
+    }
+
+    suspend fun isValid(
+        routineUuid: String,
+        timeSlotData: TimeSlotEntity,
+    ) : DomainResult<Boolean> {
+        val allTimeSlotList = timeSlotRepository.watchTimeSlotList(routineUuid).first()
+        //timeslot의 시간이 겹치는지 확인하는 로직.
+        val isDuplicateTime = allTimeSlotList.any {
+            timeSlotData.startTime in (it.startTime..it.endTime)
+                    || timeSlotData.endTime in (it.startTime..it.endTime)
+        }
+        if(isDuplicateTime) {
+            return DomainResult.Failure(DomainError.Conflict.Data)
+        }
+        return DomainResult.Success(true)
     }
 }

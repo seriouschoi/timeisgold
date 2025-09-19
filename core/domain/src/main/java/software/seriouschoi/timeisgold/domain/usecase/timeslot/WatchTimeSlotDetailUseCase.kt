@@ -20,7 +20,7 @@ class WatchTimeSlotDetailUseCase @Inject constructor(
                 if (it == null) {
                     flowOf(DomainResult.Failure(DomainError.NotFound.TimeSlot))
                 } else {
-                    flowOf(DomainResult.Success(it.timeSlotData))
+                    flowOf(DomainResult.Success(it))
                 }
             }
     }

@@ -34,7 +34,7 @@ internal class GetTimeSlotTest : BaseRoomTest() {
     @Test
     fun getTimeSlotList_should_ReturnTimeSlotList() = runTest {
         val slotListFlow =
-            timeSlotRepo.observeTimeSlotList(routine.timeRoutine.uuid)
+            timeSlotRepo.watchTimeSlotList(routine.timeRoutine.uuid)
 
         val emitted = slotListFlow.first()
         assert(emitted == routine.timeSlots)
