@@ -37,7 +37,7 @@ import software.seriouschoi.timeisgold.domain.data.entities.TimeSlotEntity
 import software.seriouschoi.timeisgold.domain.usecase.timeslot.DeleteTimeSlotUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeslot.GetTimeSlotValidUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeslot.SetTimeSlotUseCase
-import software.seriouschoi.timeisgold.domain.usecase.timeslot.WatchTimeSlotDetailUseCase
+import software.seriouschoi.timeisgold.domain.usecase.timeslot.WatchTimeSlotUseCase
 import java.time.LocalTime
 import javax.inject.Inject
 import software.seriouschoi.timeisgold.core.common.ui.R as CommonR
@@ -45,7 +45,7 @@ import software.seriouschoi.timeisgold.core.common.ui.R as CommonR
 @HiltViewModel
 internal class TimeSlotEditViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
-    private val watchTimeSlotDetailUseCase: WatchTimeSlotDetailUseCase,
+    private val watchTimeSlotUseCase: WatchTimeSlotUseCase,
     private val navigator: DestNavigatorPort,
     private val saveTimeSlotUseCase: SetTimeSlotUseCase,
     private val deleteTimeSlotUseCase: DeleteTimeSlotUseCase,
@@ -57,7 +57,7 @@ internal class TimeSlotEditViewModel @Inject constructor(
     private val initFlow = flow {
         val slotUuid = currentRoute.timeSlotUuid
         if (slotUuid != null) {
-            val domainResult = watchTimeSlotDetailUseCase.invoke(
+            val domainResult = watchTimeSlotUseCase.invoke(
                 slotUuid
             ).first()
             emit(domainResult)

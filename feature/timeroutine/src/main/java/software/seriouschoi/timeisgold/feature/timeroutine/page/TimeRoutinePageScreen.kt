@@ -1,5 +1,8 @@
 package software.seriouschoi.timeisgold.feature.timeroutine.page
 
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,7 +15,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -21,9 +23,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -39,6 +44,7 @@ import software.seriouschoi.timeisgold.core.common.util.asFormattedString
 import software.seriouschoi.timeisgold.core.common.util.asMinutes
 import java.time.DayOfWeek
 import java.time.LocalTime
+import kotlin.math.roundToLong
 import software.seriouschoi.timeisgold.core.common.ui.R as CommonR
 
 /**
@@ -97,7 +103,9 @@ private fun Routine(
     state: TimeRoutinePageUiState.Routine,
     sendIntent: (TimeRoutinePageUiIntent) -> Unit,
 ) {
+    val density = LocalDensity.current
     val hourHeight = 60.dp
+    val hourHeightPx = density.run { hourHeight.toPx() }
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -133,6 +141,7 @@ private fun Routine(
                 }
             }
         }
+        var dragOffset by remember { mutableFloatStateOf(0f) }
         state.slotItemList.forEach { slot ->
             val startMinutes = slot.startTime.asMinutes()
             val endMinutes = slot.endTime.asMinutes()
@@ -144,7 +153,22 @@ private fun Routine(
                     .fillMaxWidth()
                     .height(slotHeight)
                     .padding(start = 40.dp)
-                    .offset(y = topOffset),
+                    .offset(y = topOffset)
+                    .draggable(
+                        orientation = Orientation.Vertical,
+                        state = rememberDraggableState {
+                            dragOffset += it
+                        },
+                        onDragStopped = { velocity ->
+                            // 드래그 끝 → 새로운 시간 계산
+                            val movedMinutes = (dragOffset / hourHeightPx) * 60
+                            val newStart = slot.startTime.plusMinutes(movedMinutes.roundToLong())
+                            val newEnd = slot.endTime.plusMinutes(movedMinutes.roundToLong())
+
+                            sendIntent(TimeRoutinePageUiIntent.UpdateSlot(slot.uuid, newStart, newEnd))
+                            dragOffset = 0f
+                        }
+                    ),
                 slotItem = slot,
             ) {
                 sendIntent(it)
@@ -152,6 +176,7 @@ private fun Routine(
         }
     }
 }
+
 
 @Composable
 private fun TimeSlot(
@@ -203,7 +228,8 @@ private fun TimeSlotCardPreview() {
                     title = "타이틀",
                     startTime = LocalTime.now(),
                     endTime = LocalTime.now(),
-                    slotClickIntent = TimeRoutinePageUiIntent.CreateRoutine
+                    slotClickIntent = TimeRoutinePageUiIntent.CreateRoutine,
+                    uuid = "uuid"
                 ),
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -226,7 +252,8 @@ private fun PreviewRoutine() {
                         title = "타이틀",
                         startTime = LocalTime.of(0, 30),
                         endTime = LocalTime.of(3, 0),
-                        slotClickIntent = TimeRoutinePageUiIntent.CreateRoutine
+                        slotClickIntent = TimeRoutinePageUiIntent.CreateRoutine,
+                        uuid = "uuid"
                     )
                 ),
                 dayOfWeeks = listOf(

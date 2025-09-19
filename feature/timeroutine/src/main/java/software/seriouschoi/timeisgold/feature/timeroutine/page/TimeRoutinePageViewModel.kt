@@ -7,6 +7,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import software.seriouschoi.navigator.DestNavigatorPort
@@ -14,11 +15,15 @@ import software.seriouschoi.timeisgold.core.common.ui.ResultState
 import software.seriouschoi.timeisgold.core.common.ui.UiText
 import software.seriouschoi.timeisgold.core.common.ui.asResultState
 import software.seriouschoi.timeisgold.core.common.util.Envelope
+import software.seriouschoi.timeisgold.core.domain.mapper.onlySuccess
 import software.seriouschoi.timeisgold.domain.data.DomainResult
 import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineComposition
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.WatchTimeRoutineCompositionUseCase
+import software.seriouschoi.timeisgold.domain.usecase.timeslot.SetTimeSlotUseCase
+import software.seriouschoi.timeisgold.domain.usecase.timeslot.WatchTimeSlotUseCase
 import software.seriouschoi.timeisgold.feature.timeroutine.edit.TimeRoutineEditScreenRoute
 import software.seriouschoi.timeisgold.feature.timeroutine.timeslot.edit.TimeSlotEditScreenRoute
+import java.io.Serializable
 import java.time.DayOfWeek
 import java.time.format.TextStyle
 import java.util.Locale
@@ -31,14 +36,16 @@ import software.seriouschoi.timeisgold.core.common.ui.R as CommonR
  */
 @HiltViewModel
 internal class TimeRoutinePageViewModel @Inject constructor(
-    val watchTimeRoutineCompositionUseCase: WatchTimeRoutineCompositionUseCase,
-    val navigator: DestNavigatorPort,
-    val savedStateHandle: SavedStateHandle,
+    private val watchTimeRoutineCompositionUseCase: WatchTimeRoutineCompositionUseCase,
+    private val navigator: DestNavigatorPort,
+    private val savedStateHandle: SavedStateHandle,
+    private val setTimeSlotUseCase: SetTimeSlotUseCase,
+    private val watchTimeSlotUseCase: WatchTimeSlotUseCase
 ) : ViewModel() {
 
     private data class ViewModelData(
         val dayOfWeekOrdinal: Int,
-    ) : java.io.Serializable
+    ) : Serializable
 
     private val _uiState = MutableStateFlow<TimeRoutinePageUiState>(
         TimeRoutinePageUiState.Loading(
@@ -50,7 +57,7 @@ internal class TimeRoutinePageViewModel @Inject constructor(
     )
     val uiState = _uiState.asStateFlow()
 
-    private val _intent = MutableSharedFlow< Envelope<TimeRoutinePageUiIntent>>()
+    private val _intent = MutableSharedFlow<Envelope<TimeRoutinePageUiIntent>>()
 
     private val viewModelData
         get() = savedStateHandle.get<ViewModelData>("data")
@@ -134,6 +141,7 @@ internal class TimeRoutinePageViewModel @Inject constructor(
             title = routineComposition.timeRoutine.title,
             slotItemList = routineComposition.timeSlots.map {
                 TimeRoutinePageSlotItemUiState(
+                    uuid = it.uuid,
                     title = it.title,
                     startTime = it.startTime,
                     endTime = it.endTime,
@@ -165,6 +173,35 @@ internal class TimeRoutinePageViewModel @Inject constructor(
                 )
                 navigator.navigate(route)
             }
+
+            is TimeRoutinePageUiIntent.UpdateSlot -> {
+                updateTimeSlot(intent)
+            }
+        }
+    }
+
+    private fun updateTimeSlot(intent: TimeRoutinePageUiIntent.UpdateSlot) {
+        viewModelScope.launch {
+            val dayOfWeek = viewModelData?.dayOfWeekOrdinal?.let {
+                DayOfWeek.entries.getOrNull(it)
+            } ?: return@launch
+            val routine =
+                watchTimeRoutineCompositionUseCase.invoke(dayOfWeek).asResultState().onlySuccess()
+                    .first() ?: return@launch
+
+            val timeSlot =
+                watchTimeSlotUseCase.invoke(intent.uuid).asResultState().onlySuccess().first()
+                    ?: return@launch
+
+            val newTimeSlot = timeSlot.copy(
+                startTime = intent.newStart,
+                endTime = intent.newEnd
+            )
+
+            setTimeSlotUseCase.invoke(
+                timeRoutineUuid = routine.timeRoutine.uuid,
+                timeSlotData = newTimeSlot
+            )
         }
     }
 

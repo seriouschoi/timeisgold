@@ -124,6 +124,8 @@ TimeRoutineEntity와 TimeRoutineDayOfWeekEntity로만
 
 # focus??
 
+# Modifier에서 state란 이름으로 쓰는 패턴은 뭐지?
+
 # 각 SharindStarted의 동작??
 1. SharingStarted.Eagerly
 2. SharingStarted.Lazily
