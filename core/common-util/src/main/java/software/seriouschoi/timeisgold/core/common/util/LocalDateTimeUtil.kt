@@ -4,6 +4,7 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import kotlin.math.round
 
 /**
  * Created by jhchoi on 2025. 8. 28.
@@ -21,4 +22,9 @@ fun LocalTime.asFormattedString(pattern: String = "HH:mm"): String {
 
 fun LocalTime.asMinutes(): Int {
     return this.hour * 60 + this.minute
+}
+
+fun LocalTime.normalize(minute: Float = 15f): LocalTime {
+    val newMinute = (round(this.minute / minute) * minute).toInt() % 60
+    return this.withMinute(newMinute)
 }

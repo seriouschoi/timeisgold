@@ -1,6 +1,5 @@
 package software.seriouschoi.timeisgold.feature.timeroutine.page
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.layout.Arrangement
@@ -21,7 +20,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.PointerInputChange
@@ -33,8 +31,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import software.seriouschoi.timeisgold.core.common.util.asFormattedString
 import software.seriouschoi.timeisgold.core.common.util.asMinutes
-import java.time.LocalTime
-import kotlin.math.round
+import software.seriouschoi.timeisgold.core.common.util.normalize
 import kotlin.math.roundToInt
 
 @Composable
@@ -175,11 +172,6 @@ internal fun TimeSlotCardView(
             }
         }
     }
-}
-
-private fun LocalTime.normalize(minute: Float = 15f): LocalTime {
-    val newMinute = (round(this.minute / minute) * minute).toInt() % 60
-    return this.withMinute(newMinute)
 }
 
 private fun Float.pxToMinutes(hourHeightPx: Float): Float {
