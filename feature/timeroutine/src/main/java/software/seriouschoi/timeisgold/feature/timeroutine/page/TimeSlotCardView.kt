@@ -51,13 +51,6 @@ internal fun TimeSlotCardView(
     val endMinutes = slotItem.endTime.asMinutes()
     val topOffset = (startMinutes / 60f) * hourHeight
 
-//    위 핸들을 위로 올리면, offset은 음수가 되고, 사이즈는 늘어나야 한다.
-//    아래 핸들을 위로 올리면, offset은 음수가 되고, 사이즈는 줄어야 한다.
-    val topHandleHeightFactor = topHandleDragOffset.let { density.run { it.toDp() * -1 } }
-    val bottomHandleHeightFactor = bottomHandleDragOffset.let { density.run { it.toDp() } }
-    val slotHeightFactor = topHandleHeightFactor + bottomHandleHeightFactor
-    val slotHeight = (((endMinutes - startMinutes) / 60f) * hourHeight) + slotHeightFactor
-
     //drag.
     val dragModifier = modifier
         .offset {
@@ -90,6 +83,59 @@ internal fun TimeSlotCardView(
             }
         )
 
+    val topHandleDragModifier = Modifier.draggable(
+        orientation = Orientation.Vertical,
+        state = rememberDraggableState {
+            topHandleDragOffset += it
+        },
+        onDragStopped = { velocity ->
+            // 드래그 끝 → 새로운 시간 계산
+            val movedMinutes = (topHandleDragOffset / hourHeightPx) * 60
+            val newStart =
+                slotItem.startTime.plusMinutes(movedMinutes.roundToLong())
+            val newEnd = slotItem.endTime
+            topHandleDragOffset = 0f
+
+            sendIntent(
+                TimeRoutinePageUiIntent.UpdateSlot(
+                    slotItem.uuid,
+                    newStart,
+                    newEnd
+                )
+            )
+        }
+    )
+
+    val bottomHandleDragModifier = Modifier.draggable(
+        orientation = Orientation.Vertical,
+        state = rememberDraggableState {
+            bottomHandleDragOffset += it
+        },
+        onDragStopped = { velocity ->
+            // 드래그 끝 → 새로운 시간 계산
+            val movedMinutes = (bottomHandleDragOffset / hourHeightPx) * 60
+            val newStart = slotItem.startTime
+            val newEnd = slotItem.endTime.plusMinutes(movedMinutes.roundToLong())
+            bottomHandleDragOffset = 0f
+
+            sendIntent(
+                TimeRoutinePageUiIntent.UpdateSlot(
+                    slotItem.uuid,
+                    newStart,
+                    newEnd
+                )
+            )
+        }
+    )
+
+    // height.
+    // 위 핸들을 위로 올리면, offset은 음수가 되고, 사이즈는 늘어나야 한다.
+    // 아래 핸들을 위로 올리면, offset은 음수가 되고, 사이즈는 줄어야 한다.
+    val topHandleHeightFactor = topHandleDragOffset.let { density.run { it.toDp() * -1 } }
+    val bottomHandleHeightFactor = bottomHandleDragOffset.let { density.run { it.toDp() } }
+    val slotHeightFactor = topHandleHeightFactor + bottomHandleHeightFactor
+    val slotHeight = (((endMinutes - startMinutes) / 60f) * hourHeight) + slotHeightFactor
+
     Card(
         modifier = dragModifier
             .height(slotHeight)
@@ -101,61 +147,18 @@ internal fun TimeSlotCardView(
         Box(Modifier.fillMaxSize()) {
             //top handle.
             Box(
-                modifier = Modifier
+                modifier = topHandleDragModifier
                     .align(Alignment.TopCenter)
                     .fillMaxWidth()
                     .height(8.dp)
-                    .draggable(
-                        orientation = Orientation.Vertical,
-                        state = rememberDraggableState {
-                            topHandleDragOffset += it
-                        },
-                        onDragStopped = { velocity ->
-                            // 드래그 끝 → 새로운 시간 계산
-                            val movedMinutes = (topHandleDragOffset / hourHeightPx) * 60
-                            val newStart =
-                                slotItem.startTime.plusMinutes(movedMinutes.roundToLong())
-                            val newEnd = slotItem.endTime
-                            topHandleDragOffset = 0f
-
-                            sendIntent(
-                                TimeRoutinePageUiIntent.UpdateSlot(
-                                    slotItem.uuid,
-                                    newStart,
-                                    newEnd
-                                )
-                            )
-                        }
-                    )
             )
 
             //bottom handle.
             Box(
-                modifier = Modifier
+                modifier = bottomHandleDragModifier
                     .align(Alignment.BottomCenter)
                     .fillMaxWidth()
                     .height(8.dp)
-                    .draggable(
-                        orientation = Orientation.Vertical,
-                        state = rememberDraggableState {
-                            bottomHandleDragOffset += it
-                        },
-                        onDragStopped = { velocity ->
-                            // 드래그 끝 → 새로운 시간 계산
-                            val movedMinutes = (bottomHandleDragOffset / hourHeightPx) * 60
-                            val newStart = slotItem.startTime
-                            val newEnd = slotItem.endTime.plusMinutes(movedMinutes.roundToLong())
-                            bottomHandleDragOffset = 0f
-
-                            sendIntent(
-                                TimeRoutinePageUiIntent.UpdateSlot(
-                                    slotItem.uuid,
-                                    newStart,
-                                    newEnd
-                                )
-                            )
-                        }
-                    )
             )
             Column(
                 modifier = Modifier.padding(10.dp)
