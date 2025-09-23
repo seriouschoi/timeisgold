@@ -40,46 +40,37 @@ internal fun TimeSlotCardView(
     hourHeight: Dp,
     sendIntent: (TimeRoutinePageUiIntent) -> Unit
 ) {
-//    var startTime by remember { mutableStateOf(slotItem.startTime) }
-//    var endTime by remember { mutableStateOf(slotItem.endTime) }
+    var startTime by remember { mutableStateOf(slotItem.startTime) }
+    var endTime by remember { mutableStateOf(slotItem.endTime) }
 
     val density = LocalDensity.current
     val hourHeightPx = density.run { hourHeight.toPx() }
 
-    var dragOffset by remember { mutableFloatStateOf(0f) }
-    var topHandleDragOffset by remember { mutableFloatStateOf(0f) }
-    var bottomHandleDragOffset by remember { mutableFloatStateOf(0f) }
-
-    val startMinutes = slotItem.startTime.asMinutes()
-    val endMinutes = slotItem.endTime.asMinutes()
+    val startMinutes = startTime.asMinutes()
+    val endMinutes = endTime.asMinutes()
     val topOffsetPx = startMinutes.minutesToPx(hourHeightPx)
 
     //drag.
     val dragModifier = modifier
         .offset {
-            val newY = topOffsetPx + dragOffset + topHandleDragOffset
             IntOffset(
                 x = 0,
-                y = newY.roundToInt()
+                y = topOffsetPx.roundToInt()
             )
         }
         .draggable(
             orientation = Orientation.Vertical,
             state = rememberDraggableState { it: Float ->
-                dragOffset += it
+                val minutesFactor = it.pxToMinutes(hourHeightPx).toLong()
+                startTime = startTime.plusMinutes(minutesFactor)
+                endTime = endTime.plusMinutes(minutesFactor)
             },
             onDragStopped = { velocity ->
-                // 드래그 끝 → 새로운 시간 계산
-                val movedMinutes = dragOffset.pxToMinutes(hourHeightPx).roundToLong()
-                val newStart = slotItem.startTime.plusMinutes(movedMinutes)
-                val newEnd = slotItem.endTime.plusMinutes(movedMinutes)
-                dragOffset = 0f
-
                 sendIntent(
                     TimeRoutinePageUiIntent.UpdateSlot(
                         slotItem.uuid,
-                        newStart,
-                        newEnd
+                        startTime,
+                        endTime
                     )
                 )
             }
@@ -88,21 +79,14 @@ internal fun TimeSlotCardView(
     val topHandleDragModifier = Modifier.draggable(
         orientation = Orientation.Vertical,
         state = rememberDraggableState {
-            topHandleDragOffset += it
+            startTime = startTime.plusMinutes(it.pxToMinutes(hourHeightPx).roundToLong())
         },
         onDragStopped = { velocity ->
-            // 드래그 끝 → 새로운 시간 계산
-            val movedMinutes = topHandleDragOffset.pxToMinutes(hourHeightPx).roundToLong()
-            val newStart =
-                slotItem.startTime.plusMinutes(movedMinutes)
-            val newEnd = slotItem.endTime
-            topHandleDragOffset = 0f
-
             sendIntent(
                 TimeRoutinePageUiIntent.UpdateSlot(
                     slotItem.uuid,
-                    newStart,
-                    newEnd
+                    startTime,
+                    endTime
                 )
             )
         }
@@ -111,31 +95,21 @@ internal fun TimeSlotCardView(
     val bottomHandleDragModifier = Modifier.draggable(
         orientation = Orientation.Vertical,
         state = rememberDraggableState {
-            bottomHandleDragOffset += it
+            endTime = endTime.plusMinutes(it.pxToMinutes(hourHeightPx).roundToLong())
         },
         onDragStopped = { velocity ->
-            // 드래그 끝 → 새로운 시간 계산
-            val movedMinutes = bottomHandleDragOffset.pxToMinutes(hourHeightPx).roundToLong()
-            val newStart = slotItem.startTime
-            val newEnd = slotItem.endTime.plusMinutes(movedMinutes)
-            bottomHandleDragOffset = 0f
-
             sendIntent(
                 TimeRoutinePageUiIntent.UpdateSlot(
                     slotItem.uuid,
-                    newStart,
-                    newEnd
+                    startTime,
+                    endTime
                 )
             )
         }
     )
 
     // height.
-    val slotHeight = (endMinutes - startMinutes).minutesToPx(hourHeightPx).minus(
-        topHandleDragOffset
-    ).plus(
-        bottomHandleDragOffset
-    ).let {
+    val slotHeight = (endMinutes - startMinutes).minutesToPx(hourHeightPx).let {
         density.run { it.toDp() }
     }
 
@@ -172,13 +146,13 @@ internal fun TimeSlotCardView(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
-                        text = slotItem.startTime.asFormattedString(),
+                        text = startTime.asFormattedString(),
                         modifier = Modifier.weight(1f),
                         textAlign = TextAlign.Center,
                         style = MaterialTheme.typography.bodyLarge
                     )
                     Text(
-                        text = slotItem.endTime.asFormattedString(),
+                        text = endTime.asFormattedString(),
                         modifier = Modifier.weight(1f),
                         textAlign = TextAlign.Center,
                         style = MaterialTheme.typography.bodyLarge
