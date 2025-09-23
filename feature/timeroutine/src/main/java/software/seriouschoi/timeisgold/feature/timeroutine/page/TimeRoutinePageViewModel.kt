@@ -50,7 +50,7 @@ internal class TimeRoutinePageViewModel @Inject constructor(
     private val navigator: DestNavigatorPort,
     private val savedStateHandle: SavedStateHandle,
     private val setTimeSlotUseCase: SetTimeSlotUseCase,
-    private val watchTimeSlotUseCase: WatchTimeSlotUseCase
+    private val watchTimeSlotUseCase: WatchTimeSlotUseCase,
 ) : ViewModel() {
 
     private val dayOfWeekFlow = MutableStateFlow<DayOfWeek?>(null)
@@ -115,7 +115,8 @@ internal class TimeRoutinePageViewModel @Inject constructor(
     private fun handleIntentSideEffect(intent: TimeRoutinePageUiIntent) {
         when (intent) {
             is TimeRoutinePageUiIntent.ModifyRoutine,
-            is TimeRoutinePageUiIntent.CreateRoutine -> {
+            is TimeRoutinePageUiIntent.CreateRoutine,
+                -> {
                 val dayOfWeekOrdinal = dayOfWeekFlow.value?.ordinal
                 if (dayOfWeekOrdinal != null)
                     navigator.navigate(TimeRoutineEditScreenRoute(dayOfWeekOrdinal))
@@ -190,7 +191,7 @@ private fun TimeRoutinePageUiState.reduce(value: UiPreState): TimeRoutinePageUiS
 }
 
 private fun TimeRoutinePageUiState.reduce(
-    value: UiPreState.Intent
+    value: UiPreState.Intent,
 ): TimeRoutinePageUiState = when (val intent = value.intent) {
     is TimeRoutinePageUiIntent.UpdateSlot -> {
         val routineState = this as? TimeRoutinePageUiState.Routine
@@ -271,6 +272,6 @@ private sealed interface UiPreState {
     ) : UiPreState
 
     data class Intent(
-        val intent: TimeRoutinePageUiIntent
+        val intent: TimeRoutinePageUiIntent,
     ) : UiPreState
 }

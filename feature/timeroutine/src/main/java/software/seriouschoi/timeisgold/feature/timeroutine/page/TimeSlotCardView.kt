@@ -1,8 +1,8 @@
 package software.seriouschoi.timeisgold.feature.timeroutine.page
 
-import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.draggable
-import androidx.compose.foundation.gestures.rememberDraggableState
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,18 +23,19 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.pointer.PointerInputChange
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.CoroutineScope
 import software.seriouschoi.timeisgold.core.common.util.asFormattedString
 import software.seriouschoi.timeisgold.core.common.util.asMinutes
 import java.time.LocalTime
-import kotlin.math.floor
+import kotlin.math.round
 import kotlin.math.roundToInt
-import kotlin.math.roundToLong
 
 @Composable
 internal fun TimeSlotCardView(
@@ -53,7 +54,10 @@ internal fun TimeSlotCardView(
     val endMinutes = endTime.asMinutes()
     val topOffsetPx = startMinutes.minutesToPx(hourHeightPx)
 
-    val dragStopped: suspend CoroutineScope.(velocity: Float) -> Unit = { velocity ->
+    var activeDragTarget by remember { mutableStateOf<DragTarget?>(null) }
+
+    fun commitUpdate() {
+        activeDragTarget = null
         startTime = startTime.normalize()
         endTime = endTime.normalize()
         sendIntent(
@@ -65,79 +69,95 @@ internal fun TimeSlotCardView(
         )
     }
 
-    //drag.
-    val dragModifier = modifier
-        .offset {
-            IntOffset(
-                x = 0,
-                y = topOffsetPx.roundToInt()
-            )
-        }
-        .draggable(
-            orientation = Orientation.Vertical,
-            state = rememberDraggableState { it: Float ->
-                val minutesFactor = it.pxToMinutes(hourHeightPx).toLong()
-                startTime = startTime.plusMinutes(minutesFactor)
-                endTime = endTime.plusMinutes(minutesFactor)
-            },
-            onDragStopped = dragStopped
-        )
-
-    val topHandleDragModifier = Modifier.draggable(
-        orientation = Orientation.Vertical,
-        state = rememberDraggableState {
-            startTime = startTime.plusMinutes(it.pxToMinutes(hourHeightPx).roundToLong())
-        },
-        onDragStopped = dragStopped
-    )
-
-    val bottomHandleDragModifier = Modifier.draggable(
-        orientation = Orientation.Vertical,
-        state = rememberDraggableState {
-            endTime = endTime.plusMinutes(it.pxToMinutes(hourHeightPx).roundToLong())
-        },
-        onDragStopped = dragStopped
-    )
-
     // height.
     val slotHeight = (endMinutes - startMinutes).minutesToPx(hourHeightPx).let {
         density.run { it.toDp() }
     }
+    val slotHeightPx = slotHeight.let { density.run { it.toPx() } }
+
+    //drag.
+    val cardLongPressDrag = Modifier.pointerInput(Unit) {
+        detectDragGesturesAfterLongPress(
+            onDragStart = {
+                activeDragTarget = when {
+                    it.y < (20.dp.toPx()) -> {
+                        DragTarget.Top
+                    }
+                    it.y > (slotHeightPx - 20.dp.toPx()) -> {
+                        DragTarget.Bottom
+                    }
+                    else -> {
+                        DragTarget.Card
+                    }
+                }
+            },
+            onDragEnd = {
+                commitUpdate()
+            },
+            onDragCancel = { activeDragTarget = null },
+            onDrag = { change: PointerInputChange, dragAmount: Offset ->
+                change.consume() //부모 스크롤 전파 차단.
+                when(activeDragTarget) {
+                    DragTarget.Card -> {
+                        val minutesFactor = dragAmount.y.pxToMinutes(hourHeightPx).toLong()
+                        startTime = startTime.plusMinutes(minutesFactor)
+                        endTime = endTime.plusMinutes(minutesFactor)
+                    }
+                    DragTarget.Top -> {
+                        val minutesFactor = dragAmount.y.pxToMinutes(hourHeightPx).toLong()
+                        startTime = startTime.plusMinutes(minutesFactor)
+                    }
+                    DragTarget.Bottom -> {
+                        val minutesFactor = dragAmount.y.pxToMinutes(hourHeightPx).toLong()
+                        endTime = endTime.plusMinutes(minutesFactor)
+                    }
+                    null -> {
+                        //no work
+                    }
+                }
+            },
+        )
+    }
+
+    val cardColor = if(activeDragTarget != null) {
+        MaterialTheme.colorScheme.primaryContainer
+    } else {
+        MaterialTheme.colorScheme.surfaceContainer
+    }
 
     Card(
-        modifier = dragModifier
+        modifier = modifier
+            .offset {
+                IntOffset(
+                    x = 0,
+                    y = topOffsetPx.roundToInt()
+                )
+            }
             .height(slotHeight)
-            .padding(start = 40.dp),
-        onClick = {
-            sendIntent(slotItem.slotClickIntent)
-        },
+            .padding(start = 40.dp)
+            .then(cardLongPressDrag),
         elevation = CardDefaults.cardElevation(
             defaultElevation = 10.dp
+        ),
+        colors = CardDefaults.cardColors(
+            containerColor = cardColor
         )
     ) {
         Box(Modifier.fillMaxSize()) {
-            //top handle.
-            Box(
-                modifier = topHandleDragModifier
-                    .align(Alignment.TopCenter)
-                    .fillMaxWidth()
-                    .height(8.dp)
-            )
 
-            //bottom handle.
-            Box(
-                modifier = bottomHandleDragModifier
-                    .align(Alignment.BottomCenter)
-                    .fillMaxWidth()
-                    .height(8.dp)
-            )
+            //content
             Column(
                 modifier = Modifier.padding(10.dp)
             ) {
-                Text(text = slotItem.title, style = MaterialTheme.typography.titleLarge)
+                Text(
+                    text = slotItem.title,
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.clickable {
+                        sendIntent(slotItem.slotClickIntent)
+                    })
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
                     Text(
                         text = startTime.asFormattedString(),
@@ -157,8 +177,8 @@ internal fun TimeSlotCardView(
     }
 }
 
-private fun LocalTime.normalize(minute: Float = 5f): LocalTime {
-    val newMinute = (floor(this.minute / minute) * minute).toInt()
+private fun LocalTime.normalize(minute: Float = 15f): LocalTime {
+    val newMinute = (round(this.minute / minute) * minute).toInt() % 60
     return this.withMinute(newMinute)
 }
 
@@ -169,3 +189,5 @@ private fun Float.pxToMinutes(hourHeightPx: Float): Float {
 private fun Int.minutesToPx(hourHeightPx: Float): Float {
     return (this / 60f) * hourHeightPx
 }
+
+private enum class DragTarget { Card, Top, Bottom }
