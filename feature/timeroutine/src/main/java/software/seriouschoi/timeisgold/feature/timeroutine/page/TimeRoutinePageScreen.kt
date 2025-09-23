@@ -102,9 +102,7 @@ private fun Routine(
     state: TimeRoutinePageUiState.Routine,
     sendIntent: (TimeRoutinePageUiIntent) -> Unit,
 ) {
-    val density = LocalDensity.current
     val hourHeight = 60.dp
-    val hourHeightPx = density.run { hourHeight.toPx() }
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -140,46 +138,11 @@ private fun Routine(
                 }
             }
         }
-        var dragOffset by remember { mutableFloatStateOf(0f) }
         state.slotItemList.forEach { slot ->
-            val startMinutes = slot.startTime.asMinutes()
-            val endMinutes = slot.endTime.asMinutes()
-            val topOffset = (startMinutes / 60f) * hourHeight
-            val slotHeight = ((endMinutes - startMinutes) / 60f) * hourHeight
-
-            TimeSlot(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(slotHeight)
-                    .padding(start = 40.dp)
-                    .offset {
-                        IntOffset(
-                            x = 0,
-                            y = topOffset.roundToPx() + dragOffset.roundToInt()
-                        )
-                    }
-                    .draggable(
-                        orientation = Orientation.Vertical,
-                        state = rememberDraggableState {
-                            dragOffset += it
-                        },
-                        onDragStopped = { velocity ->
-                            // 드래그 끝 → 새로운 시간 계산
-                            val movedMinutes = (dragOffset / hourHeightPx) * 60
-                            val newStart = slot.startTime.plusMinutes(movedMinutes.roundToLong())
-                            val newEnd = slot.endTime.plusMinutes(movedMinutes.roundToLong())
-
-                            sendIntent(
-                                TimeRoutinePageUiIntent.UpdateSlot(
-                                    slot.uuid,
-                                    newStart,
-                                    newEnd
-                                )
-                            )
-                            dragOffset = 0f
-                        }
-                    ),
+            TimeSlotCardView(
+                modifier = Modifier.fillMaxWidth(),
                 slotItem = slot,
+                hourHeight = hourHeight
             ) {
                 sendIntent(it)
             }
@@ -189,63 +152,153 @@ private fun Routine(
 
 
 @Composable
-private fun TimeSlot(
+private fun TimeSlotCardView(
     modifier: Modifier = Modifier,
     slotItem: TimeRoutinePageSlotItemUiState,
+    hourHeight: Dp,
     sendIntent: (TimeRoutinePageUiIntent) -> Unit
 ) {
+    val density = LocalDensity.current
+    val hourHeightPx = density.run { hourHeight.toPx() }
+
+    var dragOffset by remember { mutableFloatStateOf(0f) }
+    var topHandleDragOffset by remember { mutableFloatStateOf(0f) }
+    var bottomHandleDragOffset by remember { mutableFloatStateOf(0f) }
+
+    val startMinutes = slotItem.startTime.asMinutes()
+    val endMinutes = slotItem.endTime.asMinutes()
+    val topOffset = (startMinutes / 60f) * hourHeight
+
+//    위 핸들을 위로 올리면, offset은 음수가 되고, 사이즈는 늘어나야 한다.
+//    아래 핸들을 위로 올리면, offset은 음수가 되고, 사이즈는 줄어야 한다.
+    val topHandleHeightFactor = topHandleDragOffset.let { density.run { it.toDp() * -1 } }
+    val bottomHandleHeightFactor = bottomHandleDragOffset.let { density.run { it.toDp()}}
+    val slotHeightFactor = topHandleHeightFactor + bottomHandleHeightFactor
+    val slotHeight = (((endMinutes - startMinutes) / 60f) * hourHeight) + slotHeightFactor
+
+    //drag.
+    val dragModifier = modifier
+        .offset {
+            val newY =
+                topOffset.roundToPx() + dragOffset.roundToInt() + topHandleDragOffset.roundToInt()
+            IntOffset(
+                x = 0,
+                y = newY
+            )
+        }
+        .draggable(
+            orientation = Orientation.Vertical,
+            state = rememberDraggableState {
+                dragOffset += it
+            },
+            onDragStopped = { velocity ->
+                // 드래그 끝 → 새로운 시간 계산
+                val movedMinutes = (dragOffset / hourHeightPx) * 60
+                val newStart = slotItem.startTime.plusMinutes(movedMinutes.roundToLong())
+                val newEnd = slotItem.endTime.plusMinutes(movedMinutes.roundToLong())
+                dragOffset = 0f
+
+                sendIntent(
+                    TimeRoutinePageUiIntent.UpdateSlot(
+                        slotItem.uuid,
+                        newStart,
+                        newEnd
+                    )
+                )
+            }
+        )
+
     Card(
-        modifier = modifier
-            .padding(10.dp),
+        modifier = dragModifier
+            .height(slotHeight)
+            .padding(start = 40.dp),
         onClick = {
             sendIntent(slotItem.slotClickIntent)
         }
     ) {
-        Column(
-            modifier = Modifier.padding(10.dp)
-        ) {
-            Text(text = slotItem.title, style = MaterialTheme.typography.titleLarge)
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = slotItem.startTime.asFormattedString(),
-                    modifier = Modifier.weight(1f),
-                    textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.bodyLarge
-                )
-                Text(
-                    text = slotItem.endTime.asFormattedString(),
-                    modifier = Modifier.weight(1f),
-                    textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.bodyLarge
-                )
-            }
-        }
-    }
-}
+        Box(Modifier.fillMaxSize()) {
+            //top handle.
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .fillMaxWidth()
+                    .height(8.dp)
+                    .draggable(
+                        orientation = Orientation.Vertical,
+                        state = rememberDraggableState {
+                            topHandleDragOffset += it
+                        },
+                        onDragStopped = { velocity ->
+                            // 드래그 끝 → 새로운 시간 계산
+                            val movedMinutes = (topHandleDragOffset / hourHeightPx) * 60
+                            val newStart =
+                                slotItem.startTime.plusMinutes(movedMinutes.roundToLong())
+                            val newEnd = slotItem.endTime
+                            topHandleDragOffset = 0f
 
-@TigThemePreview
-@Composable
-private fun TimeSlotCardPreview() {
-    TigTheme {
-        Column(
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            TimeSlot(
-                slotItem = TimeRoutinePageSlotItemUiState(
-                    title = "타이틀",
-                    startTime = LocalTime.now(),
-                    endTime = LocalTime.now(),
-                    slotClickIntent = TimeRoutinePageUiIntent.CreateRoutine,
-                    uuid = "uuid"
-                ),
-                modifier = Modifier.fillMaxWidth()
+                            sendIntent(
+                                TimeRoutinePageUiIntent.UpdateSlot(
+                                    slotItem.uuid,
+                                    newStart,
+                                    newEnd
+                                )
+                            )
+                        }
+                    )
+            )
+
+            //bottom handle.
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+                    .height(8.dp)
+                    .draggable(
+                        orientation = Orientation.Vertical,
+                        state = rememberDraggableState {
+                            bottomHandleDragOffset += it
+                        },
+                        onDragStopped = { velocity ->
+                            // 드래그 끝 → 새로운 시간 계산
+                            val movedMinutes = (bottomHandleDragOffset / hourHeightPx) * 60
+                            val newStart = slotItem.startTime
+                            val newEnd = slotItem.endTime.plusMinutes(movedMinutes.roundToLong())
+                            bottomHandleDragOffset = 0f
+
+                            sendIntent(
+                                TimeRoutinePageUiIntent.UpdateSlot(
+                                    slotItem.uuid,
+                                    newStart,
+                                    newEnd
+                                )
+                            )
+                        }
+                    )
+            )
+            Column(
+                modifier = Modifier.padding(10.dp)
             ) {
-                //no work.
+                Text(text = slotItem.title, style = MaterialTheme.typography.titleLarge)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = slotItem.startTime.asFormattedString(),
+                        modifier = Modifier.weight(1f),
+                        textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                    Text(
+                        text = slotItem.endTime.asFormattedString(),
+                        modifier = Modifier.weight(1f),
+                        textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
             }
         }
+
     }
 }
 
@@ -260,8 +313,8 @@ private fun PreviewRoutine() {
                 slotItemList = listOf(
                     TimeRoutinePageSlotItemUiState(
                         title = "타이틀",
-                        startTime = LocalTime.of(0, 30),
-                        endTime = LocalTime.of(3, 0),
+                        startTime = LocalTime.of(4, 30),
+                        endTime = LocalTime.of(6, 0),
                         slotClickIntent = TimeRoutinePageUiIntent.CreateRoutine,
                         uuid = "uuid"
                     )
