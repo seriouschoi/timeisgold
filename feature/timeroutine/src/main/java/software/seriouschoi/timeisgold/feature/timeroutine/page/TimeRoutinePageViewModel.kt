@@ -4,20 +4,37 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapConcat
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.merge
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.scan
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import software.seriouschoi.navigator.DestNavigatorPort
 import software.seriouschoi.timeisgold.core.common.ui.ResultState
 import software.seriouschoi.timeisgold.core.common.ui.UiText
 import software.seriouschoi.timeisgold.core.common.ui.asResultState
+import software.seriouschoi.timeisgold.core.common.ui.flowResultState
 import software.seriouschoi.timeisgold.core.common.util.Envelope
+import software.seriouschoi.timeisgold.core.domain.mapper.onlyDomainResult
+import software.seriouschoi.timeisgold.core.domain.mapper.onlySuccess
 import software.seriouschoi.timeisgold.domain.data.DomainResult
 import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineComposition
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.WatchTimeRoutineCompositionUseCase
+import software.seriouschoi.timeisgold.domain.usecase.timeslot.SetTimeSlotUseCase
+import software.seriouschoi.timeisgold.domain.usecase.timeslot.WatchTimeSlotUseCase
 import software.seriouschoi.timeisgold.feature.timeroutine.edit.TimeRoutineEditScreenRoute
+import software.seriouschoi.timeisgold.feature.timeroutine.timeslot.edit.TimeSlotEditScreenRoute
 import java.time.DayOfWeek
 import java.time.format.TextStyle
 import java.util.Locale
@@ -30,29 +47,56 @@ import software.seriouschoi.timeisgold.core.common.ui.R as CommonR
  */
 @HiltViewModel
 internal class TimeRoutinePageViewModel @Inject constructor(
-    val watchTimeRoutineCompositionUseCase: WatchTimeRoutineCompositionUseCase,
-    val navigator: DestNavigatorPort,
-    val savedStateHandle: SavedStateHandle,
+    private val watchTimeRoutineCompositionUseCase: WatchTimeRoutineCompositionUseCase,
+    private val navigator: DestNavigatorPort,
+    private val savedStateHandle: SavedStateHandle,
+    private val setTimeSlotUseCase: SetTimeSlotUseCase,
+    private val watchTimeSlotUseCase: WatchTimeSlotUseCase
 ) : ViewModel() {
 
-    private data class ViewModelData(
-        val dayOfWeekOrdinal: Int,
-    ) : java.io.Serializable
+    private val dayOfWeekFlow = MutableStateFlow<DayOfWeek?>(null)
 
-    private val _uiState = MutableStateFlow<TimeRoutinePageUiState>(
-        TimeRoutinePageUiState.Loading(
-            UiText.MultipleResArgs.create(
-                CommonR.string.message_format_loading,
-                CommonR.string.text_routine
-            )
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val routineCompositionFlow: StateFlow<ResultState<DomainResult<TimeRoutineComposition>>> =
+        dayOfWeekFlow.mapNotNull { it }.flatMapConcat {
+            watchTimeRoutineCompositionUseCase.invoke(it)
+        }.asResultState().stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.Eagerly,
+            initialValue = ResultState.Loading
         )
+
+    private val routinePreUiStateFlow = combine(
+        dayOfWeekFlow.mapNotNull { it },
+        routineCompositionFlow.onlyDomainResult().mapNotNull { it }
+    ) { dayOfWeek, routineComposition ->
+        UiPreState.Routine(
+            currentDayOfWeek = dayOfWeek,
+            routineDomainResult = routineComposition
+        )
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.Eagerly,
+        initialValue = null
     )
-    val uiState = _uiState.asStateFlow()
 
-    private val _intent = MutableSharedFlow< Envelope<TimeRoutinePageUiIntent>>()
+    private val _intent = MutableSharedFlow<Envelope<TimeRoutinePageUiIntent>>()
 
-    private val viewModelData
-        get() = savedStateHandle.get<ViewModelData>("data")
+
+    val uiState: StateFlow<TimeRoutinePageUiState> = merge(
+        routinePreUiStateFlow.mapNotNull { it },
+        _intent.mapNotNull {
+            UiPreState.Intent(it.payload)
+        }
+    ).scan(
+        TimeRoutinePageUiState.Loading.default()
+    ) { acc: TimeRoutinePageUiState, value: UiPreState ->
+        acc.reduce(value)
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.Eagerly,
+        initialValue = TimeRoutinePageUiState.Loading.default()
+    )
 
     init {
         viewModelScope.launch {
@@ -64,97 +108,64 @@ internal class TimeRoutinePageViewModel @Inject constructor(
 
     fun load(dayOfWeek: DayOfWeek) {
         viewModelScope.launch {
-            savedStateHandle["data"] = ViewModelData(
-                dayOfWeekOrdinal = dayOfWeek.ordinal
-            )
-            watchTimeRoutineCompositionUseCase(dayOfWeek).asResultState().collect { resultState ->
-                _uiState.update {
-                    it.reduceResultState(resultState, dayOfWeek)
-                }
-            }
+            dayOfWeekFlow.emit(dayOfWeek)
         }
     }
 
-    private fun TimeRoutinePageUiState.reduceResultState(
-        resultState: ResultState<DomainResult<TimeRoutineComposition>>,
-        dayOfWeek: DayOfWeek,
-    ): TimeRoutinePageUiState {
-        val dayOfWeekName = dayOfWeek.getDisplayName(TextStyle.FULL, Locale.getDefault())
-        when (resultState) {
-            ResultState.Loading -> {
-                return TimeRoutinePageUiState.Loading(
-                    loadingMessage = UiText.MultipleResArgs.create(
-                        CommonR.string.message_format_loading,
-                        CommonR.string.text_routine
-                    )
-                )
-            }
-
-            is ResultState.Success -> {
-                val data = resultState.data
-                return reduceDomainResult(data, dayOfWeek)
-            }
-
-            is ResultState.Error -> {
-                return TimeRoutinePageUiState.Error(
-                    errorMessage = UiText.Res.create(
-                        CommonR.string.message_format_routine_create_confirm,
-                        dayOfWeekName
-                    )
-                )
-            }
-        }
-    }
-
-    private fun TimeRoutinePageUiState.reduceDomainResult(
-        data: DomainResult<TimeRoutineComposition>,
-        dayOfWeek: DayOfWeek,
-    ): TimeRoutinePageUiState {
-        when (data) {
-            is DomainResult.Failure -> return TimeRoutinePageUiState.Empty(
-                emptyMessage = UiText.Res.create(
-                    CommonR.string.message_format_routine_create_confirm,
-                    dayOfWeek.getDisplayName(TextStyle.FULL, Locale.getDefault())
-                )
-            )
-
-            is DomainResult.Success -> {
-                val routineComposition = data.value
-                return this.reduceTimeRoutineComposition(routineComposition, dayOfWeek)
-            }
-        }
-    }
-
-    private fun TimeRoutinePageUiState.reduceTimeRoutineComposition(
-        routineComposition: TimeRoutineComposition,
-        dayOfWeek: DayOfWeek,
-    ): TimeRoutinePageUiState {
-        return TimeRoutinePageUiState.Routine(
-            title = routineComposition.timeRoutine.title,
-            slotItemList = routineComposition.timeSlots.map {
-                TimeRoutinePageSlotItemUiState(
-                    title = it.title,
-                    startTime = it.startTime,
-                    endTime = it.endTime
-                )
-            },
-            dayOfWeeks = routineComposition.dayOfWeeks.map {
-                it.dayOfWeek
-            }.sorted(),
-            dayOfWeekName = dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault())
-        )
-    }
 
     private fun handleIntentSideEffect(intent: TimeRoutinePageUiIntent) {
         when (intent) {
             is TimeRoutinePageUiIntent.ModifyRoutine,
             is TimeRoutinePageUiIntent.CreateRoutine -> {
-                val dayOfWeekOrdinal = viewModelData?.dayOfWeekOrdinal
+                val dayOfWeekOrdinal = dayOfWeekFlow.value?.ordinal
                 if (dayOfWeekOrdinal != null)
                     navigator.navigate(TimeRoutineEditScreenRoute(dayOfWeekOrdinal))
             }
 
+            is TimeRoutinePageUiIntent.ShowSlotEdit -> {
+                val route = TimeSlotEditScreenRoute(
+                    timeSlotUuid = intent.slotId,
+                    timeRoutineUuid = intent.routineId
+                )
+                navigator.navigate(route)
+            }
+
+            is TimeRoutinePageUiIntent.UpdateSlot -> {
+                updateTimeSlot(intent)
+            }
         }
+    }
+
+    private fun updateTimeSlot(intent: TimeRoutinePageUiIntent.UpdateSlot) {
+        flowResultState {
+            val currentRoutine =
+                routineCompositionFlow.onlySuccess().first() ?: return@flowResultState
+
+            val timeSlot = currentRoutine.timeSlots.find { it.uuid == intent.uuid } ?: return@flowResultState
+
+            val newTimeSlot = timeSlot.copy(
+                startTime = intent.newStart,
+                endTime = intent.newEnd
+            )
+
+            setTimeSlotUseCase.invoke(
+                timeRoutineUuid = currentRoutine.timeRoutine.uuid,
+                timeSlotData = newTimeSlot
+            )
+
+        }.onEach { state: ResultState<Unit> ->
+            when(state) {
+                is ResultState.Error -> {
+                    // TODO: jhchoi 2025. 9. 23. show error.
+                }
+                ResultState.Loading -> {
+                    //no working.
+                }
+                is ResultState.Success -> {
+                    //no working.
+                }
+            }
+        }.launchIn(viewModelScope)
     }
 
     fun sendIntent(createRoutine: TimeRoutinePageUiIntent) {
@@ -162,4 +173,78 @@ internal class TimeRoutinePageViewModel @Inject constructor(
             _intent.emit(Envelope(createRoutine))
         }
     }
+}
+
+private fun TimeRoutinePageUiState.reduce(value: UiPreState): TimeRoutinePageUiState {
+    return when (value) {
+        is UiPreState.Intent -> {
+            //no work.
+            this
+        }
+
+        is UiPreState.Routine -> {
+            this.reduce(value)
+        }
+    }
+}
+
+private fun TimeRoutinePageUiState.reduce(value: UiPreState.Routine): TimeRoutinePageUiState {
+    val domainResult = value.routineDomainResult
+    return when (domainResult) {
+        is DomainResult.Failure -> {
+            TimeRoutinePageUiState.Error(
+                errorMessage = UiText.Res.create(
+                    CommonR.string.message_format_routine_create_confirm,
+                    value.currentDayOfWeek.getDisplayName(TextStyle.FULL, Locale.getDefault())
+                ),
+                confirmButton = TimeRoutinePageButtonState(
+                    buttonLabel = UiText.Res.create(CommonR.string.text_confirm),
+                    intent = TimeRoutinePageUiIntent.ModifyRoutine
+                )
+            )
+        }
+
+        is DomainResult.Success -> {
+            val routineState =
+                this as? TimeRoutinePageUiState.Routine ?: TimeRoutinePageUiState.Routine.default()
+            val routineComposition = domainResult.value
+            routineState.copy(
+                title = routineComposition.timeRoutine.title,
+                slotItemList = routineComposition.timeSlots.map {
+                    TimeRoutinePageSlotItemUiState(
+                        uuid = it.uuid,
+                        title = it.title,
+                        startTime = it.startTime,
+                        endTime = it.endTime,
+                        slotClickIntent = TimeRoutinePageUiIntent.ShowSlotEdit(
+                            it.uuid, routineComposition.timeRoutine.uuid
+                        )
+                    )
+                },
+                dayOfWeeks = routineComposition.dayOfWeeks.map {
+                    it.dayOfWeek
+                }.sorted(),
+                dayOfWeekName = value.currentDayOfWeek.getDisplayName(
+                    TextStyle.SHORT,
+                    Locale.getDefault()
+                )
+            )
+        }
+
+        null -> {
+            TimeRoutinePageUiState.Loading.default()
+        }
+    }
+}
+
+
+private sealed interface UiPreState {
+    data class Routine(
+        val currentDayOfWeek: DayOfWeek,
+        val routineDomainResult: DomainResult<TimeRoutineComposition>?,
+    ) : UiPreState
+
+    data class Intent(
+        val intent: TimeRoutinePageUiIntent
+    ) : UiPreState
 }

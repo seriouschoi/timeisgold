@@ -10,7 +10,7 @@ import software.seriouschoi.timeisgold.domain.data.entities.TimeSlotEntity
 import software.seriouschoi.timeisgold.domain.port.TimeSlotRepositoryPort
 import javax.inject.Inject
 
-class WatchTimeSlotDetailUseCase @Inject constructor(
+class WatchTimeSlotUseCase @Inject constructor(
     private val timeslotRepositoryPort: TimeSlotRepositoryPort
 ) {
     @OptIn(ExperimentalCoroutinesApi::class)

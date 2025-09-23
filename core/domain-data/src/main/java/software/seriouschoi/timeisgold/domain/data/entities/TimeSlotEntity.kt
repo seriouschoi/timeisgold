@@ -13,7 +13,7 @@ data class TimeSlotEntity(
     val createTime: Long
 ) {
     companion object {
-        fun create(
+        fun newEntity(
             title: String,
         ): TimeSlotEntity {
             return TimeSlotEntity(

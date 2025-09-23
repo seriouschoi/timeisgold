@@ -26,8 +26,11 @@ class TimeSlotDomainService @Inject constructor(
             return DomainResult.Failure(DomainError.Conflict.Time)
         }
 
+
         //timeslot의 시간이 겹치는지 확인하는 로직.
-        val isDuplicateTime = allTimeSlotList.any {
+        val isDuplicateTime = allTimeSlotList.filter {
+            it.uuid != timeSlotData.uuid
+        }.any {
             timeSlotData.startTime in (it.startTime..it.endTime)
                     || timeSlotData.endTime in (it.startTime..it.endTime)
         }

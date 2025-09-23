@@ -124,6 +124,8 @@ TimeRoutineEntity와 TimeRoutineDayOfWeekEntity로만
 
 # focus??
 
+# Modifier에서 state란 이름으로 쓰는 패턴은 뭐지?
+
 # 각 SharindStarted의 동작??
 1. SharingStarted.Eagerly
 2. SharingStarted.Lazily
@@ -146,3 +148,40 @@ data의 유효성을 체크해서, valid를 uiState에서 갱신해버리면,
 valid와 ui를 나누는 것이다.
 data의 유효성을 체크해서 validUiState가 갱신된다.
 validUiState는 data를 갱신하지 않으므로, 순환되지 않는다.
+
+# rememberScrollState..를 비롯한 수많은 remember들은 누가 다 일일히 만들어 놓은걸까?
+그리고 이 함수들의 존재 기준은 뭘까?
+
+# sealed class UiState를 지양해야 하는 이유.
+sealed class는 분기 제어에는 유리하다.
+여러 상태 타입을 깔끔하게 다룰 수 있다.
+컴파일 단계에서 모든 분기를 처리했나 검사도 해준다.
+
+UiState는 보통 뷰모델에서 단방향 흐름으로 만들게 된다.
+이는 데이터 누적 갱신에 유리하며 보통 flow의 scan을 통해서 갱신하며, 기존 상태를 copy()하여 일부만 바꿔 새 상태로 발행한다.
+
+문제는 이 두방식이 서로 충돌한다는 것이다.
+sealed class는 타입 단위로 상태를 구분하므로, 전체 상태를 재생성하는 쪽으로 개발하게 되며,
+이를 위해 현재 상태 타입 확인 -> 그 안에서 copy호출 하는 과정으로 진행하게된다.
+이는 불필요한 유지보수를 낳게된다.
+
+결국 reduce로직이 현재 상태 -> 다음 상태로 변환하는 로직이 아닌,
+새로운 상태를 계속해서 발행해야 하는 상태가 되기 쉽다.
+
+결국 가장 좋은 방법은 data class 하나로 UiState를 표현하는 것이다.
+```kotlin
+data class MyUiState(
+    val isLoading: Boolean = false,
+    val error: UiError? = null,
+    val userList: List<User> = emptyList(),
+)
+
+fun MyUiState.reduce(action: MyAction): MyUiState {
+    return when (action) {
+        is MyAction.ShowLoading -> copy(isLoading = true)
+        is MyAction.ShowError -> copy(isLoading = false, error = action.error)
+        is MyAction.ShowUsers -> copy(isLoading = false, userList = action.users)
+    }
+}
+```
+사실상 sealed class UiState는 reduce를 무력화하는 패턴이라 안티패턴으로 봐도 무방할것 같다.

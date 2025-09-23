@@ -77,7 +77,7 @@ internal class TimeRoutineEditViewModel @Inject constructor(
     }
 
     private val emptyTimeRoutineDefinition: TimeRoutineDefinition = TimeRoutineDefinition(
-        timeRoutine = TimeRoutineEntity.create(title = ""),
+        timeRoutine = TimeRoutineEntity.newEntity(title = ""),
         dayOfWeeks = listOf(currentDayOfWeek).map {
             TimeRoutineDayOfWeekEntity(it)
         }.toSet()

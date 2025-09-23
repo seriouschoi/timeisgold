@@ -40,7 +40,7 @@ import software.seriouschoi.timeisgold.core.common.ui.components.TigSingleLineTe
 import software.seriouschoi.timeisgold.core.common.ui.container.TigBlurContainer
 import software.seriouschoi.timeisgold.core.common.ui.dialog.TigTimePickerDialog
 import software.seriouschoi.timeisgold.core.common.util.Envelope
-import software.seriouschoi.timeisgold.core.common.util.formatToString
+import software.seriouschoi.timeisgold.core.common.util.asFormattedString
 import java.time.LocalTime
 import software.seriouschoi.timeisgold.core.common.ui.R as CommonR
 
@@ -198,8 +198,8 @@ private fun UiStateViewContentView(
     validState: TimeSlotEditValidUiState,
     sendIntent: (TimeSlotEditIntent) -> Unit,
 ) {
-    val startTime = uiState.startTime.formatToString()
-    val endTime = uiState.endTime.formatToString()
+    val startTime = uiState.startTime.asFormattedString()
+    val endTime = uiState.endTime.asFormattedString()
 
     Column(
         modifier = Modifier.fillMaxSize()
