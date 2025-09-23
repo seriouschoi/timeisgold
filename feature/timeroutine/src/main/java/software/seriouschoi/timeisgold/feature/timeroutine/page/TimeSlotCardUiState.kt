@@ -2,7 +2,7 @@ package software.seriouschoi.timeisgold.feature.timeroutine.page
 
 import java.time.LocalTime
 
-internal data class TimeRoutinePageSlotItemUiState(
+internal data class TimeSlotCardUiState(
     val uuid: String,
     val title: String,
     val startTime: LocalTime,

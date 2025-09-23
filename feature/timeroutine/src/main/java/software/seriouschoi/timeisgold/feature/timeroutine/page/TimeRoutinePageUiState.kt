@@ -8,7 +8,7 @@ internal sealed interface TimeRoutinePageUiState {
     data class Routine(
         val title: String = "",
         val dayOfWeekName: String,
-        val slotItemList: List<TimeRoutinePageSlotItemUiState> = emptyList(),
+        val slotItemList: List<TimeSlotCardUiState> = emptyList(),
         val dayOfWeeks: List<DayOfWeek> = listOf(),
     ) : TimeRoutinePageUiState {
         companion object {

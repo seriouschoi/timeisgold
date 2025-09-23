@@ -237,7 +237,7 @@ private fun TimeRoutinePageUiState.reduce(value: UiPreState.Routine): TimeRoutin
             routineState.copy(
                 title = routineComposition.timeRoutine.title,
                 slotItemList = routineComposition.timeSlots.map {
-                    TimeRoutinePageSlotItemUiState(
+                    TimeSlotCardUiState(
                         uuid = it.uuid,
                         title = it.title,
                         startTime = it.startTime,
