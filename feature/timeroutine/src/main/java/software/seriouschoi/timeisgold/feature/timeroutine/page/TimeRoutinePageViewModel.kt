@@ -13,7 +13,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
@@ -141,7 +140,8 @@ internal class TimeRoutinePageViewModel @Inject constructor(
             val currentRoutine =
                 routineCompositionFlow.onlySuccess().first() ?: return@flowResultState
 
-            val timeSlot = currentRoutine.timeSlots.find { it.uuid == intent.uuid } ?: return@flowResultState
+            val timeSlot =
+                currentRoutine.timeSlots.find { it.uuid == intent.uuid } ?: return@flowResultState
 
             val newTimeSlot = timeSlot.copy(
                 startTime = intent.newStart,
@@ -154,13 +154,15 @@ internal class TimeRoutinePageViewModel @Inject constructor(
             )
 
         }.onEach { state: ResultState<Unit> ->
-            when(state) {
+            when (state) {
                 is ResultState.Error -> {
                     // TODO: jhchoi 2025. 9. 23. show error.
                 }
+
                 ResultState.Loading -> {
                     //no working.
                 }
+
                 is ResultState.Success -> {
                     //no working.
                 }
@@ -178,14 +180,38 @@ internal class TimeRoutinePageViewModel @Inject constructor(
 private fun TimeRoutinePageUiState.reduce(value: UiPreState): TimeRoutinePageUiState {
     return when (value) {
         is UiPreState.Intent -> {
-            //no work.
-            this
+            this.reduce(value)
         }
 
         is UiPreState.Routine -> {
             this.reduce(value)
         }
     }
+}
+
+private fun TimeRoutinePageUiState.reduce(
+    value: UiPreState.Intent
+): TimeRoutinePageUiState = when (val intent = value.intent) {
+    is TimeRoutinePageUiIntent.UpdateSlot -> {
+        val routineState = this as? TimeRoutinePageUiState.Routine
+            ?: TimeRoutinePageUiState.Routine.default()
+
+        val newSlotItemList = routineState.slotItemList.map {
+            if (it.uuid == intent.uuid) {
+                it.copy(
+                    startTime = intent.newStart,
+                    endTime = intent.newEnd
+                )
+            } else {
+                it
+            }
+        }
+        routineState.copy(
+            slotItemList = newSlotItemList
+        )
+    }
+
+    else -> this
 }
 
 private fun TimeRoutinePageUiState.reduce(value: UiPreState.Routine): TimeRoutinePageUiState {
