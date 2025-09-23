@@ -18,6 +18,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -27,7 +28,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.times
 import software.seriouschoi.timeisgold.core.common.util.asFormattedString
 import software.seriouschoi.timeisgold.core.common.util.asMinutes
 import kotlin.math.roundToInt
@@ -40,6 +40,9 @@ internal fun TimeSlotCardView(
     hourHeight: Dp,
     sendIntent: (TimeRoutinePageUiIntent) -> Unit
 ) {
+//    var startTime by remember { mutableStateOf(slotItem.startTime) }
+//    var endTime by remember { mutableStateOf(slotItem.endTime) }
+
     val density = LocalDensity.current
     val hourHeightPx = density.run { hourHeight.toPx() }
 
@@ -49,28 +52,27 @@ internal fun TimeSlotCardView(
 
     val startMinutes = slotItem.startTime.asMinutes()
     val endMinutes = slotItem.endTime.asMinutes()
-    val topOffset = (startMinutes / 60f) * hourHeight
+    val topOffsetPx = startMinutes.minutesToPx(hourHeightPx)
 
     //drag.
     val dragModifier = modifier
         .offset {
-            val newY =
-                topOffset.roundToPx() + dragOffset.roundToInt() + topHandleDragOffset.roundToInt()
+            val newY = topOffsetPx + dragOffset + topHandleDragOffset
             IntOffset(
                 x = 0,
-                y = newY
+                y = newY.roundToInt()
             )
         }
         .draggable(
             orientation = Orientation.Vertical,
-            state = rememberDraggableState {
+            state = rememberDraggableState { it: Float ->
                 dragOffset += it
             },
             onDragStopped = { velocity ->
                 // 드래그 끝 → 새로운 시간 계산
-                val movedMinutes = (dragOffset / hourHeightPx) * 60
-                val newStart = slotItem.startTime.plusMinutes(movedMinutes.roundToLong())
-                val newEnd = slotItem.endTime.plusMinutes(movedMinutes.roundToLong())
+                val movedMinutes = dragOffset.pxToMinutes(hourHeightPx).roundToLong()
+                val newStart = slotItem.startTime.plusMinutes(movedMinutes)
+                val newEnd = slotItem.endTime.plusMinutes(movedMinutes)
                 dragOffset = 0f
 
                 sendIntent(
@@ -90,9 +92,9 @@ internal fun TimeSlotCardView(
         },
         onDragStopped = { velocity ->
             // 드래그 끝 → 새로운 시간 계산
-            val movedMinutes = (topHandleDragOffset / hourHeightPx) * 60
+            val movedMinutes = topHandleDragOffset.pxToMinutes(hourHeightPx).roundToLong()
             val newStart =
-                slotItem.startTime.plusMinutes(movedMinutes.roundToLong())
+                slotItem.startTime.plusMinutes(movedMinutes)
             val newEnd = slotItem.endTime
             topHandleDragOffset = 0f
 
@@ -113,9 +115,9 @@ internal fun TimeSlotCardView(
         },
         onDragStopped = { velocity ->
             // 드래그 끝 → 새로운 시간 계산
-            val movedMinutes = (bottomHandleDragOffset / hourHeightPx) * 60
+            val movedMinutes = bottomHandleDragOffset.pxToMinutes(hourHeightPx).roundToLong()
             val newStart = slotItem.startTime
-            val newEnd = slotItem.endTime.plusMinutes(movedMinutes.roundToLong())
+            val newEnd = slotItem.endTime.plusMinutes(movedMinutes)
             bottomHandleDragOffset = 0f
 
             sendIntent(
@@ -129,12 +131,13 @@ internal fun TimeSlotCardView(
     )
 
     // height.
-    // 위 핸들을 위로 올리면, offset은 음수가 되고, 사이즈는 늘어나야 한다.
-    // 아래 핸들을 위로 올리면, offset은 음수가 되고, 사이즈는 줄어야 한다.
-    val topHandleHeightFactor = topHandleDragOffset.let { density.run { it.toDp() * -1 } }
-    val bottomHandleHeightFactor = bottomHandleDragOffset.let { density.run { it.toDp() } }
-    val slotHeightFactor = topHandleHeightFactor + bottomHandleHeightFactor
-    val slotHeight = (((endMinutes - startMinutes) / 60f) * hourHeight) + slotHeightFactor
+    val slotHeight = (endMinutes - startMinutes).minutesToPx(hourHeightPx).minus(
+        topHandleDragOffset
+    ).plus(
+        bottomHandleDragOffset
+    ).let {
+        density.run { it.toDp() }
+    }
 
     Card(
         modifier = dragModifier
@@ -185,4 +188,12 @@ internal fun TimeSlotCardView(
         }
 
     }
+}
+
+private fun Float.pxToMinutes(hourHeightPx: Float): Float {
+    return (this / hourHeightPx) * 60
+}
+
+private fun Int.minutesToPx(hourHeightPx: Float): Float {
+    return (this / 60f) * hourHeightPx
 }
