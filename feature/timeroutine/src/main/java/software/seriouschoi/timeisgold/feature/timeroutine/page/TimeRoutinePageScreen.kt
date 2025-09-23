@@ -32,6 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.times
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -44,6 +45,7 @@ import software.seriouschoi.timeisgold.core.common.util.asFormattedString
 import software.seriouschoi.timeisgold.core.common.util.asMinutes
 import java.time.DayOfWeek
 import java.time.LocalTime
+import kotlin.math.roundToInt
 import kotlin.math.roundToLong
 import software.seriouschoi.timeisgold.core.common.ui.R as CommonR
 
@@ -149,7 +151,12 @@ private fun Routine(
                     .fillMaxWidth()
                     .height(slotHeight)
                     .padding(start = 40.dp)
-                    .offset(y = topOffset)
+                    .offset {
+                        IntOffset(
+                            x = 0,
+                            y = topOffset.roundToPx() + dragOffset.roundToInt()
+                        )
+                    }
                     .draggable(
                         orientation = Orientation.Vertical,
                         state = rememberDraggableState {

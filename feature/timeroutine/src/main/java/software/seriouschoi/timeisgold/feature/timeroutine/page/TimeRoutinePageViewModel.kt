@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -11,8 +12,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapConcat
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.merge
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.scan
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -20,6 +24,7 @@ import software.seriouschoi.navigator.DestNavigatorPort
 import software.seriouschoi.timeisgold.core.common.ui.ResultState
 import software.seriouschoi.timeisgold.core.common.ui.UiText
 import software.seriouschoi.timeisgold.core.common.ui.asResultState
+import software.seriouschoi.timeisgold.core.common.ui.flowResultState
 import software.seriouschoi.timeisgold.core.common.util.Envelope
 import software.seriouschoi.timeisgold.core.domain.mapper.onlyDomainResult
 import software.seriouschoi.timeisgold.core.domain.mapper.onlySuccess
@@ -51,13 +56,15 @@ internal class TimeRoutinePageViewModel @Inject constructor(
 
     private val dayOfWeekFlow = MutableStateFlow<DayOfWeek?>(null)
 
-    private val routineCompositionFlow = dayOfWeekFlow.mapNotNull { it }.flatMapConcat {
-        watchTimeRoutineCompositionUseCase.invoke(it)
-    }.asResultState().stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.Eagerly,
-        initialValue = ResultState.Loading
-    )
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val routineCompositionFlow: StateFlow<ResultState<DomainResult<TimeRoutineComposition>>> =
+        dayOfWeekFlow.mapNotNull { it }.flatMapConcat {
+            watchTimeRoutineCompositionUseCase.invoke(it)
+        }.asResultState().stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.Eagerly,
+            initialValue = ResultState.Loading
+        )
 
     private val routinePreUiStateFlow = combine(
         dayOfWeekFlow.mapNotNull { it },
@@ -130,15 +137,11 @@ internal class TimeRoutinePageViewModel @Inject constructor(
     }
 
     private fun updateTimeSlot(intent: TimeRoutinePageUiIntent.UpdateSlot) {
-        viewModelScope.launch {
-            val dayOfWeek = dayOfWeekFlow.value ?: return@launch
-            val routine =
-                watchTimeRoutineCompositionUseCase.invoke(dayOfWeek).asResultState().onlySuccess()
-                    .first() ?: return@launch
+        flowResultState {
+            val currentRoutine =
+                routineCompositionFlow.onlySuccess().first() ?: return@flowResultState
 
-            val timeSlot =
-                watchTimeSlotUseCase.invoke(intent.uuid).asResultState().onlySuccess().first()
-                    ?: return@launch
+            val timeSlot = currentRoutine.timeSlots.find { it.uuid == intent.uuid } ?: return@flowResultState
 
             val newTimeSlot = timeSlot.copy(
                 startTime = intent.newStart,
@@ -146,10 +149,23 @@ internal class TimeRoutinePageViewModel @Inject constructor(
             )
 
             setTimeSlotUseCase.invoke(
-                timeRoutineUuid = routine.timeRoutine.uuid,
+                timeRoutineUuid = currentRoutine.timeRoutine.uuid,
                 timeSlotData = newTimeSlot
             )
-        }
+
+        }.onEach { state: ResultState<Unit> ->
+            when(state) {
+                is ResultState.Error -> {
+                    // TODO: jhchoi 2025. 9. 23. show error.
+                }
+                ResultState.Loading -> {
+                    //no working.
+                }
+                is ResultState.Success -> {
+                    //no working.
+                }
+            }
+        }.launchIn(viewModelScope)
     }
 
     fun sendIntent(createRoutine: TimeRoutinePageUiIntent) {
