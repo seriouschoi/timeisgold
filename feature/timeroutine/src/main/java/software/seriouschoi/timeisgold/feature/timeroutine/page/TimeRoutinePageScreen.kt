@@ -24,12 +24,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -79,12 +79,6 @@ fun TimeRoutinePageScreen(
             Loading(currentState)
         }
 
-        is TimeRoutinePageUiState.Empty -> {
-            Empty(currentState) {
-                viewModel.sendIntent(it)
-            }
-        }
-
         is TimeRoutinePageUiState.Routine -> {
             Routine(currentState) {
                 viewModel.sendIntent(it)
@@ -92,7 +86,9 @@ fun TimeRoutinePageScreen(
         }
 
         is TimeRoutinePageUiState.Error -> {
-            Error(currentState)
+            Error(currentState) {
+                viewModel.sendIntent(it)
+            }
         }
     }
 }
@@ -165,7 +161,13 @@ private fun Routine(
                             val newStart = slot.startTime.plusMinutes(movedMinutes.roundToLong())
                             val newEnd = slot.endTime.plusMinutes(movedMinutes.roundToLong())
 
-                            sendIntent(TimeRoutinePageUiIntent.UpdateSlot(slot.uuid, newStart, newEnd))
+                            sendIntent(
+                                TimeRoutinePageUiIntent.UpdateSlot(
+                                    slot.uuid,
+                                    newStart,
+                                    newEnd
+                                )
+                            )
                             dragOffset = 0f
                         }
                     ),
@@ -267,13 +269,27 @@ private fun PreviewRoutine() {
 }
 
 @Composable
-private fun Error(currentState: TimeRoutinePageUiState.Error) {
+private fun Error(
+    currentState: TimeRoutinePageUiState.Error,
+    sendIntent: (TimeRoutinePageUiIntent) -> Unit
+) {
+    val confirmButtonState by remember {
+        mutableStateOf(currentState.confirmButton)
+    }
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(text = currentState.errorMessage.asString())
+        val buttonState = confirmButtonState
+        if (buttonState != null) {
+            TigLabelButton(
+                buttonState.buttonLabel.asString()
+            ) {
+                sendIntent(buttonState.intent)
+            }
+        }
     }
 }
 
@@ -284,40 +300,11 @@ private fun PreviewError() {
         TimeRoutinePageUiState.Error(
             errorMessage = UiText.Raw("알 수 없는 오류.")
         )
-    )
-}
-
-@Composable
-private fun Empty(
-    currentState: TimeRoutinePageUiState.Empty,
-    sendIntent: (TimeRoutinePageUiIntent) -> Unit,
-) {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(text = currentState.emptyMessage.asString())
-        TigLabelButton(
-            label = stringResource(CommonR.string.text_create),
-            onClick = {
-                sendIntent(TimeRoutinePageUiIntent.CreateRoutine)
-            },
-        )
-    }
-}
-
-@Preview
-@Composable
-private fun PreviewEmpty() {
-    Empty(
-        currentState = TimeRoutinePageUiState.Empty(
-            emptyMessage = UiText.Raw("시간표를 만들까요?")
-        )
     ) {
 
     }
 }
+
 
 @Composable
 private fun Loading(state: TimeRoutinePageUiState.Loading) {
