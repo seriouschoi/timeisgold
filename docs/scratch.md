@@ -185,3 +185,6 @@ fun MyUiState.reduce(action: MyAction): MyUiState {
 }
 ```
 사실상 sealed class UiState는 reduce를 무력화하는 패턴이라 안티패턴으로 봐도 무방할것 같다.
+
+
+# android compose gesture, modifier.pointerInput???

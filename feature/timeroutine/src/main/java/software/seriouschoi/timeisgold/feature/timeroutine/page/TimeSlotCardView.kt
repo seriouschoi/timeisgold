@@ -1,7 +1,9 @@
 package software.seriouschoi.timeisgold.feature.timeroutine.page
 
+import android.view.ViewConfiguration
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,8 +24,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
@@ -51,10 +53,10 @@ internal fun TimeSlotCardView(
     val endMinutes = endTime.asMinutes()
     val topOffsetPx = startMinutes.minutesToPx(hourHeightPx)
 
-    var activeDragTarget by remember { mutableStateOf<DragTarget?>(null) }
+    var dragStart by remember { mutableStateOf(false) }
 
     fun commitUpdate() {
-        activeDragTarget = null
+        dragStart = false
         startTime = startTime.normalize()
         endTime = endTime.normalize()
         sendIntent(
@@ -72,51 +74,71 @@ internal fun TimeSlotCardView(
     }
     val slotHeightPx = slotHeight.let { density.run { it.toPx() } }
 
-    //drag.
-    val cardLongPressDrag = Modifier.pointerInput(Unit) {
-        detectDragGesturesAfterLongPress(
-            onDragStart = {
-                activeDragTarget = when {
-                    it.y < (20.dp.toPx()) -> {
-                        DragTarget.Top
+    val cardGestureModifier = Modifier.pointerInput(Unit) {
+        awaitEachGesture {
+            val down = awaitFirstDown()
+            var isLongPress = false
+            val activeDragTarget = when {
+                down.position.y < 20.dp.toPx() -> DragTarget.Top
+                down.position.y > (slotHeightPx - 20.dp.toPx()) -> DragTarget.Bottom
+                else -> DragTarget.Card
+            }
+
+            val downTimeStamp = System.currentTimeMillis()
+
+            while (true) {
+                val event = awaitPointerEvent().changes.firstOrNull() ?: break
+                if (event.pressed.not()) {
+                    if (isLongPress) {
+                        commitUpdate()
+                    } else {
+                        sendIntent(slotItem.slotClickIntent)
                     }
-                    it.y > (slotHeightPx - 20.dp.toPx()) -> {
-                        DragTarget.Bottom
-                    }
-                    else -> {
-                        DragTarget.Card
+                    break
+                }
+
+                val now = System.currentTimeMillis()
+                if (now - downTimeStamp > ViewConfiguration.getLongPressTimeout()) {
+                    //long press!!.
+                    isLongPress = true
+                }
+
+                if (isLongPress) {
+                    val dragAmount = event.positionChange()
+                    if (dragAmount != Offset.Zero) {
+                        event.consume()
+                        dragStart = true
+
+                        when (activeDragTarget) {
+                            DragTarget.Card -> {
+                                val minutesFactor = dragAmount.y.pxToMinutes(hourHeightPx).toLong()
+                                startTime = startTime.plusMinutes(minutesFactor)
+                                endTime = endTime.plusMinutes(minutesFactor)
+                            }
+
+                            DragTarget.Top -> {
+                                val minutesFactor = dragAmount.y.pxToMinutes(hourHeightPx).toLong()
+                                startTime = startTime.plusMinutes(minutesFactor)
+                            }
+
+                            DragTarget.Bottom -> {
+                                val minutesFactor = dragAmount.y.pxToMinutes(hourHeightPx).toLong()
+                                endTime = endTime.plusMinutes(minutesFactor)
+                            }
+
+                            null -> {
+                                //no work
+                            }
+                        }
                     }
                 }
-            },
-            onDragEnd = {
-                commitUpdate()
-            },
-            onDragCancel = { activeDragTarget = null },
-            onDrag = { change: PointerInputChange, dragAmount: Offset ->
-                change.consume() //부모 스크롤 전파 차단.
-                when(activeDragTarget) {
-                    DragTarget.Card -> {
-                        val minutesFactor = dragAmount.y.pxToMinutes(hourHeightPx).toLong()
-                        startTime = startTime.plusMinutes(minutesFactor)
-                        endTime = endTime.plusMinutes(minutesFactor)
-                    }
-                    DragTarget.Top -> {
-                        val minutesFactor = dragAmount.y.pxToMinutes(hourHeightPx).toLong()
-                        startTime = startTime.plusMinutes(minutesFactor)
-                    }
-                    DragTarget.Bottom -> {
-                        val minutesFactor = dragAmount.y.pxToMinutes(hourHeightPx).toLong()
-                        endTime = endTime.plusMinutes(minutesFactor)
-                    }
-                    null -> {
-                        //no work
-                    }
-                }
-            },
-        )
+            }
+            dragStart = false
+        }
     }
 
-    val cardColor = if(activeDragTarget != null) {
+
+    val cardColor = if (dragStart) {
         MaterialTheme.colorScheme.primaryContainer
     } else {
         MaterialTheme.colorScheme.surfaceContainer
@@ -132,7 +154,7 @@ internal fun TimeSlotCardView(
             }
             .height(slotHeight)
             .padding(start = 40.dp)
-            .then(cardLongPressDrag),
+            .then(cardGestureModifier),
         elevation = CardDefaults.cardElevation(
             defaultElevation = 10.dp
         ),
