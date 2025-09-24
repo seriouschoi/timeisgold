@@ -189,12 +189,14 @@ private fun TimeDraggableCardView(
         }
     }
 
-
-    // TODO: jhchoi 2025. 9. 24. 이것도..뭔가 이상해.. 뭔가가 살아서 남아있는 건가..
     val cardGestureModifier = Modifier.pointerInput(Triple(startTime, endTime, slotItem.uuid)) {
         val movedOffset = Offset(5f, 5f)
+        var isDowned = false
         awaitEachGesture {
             val down = awaitFirstDown()
+            if(isDowned) return@awaitEachGesture
+
+            isDowned = true
             var distanceX = 0L
             var distanceY = 0L
             longPressed = false
@@ -212,6 +214,7 @@ private fun TimeDraggableCardView(
                 val event = awaitPointerEvent().changes.firstOrNull() ?: break
                 if (event.pressed.not()) {
                     Timber.d("up. distanceX=$distanceX, distanceY=$distanceY")
+                    isDowned = false
                     event.consume()
                     break
                 }
