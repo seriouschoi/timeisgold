@@ -7,6 +7,7 @@ import software.seriouschoi.timeisgold.domain.data.DomainResult
 import software.seriouschoi.timeisgold.domain.data.entities.TimeSlotEntity
 import software.seriouschoi.timeisgold.domain.port.TimeSlotRepositoryPort
 import javax.inject.Inject
+import kotlin.math.abs
 
 class TimeSlotDomainService @Inject constructor(
     val timeSlotRepository: TimeSlotRepositoryPort,
@@ -23,7 +24,7 @@ class TimeSlotDomainService @Inject constructor(
 
         val allTimeSlotList = timeSlotRepository.watchTimeSlotList(routineUuid).first()
 
-        if (timeSlotData.endTime.asMinutes() - timeSlotData.startTime.asMinutes() <= 10) {
+        if (abs(timeSlotData.endTime.asMinutes() - timeSlotData.startTime.asMinutes()) <= 15) {
             return DomainResult.Failure(DomainError.Conflict.Time)
         }
 

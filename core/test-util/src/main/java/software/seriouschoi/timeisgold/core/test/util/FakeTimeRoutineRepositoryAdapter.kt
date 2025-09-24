@@ -3,6 +3,7 @@ package software.seriouschoi.timeisgold.core.test.util
 import jdk.jfr.internal.OldObjectSample.emit
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import software.seriouschoi.timeisgold.domain.data.DataResult
 import software.seriouschoi.timeisgold.domain.data.DomainResult
 import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineComposition
 import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineDefinition
@@ -25,11 +26,10 @@ class FakeTimeRoutineRepositoryAdapter(
         val readThrow: Boolean = false
     )
 
-    override suspend fun saveTimeRoutineComposition(composition: TimeRoutineComposition): DomainResult<String> {
+    override suspend fun saveTimeRoutineComposition(composition: TimeRoutineComposition): DataResult<String> {
         // Fake Adapter는 adapter의 동작을 검증하지 않으므로, 구현하지 않는다.
         // 구현할 경우, 불필요현 유지보수와 결합이 생기게 됨.
-
-        return DomainResult.Success(composition.timeRoutine.uuid)
+        TODO()
     }
 
 
@@ -128,7 +128,7 @@ class FakeTimeRoutineRepositoryAdapter(
         }
     }
 
-    override suspend fun deleteTimeRoutine(timeRoutineUuid: String): DomainResult<Int> {
+    override suspend fun deleteTimeRoutine(timeRoutineUuid: String): DataResult<Unit> {
         TODO("Not yet implemented")
     }
 
@@ -145,7 +145,7 @@ class FakeTimeRoutineRepositoryAdapter(
         }
     }
 
-    override suspend fun saveTimeRoutineDefinition(routine: TimeRoutineDefinition): DomainResult<String> {
+    override suspend fun saveTimeRoutineDefinition(routine: TimeRoutineDefinition): DataResult<String> {
         TODO("Not yet implemented")
     }
 }

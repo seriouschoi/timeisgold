@@ -188,3 +188,5 @@ fun MyUiState.reduce(action: MyAction): MyUiState {
 
 
 # android compose gesture, modifier.pointerInput???
+
+# derivedStateOf?

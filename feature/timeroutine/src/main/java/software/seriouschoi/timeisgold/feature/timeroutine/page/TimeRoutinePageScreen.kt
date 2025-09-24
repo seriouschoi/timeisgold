@@ -29,6 +29,7 @@ import software.seriouschoi.timeisgold.core.common.ui.TigThemePreview
 import software.seriouschoi.timeisgold.core.common.ui.UiText
 import software.seriouschoi.timeisgold.core.common.ui.asString
 import software.seriouschoi.timeisgold.core.common.ui.components.TigLabelButton
+import timber.log.Timber
 import java.time.DayOfWeek
 import java.time.LocalTime
 import software.seriouschoi.timeisgold.core.common.ui.R as CommonR
@@ -121,8 +122,9 @@ private fun Routine(
                 }
             }
         }
+        Timber.d("slotItemList size=${state.slotItemList.size}")
         state.slotItemList.forEach { slot ->
-            TimeSlotCardView(
+            TimeSlotItemView(
                 modifier = Modifier.fillMaxWidth(),
                 slotItem = slot,
                 hourHeight = hourHeight

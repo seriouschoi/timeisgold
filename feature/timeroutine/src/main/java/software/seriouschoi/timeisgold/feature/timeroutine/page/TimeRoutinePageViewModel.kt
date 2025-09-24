@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
@@ -25,6 +26,7 @@ import software.seriouschoi.timeisgold.core.common.ui.UiText
 import software.seriouschoi.timeisgold.core.common.ui.asResultState
 import software.seriouschoi.timeisgold.core.common.ui.flowResultState
 import software.seriouschoi.timeisgold.core.common.util.Envelope
+import software.seriouschoi.timeisgold.core.common.util.asFormattedString
 import software.seriouschoi.timeisgold.core.domain.mapper.onlyDomainResult
 import software.seriouschoi.timeisgold.core.domain.mapper.onlySuccess
 import software.seriouschoi.timeisgold.domain.data.DomainResult
@@ -34,6 +36,7 @@ import software.seriouschoi.timeisgold.domain.usecase.timeslot.SetTimeSlotUseCas
 import software.seriouschoi.timeisgold.domain.usecase.timeslot.WatchTimeSlotUseCase
 import software.seriouschoi.timeisgold.feature.timeroutine.edit.TimeRoutineEditScreenRoute
 import software.seriouschoi.timeisgold.feature.timeroutine.timeslot.edit.TimeSlotEditScreenRoute
+import timber.log.Timber
 import java.time.DayOfWeek
 import java.time.format.TextStyle
 import java.util.Locale
@@ -59,6 +62,9 @@ internal class TimeRoutinePageViewModel @Inject constructor(
     private val routineCompositionFlow: StateFlow<ResultState<DomainResult<TimeRoutineComposition>>> =
         dayOfWeekFlow.mapNotNull { it }.flatMapConcat {
             watchTimeRoutineCompositionUseCase.invoke(it)
+        }.map {
+            Timber.d("received routine composition.")
+            it
         }.asResultState().stateIn(
             scope = viewModelScope,
             started = SharingStarted.Eagerly,
@@ -158,6 +164,8 @@ internal class TimeRoutinePageViewModel @Inject constructor(
             when (state) {
                 is ResultState.Error -> {
                     // TODO: jhchoi 2025. 9. 23. show error.
+                    Timber.w("update timeslot failed. ${state.throwable.message}")
+                    state.throwable.printStackTrace()
                 }
 
                 ResultState.Loading -> {
@@ -166,6 +174,7 @@ internal class TimeRoutinePageViewModel @Inject constructor(
 
                 is ResultState.Success -> {
                     //no working.
+                    Timber.d("update timeslot success. startTime=${intent.newStart.asFormattedString()}, endTime=${intent.newEnd.asFormattedString()}")
                 }
             }
         }.launchIn(viewModelScope)
