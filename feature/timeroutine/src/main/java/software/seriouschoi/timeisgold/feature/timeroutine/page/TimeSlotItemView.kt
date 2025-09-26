@@ -117,7 +117,6 @@ private fun TimeDraggableCardView(
     onClick: () -> Unit,
     onDragStop: (LocalTime, LocalTime) -> Unit
 ) {
-    // TODO: jhchoi 2025. 9. 24. startTime null일때, 표시는 0을 기반으로 한다.
     var startMinutes by remember(slotItem) {
         mutableIntStateOf(startTime?.asMinutes() ?: 0)
     }
@@ -127,6 +126,7 @@ private fun TimeDraggableCardView(
 
     val draggedStartTime: LocalTime by remember(slotItem) {
         derivedStateOf {
+            //내부에서 변경하는 startMinutes에서 파생된 결과를 재구성 기준으로 써야하므로, derivedStateOf 사용.
             if (startTime == null) {
                 slotItem.startTime.minusMinutes(
                     ((LocalDateTimeUtil.DAY_MINUTES - startMinutes) % LocalDateTimeUtil.DAY_MINUTES).toLong()
