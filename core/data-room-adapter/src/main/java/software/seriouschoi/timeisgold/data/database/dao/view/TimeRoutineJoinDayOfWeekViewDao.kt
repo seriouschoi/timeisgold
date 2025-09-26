@@ -17,7 +17,7 @@ internal abstract class TimeRoutineJoinDayOfWeekViewDao {
         LIMIT 1
     """
     )
-    abstract fun getLatestByDayOfWeek(dayOfWeek: DayOfWeek): Flow<TimeRoutineJoinDayOfWeekView?>
+    abstract fun watchLatestByDayOfWeek(dayOfWeek: DayOfWeek): Flow<TimeRoutineJoinDayOfWeekView?>
 
     @Query(
         """

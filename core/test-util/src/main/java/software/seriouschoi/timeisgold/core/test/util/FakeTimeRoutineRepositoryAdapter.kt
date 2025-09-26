@@ -34,7 +34,7 @@ class FakeTimeRoutineRepositoryAdapter(
 
 
 
-    override fun observeCompositionByDayOfWeek(dayOfWeek: DayOfWeek): Flow<TimeRoutineComposition?> {
+    override fun watchCompositionByDayOfWeek(dayOfWeek: DayOfWeek): Flow<TimeRoutineComposition?> {
         return flow {
             if (flags.readThrow) {
                 throw Exception()

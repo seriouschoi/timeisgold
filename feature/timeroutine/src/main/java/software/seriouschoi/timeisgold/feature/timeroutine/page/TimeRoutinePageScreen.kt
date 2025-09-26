@@ -86,6 +86,7 @@ private fun Routine(
     state: TimeRoutinePageUiState.Routine,
     sendIntent: (TimeRoutinePageUiIntent) -> Unit,
 ) {
+    Timber.d("Routine")
     val hourHeight = 60.dp
     Box(
         modifier = Modifier
@@ -122,14 +123,20 @@ private fun Routine(
                 }
             }
         }
-        Timber.d("slotItemList size=${state.slotItemList.size}")
-        state.slotItemList.forEach { slot ->
-            TimeSlotItemView(
-                modifier = Modifier.fillMaxWidth(),
-                slotItem = slot,
-                hourHeight = hourHeight
-            ) {
-                sendIntent(it)
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(hourHeight * 24)
+        ) {
+            Timber.d("slotItemList size=${state.slotItemList.size}")
+            state.slotItemList.forEach { slot ->
+                TimeSlotItemView(
+                    modifier = Modifier.fillMaxWidth(),
+                    slotItem = slot,
+                    hourHeight = hourHeight
+                ) {
+                    sendIntent(it)
+                }
             }
         }
     }

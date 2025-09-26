@@ -1,12 +1,10 @@
 package software.seriouschoi.timeisgold.feature.timeroutine.page
 
-import android.view.ViewConfiguration
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -17,7 +15,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -25,13 +23,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.pointer.PointerInputEventHandler
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import software.seriouschoi.timeisgold.core.common.ui.TigTheme
 import software.seriouschoi.timeisgold.core.common.util.LocalDateTimeUtil
 import software.seriouschoi.timeisgold.core.common.util.asFormattedString
 import software.seriouschoi.timeisgold.core.common.util.asMinutes
@@ -63,10 +63,11 @@ internal fun TimeSlotItemView(
             modifier = modifier,
             hourHeight = hourHeight,
             slotItem = slotItem,
-            startTime = slotItem.startTime,
             onClick = {
                 sendIntent(slotItem.slotClickIntent)
             },
+            startMinutes = slotItem.startTime.asMinutes(),
+            endMinutes = LocalDateTimeUtil.DAY_MINUTES + slotItem.endTime.asMinutes(),
             onDragStop = { startTime, endTime ->
                 updateTimeSlot(
                     startTime, endTime
@@ -78,7 +79,8 @@ internal fun TimeSlotItemView(
             modifier = modifier,
             hourHeight = hourHeight,
             slotItem = slotItem,
-            endTime = slotItem.endTime,
+            startMinutes = 0 - (LocalDateTimeUtil.DAY_MINUTES - slotItem.startTime.asMinutes()),
+            endMinutes = slotItem.endTime.asMinutes(),
             onClick = {
                 sendIntent(slotItem.slotClickIntent)
             },
@@ -93,8 +95,8 @@ internal fun TimeSlotItemView(
             modifier = modifier,
             hourHeight = hourHeight,
             slotItem = slotItem,
-            startTime = slotItem.startTime,
-            endTime = slotItem.endTime,
+            startMinutes = slotItem.startTime.asMinutes(),
+            endMinutes = slotItem.endTime.asMinutes(),
             onClick = {
                 sendIntent(slotItem.slotClickIntent)
             },
@@ -110,158 +112,140 @@ internal fun TimeSlotItemView(
 @Composable
 private fun TimeDraggableCardView(
     modifier: Modifier,
-    startTime: LocalTime? = null,
-    endTime: LocalTime? = null,
+    startMinutes: Int,
+    endMinutes: Int,
     slotItem: TimeSlotCardUiState,
     hourHeight: Dp,
     onClick: () -> Unit,
     onDragStop: (LocalTime, LocalTime) -> Unit
 ) {
-    var startMinutes by remember(slotItem) {
-        mutableIntStateOf(startTime?.asMinutes() ?: 0)
+    var draggableStartMinutes by remember {
+        mutableIntStateOf(startMinutes)
     }
-    var endMinutes by remember(slotItem) {
-        mutableIntStateOf(endTime?.asMinutes()?.takeIf { it > 0 } ?: LocalDateTimeUtil.DAY_MINUTES)
+    var draggableEndMinutes by remember {
+        mutableIntStateOf(endMinutes)
     }
-
-    val draggedStartTime: LocalTime by remember(slotItem) {
-        derivedStateOf {
-            //내부에서 변경하는 startMinutes에서 파생된 결과를 재구성 기준으로 써야하므로, derivedStateOf 사용.
-            if (startTime == null) {
-                slotItem.startTime.minusMinutes(
-                    ((LocalDateTimeUtil.DAY_MINUTES - startMinutes) % LocalDateTimeUtil.DAY_MINUTES).toLong()
-                )
-            } else {
-                startMinutes.minutesToLocalTime()
-            }
-        }
+    LaunchedEffect(startMinutes, endMinutes) {
+        draggableStartMinutes = startMinutes
+        draggableEndMinutes = endMinutes
     }
-    val draggedEndTime: LocalTime by remember(slotItem) {
-        derivedStateOf {
-            if (endTime == null) {
-                slotItem.endTime.plusMinutes(endMinutes.toLong())
-            } else {
-                endMinutes.minutesToLocalTime()
-            }
-        }
-    }
-
-    Timber.d("show card. title=${slotItem.title}, startMinutes=$startMinutes, endMinutes=$endMinutes, draggedStartTime=$draggedStartTime, draggedEndTime=$draggedEndTime")
+    Timber.d("show card. title=${slotItem.title}, draggableStartMinutes=${draggableStartMinutes}, draggableEndMinutes=${draggableEndMinutes}, startMinutes=$startMinutes, endMinutes=$endMinutes")
 
     val density = LocalDensity.current
     val hourHeightPx = density.run { hourHeight.toPx() }
 
-    val topOffsetPx = startMinutes.minutesToPx(hourHeightPx)
+    val topOffsetPx = draggableStartMinutes.minutesToPx(hourHeightPx)
 
     // height.
-    val slotHeight = (endMinutes - startMinutes).minutesToPx(hourHeightPx).let {
+    val slotHeight = (draggableEndMinutes - draggableStartMinutes).minutesToPx(hourHeightPx).let {
         density.run { it.toDp() }
     }
     val slotHeightPx = slotHeight.let { density.run { it.toPx() } }
 
     var longPressed by remember { mutableStateOf(false) }
+    var isDowned by remember { mutableStateOf(false) }
 
-    fun commitUpdate() {
-        longPressed = false
-        onDragStop(
-            draggedStartTime.normalize(),
-            draggedEndTime.normalize()
-        )
-    }
 
-    fun updateDragTime(activeDragTarget: DragTarget, dragAmount: Offset) {
-        when (activeDragTarget) {
-            DragTarget.Card -> {
-                val minutesFactor = dragAmount.y.pxToMinutes(hourHeightPx).toInt()
-                startMinutes += minutesFactor
-                endMinutes += minutesFactor
-            }
-
-            DragTarget.Top -> {
-                val minutesFactor = dragAmount.y.pxToMinutes(hourHeightPx).toInt()
-                startMinutes += minutesFactor
-            }
-
-            DragTarget.Bottom -> {
-                val minutesFactor = dragAmount.y.pxToMinutes(hourHeightPx).toInt()
-                endMinutes += minutesFactor
-            }
-        }
-    }
-
-    val cardGestureModifier = Modifier.pointerInput(Triple(startTime, endTime, slotItem.uuid)) {
-        val movedOffset = Offset(5f, 5f)
-        var isDowned = false
-        awaitEachGesture {
-            val down = awaitFirstDown()
-            if(isDowned) return@awaitEachGesture
-
-            isDowned = true
-            var distanceX = 0L
-            var distanceY = 0L
-            longPressed = false
-            var isMoved = false
-            val activeDragTarget = when {
-                down.position.y < 20.dp.toPx() -> DragTarget.Top
-                down.position.y > (slotHeightPx - 20.dp.toPx()) -> DragTarget.Bottom
-                else -> DragTarget.Card
-            }
-            Timber.d("down. startTime=$startTime, endTime=$endTime")
-
-            val downTimeStamp = System.currentTimeMillis()
-
-            while (true) {
-                val event = awaitPointerEvent().changes.firstOrNull() ?: break
-                if (event.pressed.not()) {
-                    Timber.d("up. distanceX=$distanceX, distanceY=$distanceY")
-                    isDowned = false
-                    event.consume()
-                    break
+    val pointerInputEventHandler: PointerInputEventHandler = remember {
+        PointerInputEventHandler {
+            Timber.d("PointerInput block CREATED")
+            val movedOffset = Offset(5f, 5f)
+            awaitEachGesture {
+                val down = awaitFirstDown()
+                if (isDowned) {
+                    Timber.d("downed.")
+                    return@awaitEachGesture
                 }
 
-                val dragAmount = event.positionChange()
-                distanceX += dragAmount.x.absoluteValue.toLong()
-                distanceY += dragAmount.y.absoluteValue.toLong()
-                if (distanceX > movedOffset.x || distanceY > movedOffset.y) {
-                    if (!isMoved) {
-                        Timber.d("move!! distanceX=$distanceX, distanceY=$distanceY")
+                isDowned = true
+                var distanceX = 0L
+                var distanceY = 0L
+                longPressed = false
+                var isMoved = false
+                val activeDragTarget = when {
+                    down.position.y < 20.dp.toPx() -> DragTarget.Top
+                    down.position.y > (slotHeightPx - 20.dp.toPx()) -> DragTarget.Bottom
+                    else -> DragTarget.Card
+                }
+                Timber.d("down. activeDragTarget=$activeDragTarget, down.position.y=${down.position.y}, bottomPosition=${slotHeightPx - 20.dp.toPx()}")
+
+                val downTimeStamp = System.currentTimeMillis()
+
+                while (true) {
+                    val event = awaitPointerEvent().changes.firstOrNull() ?: break
+                    if (event.pressed.not()) {
+                        Timber.d("up. distanceX=$distanceX, distanceY=$distanceY")
+                        event.consume()
+                        break
                     }
-                    isMoved = true
-                }
 
-                val now = System.currentTimeMillis()
-                if (now - downTimeStamp > ViewConfiguration.getLongPressTimeout()) {
-                    if (!isMoved) {
-                        //long press!!
-                        longPressed = true
+                    val dragAmount = event.positionChange()
+                    distanceX += dragAmount.x.absoluteValue.toLong()
+                    distanceY += dragAmount.y.absoluteValue.toLong()
+                    if (distanceX > movedOffset.x || distanceY > movedOffset.y) {
+                        if (!isMoved) {
+                            Timber.d("move!! distanceX=$distanceX, distanceY=$distanceY")
+                        }
+                        isMoved = true
+                    }
+
+                    val now = System.currentTimeMillis()
+                    if (now - downTimeStamp > 300) {
+                        if (!isMoved && !longPressed) {
+                            //long press!!
+                            Timber.d("long press!!")
+                            longPressed = true
+                        }
+                    }
+
+                    if (longPressed) {
+                        event.consume()
+
+                        when (activeDragTarget) {
+                            DragTarget.Card -> {
+                                val minutesFactor = dragAmount.y.pxToMinutes(hourHeightPx).toInt()
+
+                                draggableStartMinutes += minutesFactor
+                                draggableEndMinutes += minutesFactor
+                            }
+
+                            DragTarget.Top -> {
+                                val minutesFactor = dragAmount.y.pxToMinutes(hourHeightPx).toInt()
+                                draggableStartMinutes += minutesFactor
+                            }
+
+                            DragTarget.Bottom -> {
+                                val minutesFactor = dragAmount.y.pxToMinutes(hourHeightPx).toInt()
+                                draggableEndMinutes += minutesFactor
+                            }
+                        }
                     }
                 }
 
+                Timber.d("gesture finished. longPressed=$longPressed, isMoved=$isMoved")
+                isDowned = false
                 if (longPressed) {
-                    longPressed = true
-                    event.consume()
-                    updateDragTime(activeDragTarget, dragAmount)
+                    onDragStop(
+                        draggableStartMinutes.minutesToLocalTime().normalize(),
+                        draggableEndMinutes.minutesToLocalTime().normalize()
+                    )
+                } else {
+                    if (!isMoved) {
+                        onClick()
+                    }
                 }
+                longPressed = false
             }
-
-            Timber.d("gesture finished. longPressed=$longPressed, isMoved=$isMoved")
-            if (longPressed) {
-                commitUpdate()
-            } else {
-                if (!isMoved) {
-                    onClick()
-                }
-            }
-            longPressed = false
         }
     }
+    val cardGestureModifier = remember { Modifier.pointerInput(Unit, pointerInputEventHandler) }
 
     ItemCardView(
         modifier = modifier.then(cardGestureModifier),
         isLongPressed = longPressed,
         title = slotItem.title,
-        startTime = draggedStartTime.asFormattedString(),
-        endTime = draggedEndTime.asFormattedString(),
+        startTime = draggableStartMinutes.minutesToLocalTime().asFormattedString(),
+        endTime = draggableEndMinutes.minutesToLocalTime().asFormattedString(),
         heightDp = slotHeight,
         topOffsetPx = topOffsetPx.toInt()
     )
@@ -278,13 +262,9 @@ private fun ItemCardView(
     isLongPressed: Boolean
 ) {
     val cardColor = if (isLongPressed) {
-        MaterialTheme.colorScheme.primaryContainer.copy(
-            alpha = 0.5f
-        )
+        MaterialTheme.colorScheme.primaryContainer
     } else {
-        MaterialTheme.colorScheme.surfaceContainer.copy(
-            alpha = 0.5f
-        )
+        MaterialTheme.colorScheme.surfaceContainer
     }
     Card(
         modifier = modifier
@@ -314,25 +294,37 @@ private fun ItemCardView(
                     text = title,
                     style = MaterialTheme.typography.titleLarge,
                 )
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                ) {
-                    Text(
-                        text = startTime,
-                        modifier = Modifier.weight(1f),
-                        textAlign = TextAlign.Center,
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                    Text(
-                        text = endTime,
-                        modifier = Modifier.weight(1f),
-                        textAlign = TextAlign.Center,
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                }
+                Text(
+                    text = startTime,
+                    style = MaterialTheme.typography.bodyLarge
+                )
+                Spacer(
+                    modifier = Modifier.weight(1f)
+                )
+                Text(
+                    text = endTime,
+                    style = MaterialTheme.typography.bodyLarge,
+                )
             }
         }
+    }
+}
+
+@Preview
+@Composable
+private fun Preview() {
+    TigTheme {
+        ItemCardView(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp),
+            title = "title",
+            startTime = "09:00",
+            endTime = "10:00",
+            heightDp = 50.dp,
+            topOffsetPx = 0,
+            isLongPressed = false
+        )
     }
 }
 

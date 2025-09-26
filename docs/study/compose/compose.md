@@ -10,28 +10,10 @@ compose가 ui트리를 함수 호출(@Composable)로 만들지만,
 
 # remember
 
-Compose는 상태가 변경된 영역만 찾아서 재구성(Recomposition)합니다.  
-이때 **어떤 함수 호출이 어디서 일어났는지**와 **그때의 파라미터 값** 등을
-슬롯 테이블(Slot Table)에 기록해 두고, 다음 리컴포지션 때 동일한 호출 위치의 파라미터 값이 바뀌었는지 비교해
-변경된 영역만 다시 호출합니다.
-
-컴포저블 함수의 파라미터 외에도 화면을 갱신할 기준이 되는 값을
-별도로 관리해야 할 때가 있습니다.  
-이때 `remember { mutableStateOf(..) }`를 사용하면,
-해당 값을 슬롯 테이블에 저장해 **Composition 생명주기 동안 유지**하고,
-리컴포지션 시에도 이전 값을 그대로 재사용합니다.
-
-
-하지만 `remember`는 **Composition이 사라지면 값도 함께 사라집니다.**
-예를 들어 화면 회전과 같은 Configuration Change나 프로세스가 재시작되면  
-`remember` 값은 초기화됩니다.
-
-이럴 때는 `rememberSaveable`을 사용합니다.
-(내부적으로 SavedInstanceState를 사용하여 저장된다.)
-
-```kotlin
-var text by rememberSaveable { mutableStateOf("") }
-```
+리컴포지션때 유지할 값.
+프로세스가 재시작되도 유지할 값은 rememberSaveable에 저장.
+슬롯 테이블에 저장한다. 그 말인즉, remember로 감싼 값이 바뀌면,
+리컴포지션이 일어난다.
 
 ```kotlin
 @Composable

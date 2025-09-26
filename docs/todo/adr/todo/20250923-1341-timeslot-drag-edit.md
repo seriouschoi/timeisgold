@@ -20,9 +20,27 @@
          2. start ~ 24:00
       3. 즉 같은 타임슬롯의 카드뷰를 두개를 만들어야 하므로, 실질적인 EntityCardView와 DraggableCardView로 나눈다.   
 
+자꾸 저장된 시간이 아니라 드래그 된 시간만 보인다.
+1. dragStop
+2. uiState changed 
+3. show card
+   1. show card. title=ㅊ, draggableStartMinutes=856, draggableEndMinutes=1199, startMinutes=855, endMinutes=1200
+   2. 이게 문제네. startTime이 새로오면,  draggableStartMinutes도 갱신되야 하는거 아닌가?
+   3. remember에 키를 전달했더니... 이젠 드래그가 실시간으로 안 먹네. ㅋㅋㅋㅋㅋ
+   4. 원인은, state reset문제.
+      1. 첫번째 드래그 시도에서는 잘 동작한다.
+         1. 왜냐하면, 처음 remember로 초기화 되었고, 이후 드래그에 의해 값이 계속 갱신될것이다.
+         2. 외부에서 startMinute가 바뀌면서, draggableStartMinutes가 다른 값이 됨.
+         3. 하지만 드래그 콜백에선 이전 값을 기준으로 계산을 계속 하고 있음.(이건 컴포즈 안에 콜백을 쓰는데 컴포저블 함수 안의 요소를 쓸 경우 문제같다.)
+         4. 그 후에 드래그를 아무리 시도해도, 새로운 key에 의해 타임슬롯에 저장된 startTime은 갱신되지 않음.
+      5. 해결책은, 차라리 startMinutes 들의 remember키를 제거하고, 이걸 초기화 하는 LaunchEffect에 키를 줘서 초기화 하는 것이다.
+      6. 근데 위의 과정이 어떻게 해도 지저분하니깐 사실, 인텐트가 폭주되더라도, 뷰모델에 이걸 전달해서 드래그하는 상태도 실시간으로 뷰모델의 상태를 갱신하게 만드는게 가장 좋을것 같다.
+4. update timeslot success
+5. recieved routine composition
+6. uiState changed.
+7. 어..? 카드가 갱신이 안되는데..?
 
-1. 00시를 넘기는 타임슬롯을 위나 아래로 당기면, 타임슬롯이 잘려서 나오는 버그.
-   1. timeslot을 당길때, 시작 시간이 null이면, slot의 시간으로 계산해서 보여주는 형태로..
+   
 
 
 1. 뷰가 상태를 들고 있고, 함수를 들고 있으면서, UI가 더이상 순수 함수가 아니게 된것 같다...

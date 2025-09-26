@@ -62,9 +62,8 @@ internal class TimeRoutinePageViewModel @Inject constructor(
     private val routineCompositionFlow: StateFlow<ResultState<DomainResult<TimeRoutineComposition>>> =
         dayOfWeekFlow.mapNotNull { it }.flatMapConcat {
             watchTimeRoutineCompositionUseCase.invoke(it)
-        }.map {
+        }.onEach {
             Timber.d("received routine composition.")
-            it
         }.asResultState().stateIn(
             scope = viewModelScope,
             started = SharingStarted.Eagerly,
@@ -97,6 +96,8 @@ internal class TimeRoutinePageViewModel @Inject constructor(
         TimeRoutinePageUiState.Loading.default()
     ) { acc: TimeRoutinePageUiState, value: UiPreState ->
         acc.reduce(value)
+    }.onEach {
+        Timber.d("uiState changed. $it")
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.Eagerly,

@@ -29,7 +29,7 @@ internal class TimeSlotRepositoryAdapter @Inject constructor(
 
     override suspend fun watchTimeSlotList(timeRoutineUuid: String): Flow<List<TimeSlotEntity>> {
         val dao = database.TimeRoutineJoinTimeSlotViewDao()
-        return dao.observeTimeSlotsByTimeRoutine(timeRoutineUuid).distinctUntilChanged().map {
+        return dao.watchTimeSlotsByTimeRoutine(timeRoutineUuid).distinctUntilChanged().map {
             it.map { it.toTimeSlotEntity() }
         }
     }
