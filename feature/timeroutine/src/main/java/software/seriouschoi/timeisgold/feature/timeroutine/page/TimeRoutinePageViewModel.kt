@@ -13,7 +13,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
@@ -26,15 +25,20 @@ import software.seriouschoi.timeisgold.core.common.ui.UiText
 import software.seriouschoi.timeisgold.core.common.ui.asResultState
 import software.seriouschoi.timeisgold.core.common.ui.flowResultState
 import software.seriouschoi.timeisgold.core.common.util.Envelope
+import software.seriouschoi.timeisgold.core.common.util.LocalDateTimeUtil
+import software.seriouschoi.timeisgold.core.common.util.asFormattedString
+import software.seriouschoi.timeisgold.core.common.util.asMinutes
 import software.seriouschoi.timeisgold.core.domain.mapper.onlyDomainResult
 import software.seriouschoi.timeisgold.core.domain.mapper.onlySuccess
 import software.seriouschoi.timeisgold.domain.data.DomainResult
 import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineComposition
+import software.seriouschoi.timeisgold.domain.data.entities.TimeSlotEntity
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.WatchTimeRoutineCompositionUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeslot.SetTimeSlotUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeslot.WatchTimeSlotUseCase
 import software.seriouschoi.timeisgold.feature.timeroutine.edit.TimeRoutineEditScreenRoute
 import software.seriouschoi.timeisgold.feature.timeroutine.timeslot.edit.TimeSlotEditScreenRoute
+import timber.log.Timber
 import java.time.DayOfWeek
 import java.time.format.TextStyle
 import java.util.Locale
@@ -51,7 +55,7 @@ internal class TimeRoutinePageViewModel @Inject constructor(
     private val navigator: DestNavigatorPort,
     private val savedStateHandle: SavedStateHandle,
     private val setTimeSlotUseCase: SetTimeSlotUseCase,
-    private val watchTimeSlotUseCase: WatchTimeSlotUseCase
+    private val watchTimeSlotUseCase: WatchTimeSlotUseCase,
 ) : ViewModel() {
 
     private val dayOfWeekFlow = MutableStateFlow<DayOfWeek?>(null)
@@ -60,6 +64,8 @@ internal class TimeRoutinePageViewModel @Inject constructor(
     private val routineCompositionFlow: StateFlow<ResultState<DomainResult<TimeRoutineComposition>>> =
         dayOfWeekFlow.mapNotNull { it }.flatMapConcat {
             watchTimeRoutineCompositionUseCase.invoke(it)
+        }.onEach {
+            Timber.d("received routine composition.")
         }.asResultState().stateIn(
             scope = viewModelScope,
             started = SharingStarted.Eagerly,
@@ -80,8 +86,7 @@ internal class TimeRoutinePageViewModel @Inject constructor(
         initialValue = null
     )
 
-    private val _intent = MutableSharedFlow<Envelope<TimeRoutinePageUiIntent>>()
-
+    private val _intent: MutableSharedFlow<Envelope<TimeRoutinePageUiIntent>> = MutableSharedFlow()
 
     val uiState: StateFlow<TimeRoutinePageUiState> = merge(
         routinePreUiStateFlow.mapNotNull { it },
@@ -116,7 +121,8 @@ internal class TimeRoutinePageViewModel @Inject constructor(
     private fun handleIntentSideEffect(intent: TimeRoutinePageUiIntent) {
         when (intent) {
             is TimeRoutinePageUiIntent.ModifyRoutine,
-            is TimeRoutinePageUiIntent.CreateRoutine -> {
+            is TimeRoutinePageUiIntent.CreateRoutine,
+                -> {
                 val dayOfWeekOrdinal = dayOfWeekFlow.value?.ordinal
                 if (dayOfWeekOrdinal != null)
                     navigator.navigate(TimeRoutineEditScreenRoute(dayOfWeekOrdinal))
@@ -131,7 +137,9 @@ internal class TimeRoutinePageViewModel @Inject constructor(
             }
 
             is TimeRoutinePageUiIntent.UpdateSlot -> {
-                updateTimeSlot(intent)
+                if (!intent.onlyState) {
+                    updateTimeSlot(intent)
+                }
             }
         }
     }
@@ -141,7 +149,8 @@ internal class TimeRoutinePageViewModel @Inject constructor(
             val currentRoutine =
                 routineCompositionFlow.onlySuccess().first() ?: return@flowResultState
 
-            val timeSlot = currentRoutine.timeSlots.find { it.uuid == intent.uuid } ?: return@flowResultState
+            val timeSlot =
+                currentRoutine.timeSlots.find { it.uuid == intent.uuid } ?: return@flowResultState
 
             val newTimeSlot = timeSlot.copy(
                 startTime = intent.newStart,
@@ -154,15 +163,20 @@ internal class TimeRoutinePageViewModel @Inject constructor(
             )
 
         }.onEach { state: ResultState<Unit> ->
-            when(state) {
+            when (state) {
                 is ResultState.Error -> {
                     // TODO: jhchoi 2025. 9. 23. show error.
+                    Timber.w("update timeslot failed. ${state.throwable.message}")
+                    state.throwable.printStackTrace()
                 }
+
                 ResultState.Loading -> {
                     //no working.
                 }
+
                 is ResultState.Success -> {
                     //no working.
+                    Timber.d("update timeslot success. startTime=${intent.newStart.asFormattedString()}, endTime=${intent.newEnd.asFormattedString()}")
                 }
             }
         }.launchIn(viewModelScope)
@@ -178,14 +192,42 @@ internal class TimeRoutinePageViewModel @Inject constructor(
 private fun TimeRoutinePageUiState.reduce(value: UiPreState): TimeRoutinePageUiState {
     return when (value) {
         is UiPreState.Intent -> {
-            //no work.
-            this
+            this.reduce(value)
         }
 
         is UiPreState.Routine -> {
             this.reduce(value)
         }
     }
+}
+
+private fun TimeRoutinePageUiState.reduce(
+    value: UiPreState.Intent,
+): TimeRoutinePageUiState = when (val intent = value.intent) {
+    is TimeRoutinePageUiIntent.UpdateSlot -> {
+        Timber.d("uiState reduce by updateSlot. intent=$intent")
+        val routineState = this as? TimeRoutinePageUiState.Routine
+            ?: TimeRoutinePageUiState.Routine.default()
+
+        val newSlotItemList = routineState.newSlotItemList.map {
+            if (it.slotUuid == intent.uuid) {
+                it.copy(
+                    startMinutesOfDay = intent.newStart.asMinutes(),
+                    endMinutesOfDay = intent.newEnd.asMinutes(),
+                    startMinuteText = intent.newStart.asFormattedString(),
+                    endMinuteText = intent.newEnd.asFormattedString()
+                ).splitOverMidnight()
+            } else {
+                listOf(it)
+            }
+        }.flatten().distinct()
+
+        routineState.copy(
+            newSlotItemList = newSlotItemList
+        )
+    }
+
+    else -> this
 }
 
 private fun TimeRoutinePageUiState.reduce(value: UiPreState.Routine): TimeRoutinePageUiState {
@@ -208,19 +250,24 @@ private fun TimeRoutinePageUiState.reduce(value: UiPreState.Routine): TimeRoutin
             val routineState =
                 this as? TimeRoutinePageUiState.Routine ?: TimeRoutinePageUiState.Routine.default()
             val routineComposition = domainResult.value
+            val routineUuid = routineComposition.timeRoutine.uuid
             routineState.copy(
                 title = routineComposition.timeRoutine.title,
-                slotItemList = routineComposition.timeSlots.map {
-                    TimeRoutinePageSlotItemUiState(
-                        uuid = it.uuid,
-                        title = it.title,
-                        startTime = it.startTime,
-                        endTime = it.endTime,
+                newSlotItemList = routineComposition.timeSlots.map { slotEntity: TimeSlotEntity ->
+                    val defaultSlotItem = NewTimeSlotCardUiState(
+                        slotUuid = slotEntity.uuid,
+                        routineUuid = routineUuid,
+                        title = slotEntity.title,
+                        startMinutesOfDay = slotEntity.startTime.asMinutes(),
+                        endMinutesOfDay = slotEntity.endTime.asMinutes(),
+                        startMinuteText = slotEntity.startTime.asFormattedString(),
+                        endMinuteText = slotEntity.endTime.asFormattedString(),
                         slotClickIntent = TimeRoutinePageUiIntent.ShowSlotEdit(
-                            it.uuid, routineComposition.timeRoutine.uuid
+                            slotEntity.uuid, routineUuid
                         )
                     )
-                },
+                    defaultSlotItem.splitOverMidnight()
+                }.flatten(),
                 dayOfWeeks = routineComposition.dayOfWeeks.map {
                     it.dayOfWeek
                 }.sorted(),
@@ -237,6 +284,31 @@ private fun TimeRoutinePageUiState.reduce(value: UiPreState.Routine): TimeRoutin
     }
 }
 
+private fun NewTimeSlotCardUiState.splitOverMidnight(): List<NewTimeSlotCardUiState> {
+    return if (this.startMinutesOfDay > this.endMinutesOfDay) {
+        //ex: 22 ~ 6
+
+        //24 + 6(endTime)
+        val overEndMinutes = LocalDateTimeUtil.DAY_MINUTES + (this.endMinutesOfDay)
+        //00 - (24 - 22(startTime))
+        val negativeStartMinutes =
+            0 - (LocalDateTimeUtil.DAY_MINUTES - this.startMinutesOfDay)
+        listOf(
+            this.copy(
+                startMinutesOfDay = this.startMinutesOfDay,
+                endMinutesOfDay = overEndMinutes
+            ),
+            this.copy(
+                startMinutesOfDay = negativeStartMinutes,
+                endMinutesOfDay = this.endMinutesOfDay
+            )
+        )
+    } else {
+        listOf(
+            this
+        )
+    }
+}
 
 private sealed interface UiPreState {
     data class Routine(
@@ -245,6 +317,6 @@ private sealed interface UiPreState {
     ) : UiPreState
 
     data class Intent(
-        val intent: TimeRoutinePageUiIntent
+        val intent: TimeRoutinePageUiIntent,
     ) : UiPreState
 }

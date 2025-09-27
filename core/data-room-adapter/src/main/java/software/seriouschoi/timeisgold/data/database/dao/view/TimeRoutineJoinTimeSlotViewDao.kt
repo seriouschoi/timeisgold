@@ -15,9 +15,9 @@ internal abstract class TimeRoutineJoinTimeSlotViewDao {
         ORDER BY timeSlotStartTime
     """
     )
-    abstract fun observeTimeSlotsByTimeRoutine(timeRoutineUuid: String): Flow<List<TimeRoutineJoinTimeSlotView>>
+    abstract fun watchTimeSlotsByTimeRoutine(timeRoutineUuid: String): Flow<List<TimeRoutineJoinTimeSlotView>>
 
     suspend fun getTimeSlotsByTimeRoutine(timeRoutineUuid: String): List<TimeRoutineJoinTimeSlotView> {
-        return observeTimeSlotsByTimeRoutine(timeRoutineUuid).first()
+        return watchTimeSlotsByTimeRoutine(timeRoutineUuid).first()
     }
 }

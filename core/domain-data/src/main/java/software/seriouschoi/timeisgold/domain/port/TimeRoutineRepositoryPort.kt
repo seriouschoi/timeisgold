@@ -10,7 +10,7 @@ import java.time.DayOfWeek
 interface TimeRoutineRepositoryPort {
     suspend fun saveTimeRoutineComposition(composition: TimeRoutineComposition): DataResult<String>
 
-    fun observeCompositionByDayOfWeek(dayOfWeek: DayOfWeek): Flow<TimeRoutineComposition?>
+    fun watchCompositionByDayOfWeek(dayOfWeek: DayOfWeek): Flow<TimeRoutineComposition?>
     suspend fun getCompositionByUuid(timeRoutineUuid: String): TimeRoutineComposition?
 
     fun observeCompositionByUuidFlow(timeRoutineUuid: String): Flow<TimeRoutineComposition?>

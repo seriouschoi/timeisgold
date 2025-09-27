@@ -16,7 +16,7 @@ class WatchTimeRoutineCompositionUseCase @Inject constructor(
 ) {
     @OptIn(ExperimentalCoroutinesApi::class)
     operator fun invoke(dayOfWeek: DayOfWeek): Flow<DomainResult<TimeRoutineComposition>> {
-        return timeRoutineRepositoryPort.observeCompositionByDayOfWeek(dayOfWeek).flatMapLatest {
+        return timeRoutineRepositoryPort.watchCompositionByDayOfWeek(dayOfWeek).flatMapLatest {
             if(it == null) {
                 flowOf(DomainResult.Failure(DomainError.NotFound.TimeRoutine))
             } else {

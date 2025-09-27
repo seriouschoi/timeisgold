@@ -120,8 +120,6 @@ TimeRoutineEntity와 TimeRoutineDayOfWeekEntity로만
 
 # build.gradle과 build.gradle.kts 차이???
 
-# Compose에서 쓰는 Unit은 뭐지?
-
 # focus??
 
 # Modifier에서 state란 이름으로 쓰는 패턴은 뭐지?
@@ -148,6 +146,7 @@ data의 유효성을 체크해서, valid를 uiState에서 갱신해버리면,
 valid와 ui를 나누는 것이다.
 data의 유효성을 체크해서 validUiState가 갱신된다.
 validUiState는 data를 갱신하지 않으므로, 순환되지 않는다.
+
 
 # rememberScrollState..를 비롯한 수많은 remember들은 누가 다 일일히 만들어 놓은걸까?
 그리고 이 함수들의 존재 기준은 뭘까?
@@ -185,3 +184,96 @@ fun MyUiState.reduce(action: MyAction): MyUiState {
 }
 ```
 사실상 sealed class UiState는 reduce를 무력화하는 패턴이라 안티패턴으로 봐도 무방할것 같다.
+
+
+# derivedStateOf??
+컴포즈에서 관찰중인 상태 또는 컴포저블 입력(파라미터)가 변경될때 마다 해당 컴포저블의 재구성이 실행된다.
+때로는 상태객체나 입력이 UI가 업데이트 해야하는것보다 더 자주 변경되어 불필요한 재구성이 발생할 수도 있다.
+컴포저블의 입력이 재구성보다 더 자주 변경되면, derivedStateOf를 사용해서 불필요한 재구성을 피할 수 있다.
+또는 컴포저블 함수 내부에서 변경된 상태를 기반으로 새로운 상태를 만들때도 같이 사용한다.
+```kotlin
+@Composable
+private fun TimeDraggableCardView(
+   modifier: Modifier,
+   startTime: LocalTime? = null,
+   endTime: LocalTime? = null,
+   slotItem: TimeSlotCardUiState,
+   hourHeight: Dp,
+   onClick: () -> Unit,
+   onDragStop: (LocalTime, LocalTime) -> Unit
+) {
+    var startMinutes by remember(slotItem) {
+        mutableIntStateOf(startTime?.asMinutes() ?: 0)
+    }
+    val draggedStartTime: LocalTime by remember(slotItem) {
+        derivedStateOf {
+            //내부에서 변경하는 startMinutes에서 파생된 결과를 재구성 기준으로 써야하므로, derivedStateOf 사용.
+            if (startTime == null) {
+                slotItem.startTime.minusMinutes(
+                    ((LocalDateTimeUtil.DAY_MINUTES - startMinutes) % LocalDateTimeUtil.DAY_MINUTES).toLong()
+                )
+            } else {
+                startMinutes.minutesToLocalTime()
+            }
+        }
+    }
+    // ...
+}
+```
+위 코드의 주석에서 확인 가능하듯,
+startMinutes는 함수 내부에서 변경이 가능하고,
+이 변경된 값에 의해 계산된 값을 기준으로 리컴포지션할 값이 필요할 경우, derivedStateOf를 사용할 수 있다.
+
+
+# composable함수가 만드는것.
+Compose는 @Composable함수 호출 결과를 *SlotTable*로 저장하고, 
+이 슬롯테이블을 UI트리를 재구성할때 참조하는 *스냅샷* 역할을 한다.
+
+
+| 구분    | View 시스템                                  | Compose                                                |
+|-------|-------------------------------------------|--------------------------------------------------------|
+| 계층    | View 인스턴스 트리                              | LayoutNode 트리                                          |
+| 상태 저장 | View 자체의 멤버 변수                            | Slot Table + CompositionLocal + State 객체               |
+| 업데이트  | requestLayout(), invalidate()로 View 전체 갱신 | 상태 변경 → Recomposition → 필요한 노드만 갱신                     |
+| 객체 수명 | View 인스턴스를 직접 만들고/파괴                      | Composable 호출 결과를 Slot Table이 관리, 필요할 때만 LayoutNode 갱신 |
+
+
+compose는 기존 View처럼 무거운 Java/Kotlin객체를 매번 생성하진 않는다.
+1. 함수 호출 → Slot Table 기록 
+2. Slot Table → LayoutNode와 Modifier 트리 갱신 
+3. 바뀐 부분만 diff해서 apply
+때문에 UI갱신이 빠르고, 필요없는 객체를 생성하진 않는다.
+
+# CompositionLocal
+CompositionLocal compose에서 전역상태를 보관하기 위해 사용된다.
+아래와 같이 쓸 수 있다.
+```kotlin
+val LocalUser = compositionLocalOf<User> { error("No user found!") }
+
+@Composable
+fun App(user: User) {
+   CompositionLocalProvider(LocalUser provides user) {
+      ProfileScreen() // 이 아래의 Composable들은 LocalUser로 user 객체를 꺼낼 수 있음
+   }
+}
+
+@Composable
+fun ProfileScreen() {
+   val user = LocalUser.current
+   Text("Hello, ${user.name}")
+}
+```
+신중하게 써야 한다.
+사실상 컴포즈에서 읽을 수 있는 전역변수 같은게 된다.
+화면이 굉장히 많은 상태의 영향을 받게 되어 디버깅이 힘들어 질 수 있다.
+컴포즈에서 대부분의 상태는 viewModel에서 발행한 uiState에서 처리하는게 가장 이상적이라고 생각한다.
+그럼에도 불구하고 사용한다면, 상태가 뷰모델까지 전파될 필요가 없는 요소들을 CompositionLocal로 전역화한다.
+예를 들면, LocalDensity를 사용해서 현재 DP를 픽셀로 변환할때 사용할 수 있다.
+```kotlin
+val density = LocalDensity.current
+val hourHeightPx = density.run { hourHeight.toPx() }
+```
+
+
+
+

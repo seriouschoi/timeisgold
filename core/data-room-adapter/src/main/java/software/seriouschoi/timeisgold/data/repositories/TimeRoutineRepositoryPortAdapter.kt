@@ -52,9 +52,9 @@ internal class TimeRoutineRepositoryPortAdapter @Inject constructor(
     }
 
 
-    override fun observeCompositionByDayOfWeek(dayOfWeek: DayOfWeek): Flow<TimeRoutineComposition?> {
+    override fun watchCompositionByDayOfWeek(dayOfWeek: DayOfWeek): Flow<TimeRoutineComposition?> {
         return appDatabase.TimeRoutineJoinDayOfWeekViewDao()
-            .getLatestByDayOfWeek(dayOfWeek)
+            .watchLatestByDayOfWeek(dayOfWeek)
             .distinctUntilChanged()
             .map {
                 it?.toTimeRoutineEntity()
@@ -64,7 +64,7 @@ internal class TimeRoutineRepositoryPortAdapter @Inject constructor(
                 else {
                     combine(
                         observeWeeks(routine.uuid),
-                        observeSlots(routine.uuid)
+                        watchSlots(routine.uuid)
                     ) { weeks, slots ->
                         TimeRoutineComposition(
                             timeRoutine = routine,
@@ -91,12 +91,12 @@ internal class TimeRoutineRepositoryPortAdapter @Inject constructor(
             }
             .distinctUntilChanged()
 
-    private fun observeSlots(routineUuid: String): Flow<List<TimeSlotEntity>> =
+    private fun watchSlots(routineUuid: String): Flow<List<TimeSlotEntity>> =
         appDatabase.TimeRoutineJoinTimeSlotViewDao()
-            .observeTimeSlotsByTimeRoutine(routineUuid)
+            .watchTimeSlotsByTimeRoutine(routineUuid)
             .distinctUntilChanged()
             .map { list ->
-                Timber.d("observeSlots - routineUuid=$routineUuid, list=$list")
+                Timber.d("watchSlots - routineUuid=$routineUuid, list=$list")
                 list.map {
                     it.toTimeSlotEntity()
                 }.sortedBy { it.startTime }
@@ -106,7 +106,7 @@ internal class TimeRoutineRepositoryPortAdapter @Inject constructor(
     @OptIn(ExperimentalCoroutinesApi::class)
     override fun observeTimeRoutineByDayOfWeek(day: DayOfWeek): Flow<TimeRoutineEntity?> {
         val dao = appDatabase.TimeRoutineJoinDayOfWeekViewDao()
-        return dao.getLatestByDayOfWeek(day).distinctUntilChanged().map {
+        return dao.watchLatestByDayOfWeek(day).distinctUntilChanged().map {
             it?.toTimeRoutineEntity()
         }.distinctUntilChanged()
     }
@@ -179,7 +179,7 @@ internal class TimeRoutineRepositoryPortAdapter @Inject constructor(
 
     override fun observeTimeRoutineDefinitionByDayOfWeek(dayOfWeek: DayOfWeek): Flow<TimeRoutineDefinition?> {
         return appDatabase.TimeRoutineJoinDayOfWeekViewDao()
-            .getLatestByDayOfWeek(dayOfWeek)
+            .watchLatestByDayOfWeek(dayOfWeek)
             .distinctUntilChanged()
             .map {
                 it?.toTimeRoutineEntity()
@@ -189,7 +189,7 @@ internal class TimeRoutineRepositoryPortAdapter @Inject constructor(
                 else {
                     combine(
                         observeWeeks(routine.uuid),
-                        observeSlots(routine.uuid)
+                        watchSlots(routine.uuid)
                     ) { weeks, slots ->
                         TimeRoutineDefinition(
                             timeRoutine = routine,
@@ -232,7 +232,7 @@ internal class TimeRoutineRepositoryPortAdapter @Inject constructor(
                 else {
                     combine(
                         observeWeeks(it.uuid),
-                        observeSlots(it.uuid)
+                        watchSlots(it.uuid)
                     ) { weeks, slots ->
                         TimeRoutineComposition(
                             timeRoutine = it,

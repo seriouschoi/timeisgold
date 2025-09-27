@@ -10,7 +10,10 @@ compose가 ui트리를 함수 호출(@Composable)로 만들지만,
 
 # remember
 
-composition memory(slot table)에 값을 캐시함.
+리컴포지션때 유지할 값.
+프로세스가 재시작되도 유지할 값은 rememberSaveable에 저장.
+슬롯 테이블에 저장한다. 그 말인즉, remember로 감싼 값이 바뀌면,
+리컴포지션이 일어난다.
 
 ```kotlin
 @Composable
@@ -37,7 +40,7 @@ remember 블록을 다시 실행할지 결정하는 트리거이다.
 # recomposition
 compose가 ui트리를 함수 호출(@Composable)로 만들지만,  
 매번 전체를 새로 그리진 않음.  
-이전에 그린 UI트리와 현재 함수 호출 결과를 비교해서, 바뀐곳만 새로 그린다.  
+이전에 그린 UI트리와 현재 함수 호출 파라미터를 비교해서, 바뀐곳만 새로 그린다.  
 이 과정을 리컴포지션이라 한다.
 
 > @Composable 함수를 다시 호출하는 과정에서,  
