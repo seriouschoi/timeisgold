@@ -4,7 +4,6 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import kotlin.math.round
 import kotlin.math.roundToInt
 
 /**
@@ -36,4 +35,9 @@ fun LocalTime.normalize(stepMinutes: Float = 15f): LocalTime {
 
 object LocalDateTimeUtil {
     const val DAY_MINUTES = 60 * 24
+    fun createFromMinutesOfDay(
+        minutesOfDay: Long,
+    ): LocalTime {
+        return LocalTime.of(0, 0).plusMinutes(minutesOfDay)
+    }
 }

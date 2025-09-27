@@ -5,7 +5,7 @@ import java.time.LocalTime
 internal sealed interface TimeRoutinePageUiIntent {
     data class ShowSlotEdit(val slotId: String, val routineId: String) : TimeRoutinePageUiIntent
     data class UpdateSlot(
-        val uuid: String, val newStart: LocalTime, val newEnd: LocalTime
+        val uuid: String, val newStart: LocalTime, val newEnd: LocalTime, val onlyState: Boolean
     ) : TimeRoutinePageUiIntent
 
     object CreateRoutine : TimeRoutinePageUiIntent

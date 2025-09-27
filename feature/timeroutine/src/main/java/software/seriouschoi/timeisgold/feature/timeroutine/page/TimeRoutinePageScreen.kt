@@ -22,6 +22,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import software.seriouschoi.timeisgold.core.common.ui.TigTheme
@@ -29,6 +30,8 @@ import software.seriouschoi.timeisgold.core.common.ui.TigThemePreview
 import software.seriouschoi.timeisgold.core.common.ui.UiText
 import software.seriouschoi.timeisgold.core.common.ui.asString
 import software.seriouschoi.timeisgold.core.common.ui.components.TigLabelButton
+import software.seriouschoi.timeisgold.core.common.util.asFormattedString
+import software.seriouschoi.timeisgold.core.common.util.asMinutes
 import timber.log.Timber
 import java.time.DayOfWeek
 import java.time.LocalTime
@@ -95,48 +98,54 @@ private fun Routine(
                 rememberScrollState()
             )
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(hourHeight * 24)
-        ) {
-            repeat(24) { hour ->
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(hourHeight)
-                ) {
-                    HorizontalDivider()
+        TimeSliceView(
+            hourHeight = hourHeight,
+            modifier = Modifier.fillMaxWidth()
+        )
 
-                    Row(
-                        modifier = Modifier
-                            .fillMaxSize()
-                    ) {
-                        Text(
-                            text = "$hour:00",
-                            modifier = Modifier.fillMaxWidth(),
-                            style = MaterialTheme.typography.labelSmall
-                        )
-                    }
-
-                    HorizontalDivider()
-                }
-            }
-        }
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(hourHeight * 24)
         ) {
-            Timber.d("slotItemList size=${state.slotItemList.size}")
-            state.slotItemList.forEach { slot ->
-                TimeSlotItemView(
+            Timber.d("slotItemList size=${state.newSlotItemList.size}")
+            state.newSlotItemList.forEach { slot ->
+                NewTimeSlotItemView(
                     modifier = Modifier.fillMaxWidth(),
                     slotItem = slot,
-                    hourHeight = hourHeight
+                    hourHeight = hourHeight,
+                    sendIntent = sendIntent
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun TimeSliceView(hourHeight: Dp, modifier: Modifier) {
+    Column(
+        modifier = modifier.height(hourHeight * 24)
+    ) {
+        repeat(24) { hour ->
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(hourHeight)
+            ) {
+                HorizontalDivider()
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxSize()
                 ) {
-                    sendIntent(it)
+                    Text(
+                        text = "$hour:00",
+                        modifier = Modifier.fillMaxWidth(),
+                        style = MaterialTheme.typography.labelSmall
+                    )
                 }
+
+                HorizontalDivider()
             }
         }
     }
@@ -147,17 +156,27 @@ private fun Routine(
 @Composable
 private fun PreviewRoutine() {
     TigTheme {
+        val startTime = LocalTime.of(1, 30)
+        val endTime = LocalTime.of(4, 20)
         Routine(
             TimeRoutinePageUiState.Routine(
                 title = "루틴 1",
                 dayOfWeekName = "월",
-                slotItemList = listOf(
-                    TimeSlotCardUiState(
-                        title = "타이틀",
-                        startTime = LocalTime.of(4, 30),
-                        endTime = LocalTime.of(6, 0),
-                        slotClickIntent = TimeRoutinePageUiIntent.CreateRoutine,
-                        uuid = "uuid"
+                newSlotItemList = listOf(
+                    NewTimeSlotCardUiState(
+                        slotUuid = "temp_uuid",
+                        routineUuid = "temp_routine_uuid",
+                        title = "Some Slot Title",
+                        startMinutesOfDay = startTime.asMinutes(),
+                        endMinutesOfDay = endTime.asMinutes(),
+                        startMinuteText = startTime.asFormattedString(),
+                        endMinuteText = endTime.asFormattedString(),
+                        slotClickIntent = TimeRoutinePageUiIntent.UpdateSlot(
+                            uuid = "temp_uuid",
+                            newStart = startTime,
+                            newEnd = endTime,
+                            onlyState = false
+                        )
                     )
                 ),
                 dayOfWeeks = listOf(
@@ -173,7 +192,7 @@ private fun PreviewRoutine() {
 @Composable
 private fun Error(
     currentState: TimeRoutinePageUiState.Error,
-    sendIntent: (TimeRoutinePageUiIntent) -> Unit
+    sendIntent: (TimeRoutinePageUiIntent) -> Unit,
 ) {
     val confirmButtonState by remember {
         mutableStateOf(currentState.confirmButton)

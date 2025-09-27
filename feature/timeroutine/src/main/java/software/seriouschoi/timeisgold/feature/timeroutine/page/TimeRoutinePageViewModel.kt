@@ -13,7 +13,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
@@ -27,6 +26,7 @@ import software.seriouschoi.timeisgold.core.common.ui.asResultState
 import software.seriouschoi.timeisgold.core.common.ui.flowResultState
 import software.seriouschoi.timeisgold.core.common.util.Envelope
 import software.seriouschoi.timeisgold.core.common.util.asFormattedString
+import software.seriouschoi.timeisgold.core.common.util.asMinutes
 import software.seriouschoi.timeisgold.core.domain.mapper.onlyDomainResult
 import software.seriouschoi.timeisgold.core.domain.mapper.onlySuccess
 import software.seriouschoi.timeisgold.domain.data.DomainResult
@@ -96,8 +96,6 @@ internal class TimeRoutinePageViewModel @Inject constructor(
         TimeRoutinePageUiState.Loading.default()
     ) { acc: TimeRoutinePageUiState, value: UiPreState ->
         acc.reduce(value)
-    }.onEach {
-        Timber.d("uiState changed. $it")
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.Eagerly,
@@ -138,7 +136,9 @@ internal class TimeRoutinePageViewModel @Inject constructor(
             }
 
             is TimeRoutinePageUiIntent.UpdateSlot -> {
-                updateTimeSlot(intent)
+                if (!intent.onlyState) {
+                    updateTimeSlot(intent)
+                }
             }
         }
     }
@@ -207,18 +207,21 @@ private fun TimeRoutinePageUiState.reduce(
         val routineState = this as? TimeRoutinePageUiState.Routine
             ?: TimeRoutinePageUiState.Routine.default()
 
-        val newSlotItemList = routineState.slotItemList.map {
-            if (it.uuid == intent.uuid) {
+        val newSlotItemList = routineState.newSlotItemList.map {
+            if (it.slotUuid == intent.uuid) {
                 it.copy(
-                    startTime = intent.newStart,
-                    endTime = intent.newEnd
+                    startMinutesOfDay = intent.newStart.asMinutes(),
+                    endMinutesOfDay = intent.newEnd.asMinutes(),
+                    startMinuteText = intent.newStart.asFormattedString(),
+                    endMinuteText = intent.newEnd.asFormattedString()
                 )
             } else {
                 it
             }
         }
+
         routineState.copy(
-            slotItemList = newSlotItemList
+            newSlotItemList = newSlotItemList
         )
     }
 
@@ -245,14 +248,21 @@ private fun TimeRoutinePageUiState.reduce(value: UiPreState.Routine): TimeRoutin
             val routineState =
                 this as? TimeRoutinePageUiState.Routine ?: TimeRoutinePageUiState.Routine.default()
             val routineComposition = domainResult.value
+            // TODO: timeslots -> slotUiItemList로 변환시키는 함수를 하나 만들고,
+            /*
+            거기서 자정 넘어가는 처리를 일괄 적으로 해야함.
+             */
             routineState.copy(
                 title = routineComposition.timeRoutine.title,
-                slotItemList = routineComposition.timeSlots.map {
-                    TimeSlotCardUiState(
-                        uuid = it.uuid,
+                newSlotItemList = routineComposition.timeSlots.map {
+                    NewTimeSlotCardUiState(
+                        slotUuid = it.uuid,
+                        routineUuid = routineComposition.timeRoutine.uuid,
                         title = it.title,
-                        startTime = it.startTime,
-                        endTime = it.endTime,
+                        startMinutesOfDay = it.startTime.asMinutes(),
+                        endMinutesOfDay = it.endTime.asMinutes(),
+                        startMinuteText = it.startTime.asFormattedString(),
+                        endMinuteText = it.endTime.asFormattedString(),
                         slotClickIntent = TimeRoutinePageUiIntent.ShowSlotEdit(
                             it.uuid, routineComposition.timeRoutine.uuid
                         )

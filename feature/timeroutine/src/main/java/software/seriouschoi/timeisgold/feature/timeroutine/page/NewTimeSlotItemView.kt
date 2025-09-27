@@ -15,11 +15,10 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -34,119 +33,40 @@ import androidx.compose.ui.unit.dp
 import software.seriouschoi.timeisgold.core.common.ui.TigTheme
 import software.seriouschoi.timeisgold.core.common.util.LocalDateTimeUtil
 import software.seriouschoi.timeisgold.core.common.util.asFormattedString
-import software.seriouschoi.timeisgold.core.common.util.asMinutes
 import software.seriouschoi.timeisgold.core.common.util.normalize
 import timber.log.Timber
-import java.time.LocalTime
 import kotlin.math.absoluteValue
 
-@Deprecated("new time slot item view.")
 @Composable
-internal fun TimeSlotItemView(
+internal fun NewTimeSlotItemView(
     modifier: Modifier = Modifier,
-    slotItem: TimeSlotCardUiState,
+    slotItem: NewTimeSlotCardUiState,
     hourHeight: Dp,
     sendIntent: (TimeRoutinePageUiIntent) -> Unit,
 ) {
-    Timber.d("slotItem changed: $slotItem")
-    fun updateTimeSlot(startTime: LocalTime, endTime: LocalTime) {
-        Timber.d("dragStop. startTime=$startTime, endTime=$endTime")
-        sendIntent(
-            TimeRoutinePageUiIntent.UpdateSlot(
-                slotItem.uuid,
-                startTime,
-                endTime,
-                false
-            )
-        )
-    }
-    if (slotItem.startTime > slotItem.endTime) {
-        TimeDraggableCardView(
-            modifier = modifier,
-            hourHeight = hourHeight,
-            slotItem = slotItem,
-            onClick = {
-                sendIntent(slotItem.slotClickIntent)
-            },
-            startMinutes = slotItem.startTime.asMinutes(),
-            endMinutes = LocalDateTimeUtil.DAY_MINUTES + slotItem.endTime.asMinutes(),
-            onDragStop = { startTime, endTime ->
-                updateTimeSlot(
-                    startTime, endTime
-                )
-            }
-        )
 
-        TimeDraggableCardView(
-            modifier = modifier,
-            hourHeight = hourHeight,
-            slotItem = slotItem,
-            startMinutes = 0 - (LocalDateTimeUtil.DAY_MINUTES - slotItem.startTime.asMinutes()),
-            endMinutes = slotItem.endTime.asMinutes(),
-            onClick = {
-                sendIntent(slotItem.slotClickIntent)
-            },
-            onDragStop = { startTime, endTime ->
-                updateTimeSlot(
-                    startTime, endTime
-                )
-            }
-        )
-    } else {
-        TimeDraggableCardView(
-            modifier = modifier,
-            hourHeight = hourHeight,
-            slotItem = slotItem,
-            startMinutes = slotItem.startTime.asMinutes(),
-            endMinutes = slotItem.endTime.asMinutes(),
-            onClick = {
-                sendIntent(slotItem.slotClickIntent)
-            },
-            onDragStop = { startTime, endTime ->
-                updateTimeSlot(
-                    startTime, endTime
-                )
-            }
-        )
-    }
-}
-
-@Composable
-private fun TimeDraggableCardView(
-    modifier: Modifier,
-    startMinutes: Int,
-    endMinutes: Int,
-    slotItem: TimeSlotCardUiState,
-    hourHeight: Dp,
-    onClick: () -> Unit,
-    onDragStop: (LocalTime, LocalTime) -> Unit
-) {
-    var draggableStartMinutes by remember {
-        mutableIntStateOf(startMinutes)
-    }
-    var draggableEndMinutes by remember {
-        mutableIntStateOf(endMinutes)
-    }
-    LaunchedEffect(startMinutes, endMinutes) {
-        draggableStartMinutes = startMinutes
-        draggableEndMinutes = endMinutes
-    }
-    Timber.d("show card. title=${slotItem.title}, draggableStartMinutes=${draggableStartMinutes}, draggableEndMinutes=${draggableEndMinutes}, startMinutes=$startMinutes, endMinutes=$endMinutes")
-
+    val currentSlot by rememberUpdatedState(slotItem)
+    Timber.d("slotItem changed: $currentSlot")
     val density = LocalDensity.current
     val hourHeightPx = density.run { hourHeight.toPx() }
 
-    val topOffsetPx = draggableStartMinutes.minutesToPx(hourHeightPx)
+    val topOffsetPx = currentSlot.startMinutesOfDay.minutesToPx(hourHeightPx)
 
     // height.
-    val slotHeight = (draggableEndMinutes - draggableStartMinutes).minutesToPx(hourHeightPx).let {
-        density.run { it.toDp() }
-    }
-    val slotHeightPx = slotHeight.let { density.run { it.toPx() } }
+    val slotHeightPx =
+        (currentSlot.endMinutesOfDay - currentSlot.startMinutesOfDay).minutesToPx(hourHeightPx)
+    val slotHeight = slotHeightPx.let { density.run { it.toDp() } }
+    Timber.d(
+        """
+        show card. 
+        title=${currentSlot.title}, 
+        startMinutesOfDay=${LocalDateTimeUtil.createFromMinutesOfDay(currentSlot.startMinutesOfDay.toLong())}, 
+        endMinutesOfDay=${LocalDateTimeUtil.createFromMinutesOfDay(currentSlot.endMinutesOfDay.toLong())},
+    """.trimIndent()
+    )
 
     var longPressed by remember { mutableStateOf(false) }
     var isDowned by remember { mutableStateOf(false) }
-
 
     val pointerInputEventHandler: PointerInputEventHandler = remember {
         PointerInputEventHandler {
@@ -165,14 +85,13 @@ private fun TimeDraggableCardView(
                 longPressed = false
                 var isMoved = false
                 val activeDragTarget = when {
-                    down.position.y < 20.dp.toPx() -> DragTarget.Top
-                    down.position.y > (slotHeightPx - 20.dp.toPx()) -> DragTarget.Bottom
-                    else -> DragTarget.Card
+                    down.position.y < 20.dp.toPx() -> NewDragTarget.Top
+                    down.position.y > (slotHeightPx - 20.dp.toPx()) -> NewDragTarget.Bottom
+                    else -> NewDragTarget.Card
                 }
                 Timber.d("down. activeDragTarget=$activeDragTarget, down.position.y=${down.position.y}, bottomPosition=${slotHeightPx - 20.dp.toPx()}")
 
                 val downTimeStamp = System.currentTimeMillis()
-
                 while (true) {
                     val event = awaitPointerEvent().changes.firstOrNull() ?: break
                     if (event.pressed.not()) {
@@ -203,22 +122,57 @@ private fun TimeDraggableCardView(
                     if (longPressed) {
                         event.consume()
 
+                        // TODO: 어..왠지 캡쳐 문제 같은데..여기 스레드가..이전의 것을 가지고 있는것 같아. 그걸 기반으로 더할려니..안되는것 같고..
                         when (activeDragTarget) {
-                            DragTarget.Card -> {
+                            NewDragTarget.Card -> {
                                 val minutesFactor = dragAmount.y.pxToMinutes(hourHeightPx).toInt()
-
-                                draggableStartMinutes += minutesFactor
-                                draggableEndMinutes += minutesFactor
+                                Timber.d(
+                                    "drag. item. startTime=${
+                                        LocalDateTimeUtil.createFromMinutesOfDay(
+                                            currentSlot.startMinutesOfDay.toLong()
+                                        )
+                                    }, endTime=${LocalDateTimeUtil.createFromMinutesOfDay(currentSlot.startMinutesOfDay.toLong())}"
+                                )
+                                val startTime =
+                                    LocalDateTimeUtil.createFromMinutesOfDay(currentSlot.startMinutesOfDay.toLong() + minutesFactor)
+                                val endTime =
+                                    LocalDateTimeUtil.createFromMinutesOfDay(currentSlot.endMinutesOfDay.toLong() + minutesFactor)
+                                sendIntent.invoke(
+                                    TimeRoutinePageUiIntent.UpdateSlot(
+                                        currentSlot.slotUuid,
+                                        startTime,
+                                        endTime,
+                                        true
+                                    )
+                                )
                             }
 
-                            DragTarget.Top -> {
+                            NewDragTarget.Top -> {
                                 val minutesFactor = dragAmount.y.pxToMinutes(hourHeightPx).toInt()
-                                draggableStartMinutes += minutesFactor
+                                val startTime =
+                                    LocalDateTimeUtil.createFromMinutesOfDay(currentSlot.startMinutesOfDay.toLong() + minutesFactor)
+                                sendIntent.invoke(
+                                    TimeRoutinePageUiIntent.UpdateSlot(
+                                        currentSlot.slotUuid,
+                                        startTime,
+                                        LocalDateTimeUtil.createFromMinutesOfDay(currentSlot.endMinutesOfDay.toLong()),
+                                        true
+                                    )
+                                )
                             }
 
-                            DragTarget.Bottom -> {
+                            NewDragTarget.Bottom -> {
                                 val minutesFactor = dragAmount.y.pxToMinutes(hourHeightPx).toInt()
-                                draggableEndMinutes += minutesFactor
+                                val endTime =
+                                    LocalDateTimeUtil.createFromMinutesOfDay(currentSlot.endMinutesOfDay.toLong() + minutesFactor)
+                                sendIntent.invoke(
+                                    TimeRoutinePageUiIntent.UpdateSlot(
+                                        uuid = currentSlot.slotUuid,
+                                        newStart = LocalDateTimeUtil.createFromMinutesOfDay(currentSlot.startMinutesOfDay.toLong()),
+                                        newEnd = endTime,
+                                        true
+                                    )
+                                )
                             }
                         }
                     }
@@ -227,13 +181,29 @@ private fun TimeDraggableCardView(
                 Timber.d("gesture finished. longPressed=$longPressed, isMoved=$isMoved")
                 isDowned = false
                 if (longPressed) {
-                    onDragStop(
-                        draggableStartMinutes.minutesToLocalTime().normalize(),
-                        draggableEndMinutes.minutesToLocalTime().normalize()
+                    val startTime =
+                        LocalDateTimeUtil.createFromMinutesOfDay(currentSlot.startMinutesOfDay.toLong())
+                            .normalize()
+                    val endTime =
+                        LocalDateTimeUtil.createFromMinutesOfDay(currentSlot.endMinutesOfDay.toLong())
+                            .normalize()
+                    sendIntent.invoke(
+                        TimeRoutinePageUiIntent.UpdateSlot(
+                            uuid = currentSlot.slotUuid,
+                            newStart = startTime,
+                            newEnd = endTime,
+                            onlyState = false
+                        )
                     )
                 } else {
                     if (!isMoved) {
-                        onClick()
+                        sendIntent.invoke(
+                            TimeRoutinePageUiIntent.ShowSlotEdit(
+                                slotId = currentSlot.slotUuid,
+                                routineId = currentSlot.routineUuid
+
+                            )
+                        )
                     }
                 }
                 longPressed = false
@@ -244,12 +214,14 @@ private fun TimeDraggableCardView(
 
     ItemCardView(
         modifier = modifier.then(cardGestureModifier),
-        isLongPressed = longPressed,
-        title = slotItem.title,
-        startTime = draggableStartMinutes.minutesToLocalTime().asFormattedString(),
-        endTime = draggableEndMinutes.minutesToLocalTime().asFormattedString(),
+        title = currentSlot.title,
+        startTime = LocalDateTimeUtil.createFromMinutesOfDay(currentSlot.startMinutesOfDay.toLong())
+            .asFormattedString(),
+        endTime = LocalDateTimeUtil.createFromMinutesOfDay(currentSlot.endMinutesOfDay.toLong())
+            .asFormattedString(),
         heightDp = slotHeight,
-        topOffsetPx = topOffsetPx.toInt()
+        topOffsetPx = topOffsetPx.toInt(),
+        isLongPressed = longPressed,
     )
 }
 
@@ -261,7 +233,7 @@ private fun ItemCardView(
     endTime: String,
     heightDp: Dp,
     topOffsetPx: Int,
-    isLongPressed: Boolean
+    isLongPressed: Boolean,
 ) {
     val cardColor = if (isLongPressed) {
         MaterialTheme.colorScheme.primaryContainer
@@ -330,9 +302,6 @@ private fun Preview() {
     }
 }
 
-private fun Int.minutesToLocalTime(): LocalTime {
-    return LocalTime.of(0, 0).plusMinutes(this.toLong())
-}
 
 private fun Float.pxToMinutes(hourHeightPx: Float): Float {
     return (this / hourHeightPx) * 60
@@ -342,4 +311,4 @@ private fun Int.minutesToPx(hourHeightPx: Float): Float {
     return (this / 60f) * hourHeightPx
 }
 
-private enum class DragTarget { Card, Top, Bottom }
+private enum class NewDragTarget { Card, Top, Bottom }
