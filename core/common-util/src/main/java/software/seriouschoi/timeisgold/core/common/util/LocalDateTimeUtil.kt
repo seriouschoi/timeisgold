@@ -38,6 +38,19 @@ object LocalDateTimeUtil {
     fun createFromMinutesOfDay(
         minutesOfDay: Long,
     ): LocalTime {
-        return LocalTime.of(0, 0).plusMinutes(minutesOfDay)
+        val minutesDelta = when {
+            minutesOfDay < 0 -> {
+                //-1시
+                DAY_MINUTES + minutesOfDay
+            }
+            minutesOfDay >= DAY_MINUTES -> {
+                //25시
+                0 + (minutesOfDay - DAY_MINUTES)
+            }
+            else -> {
+                minutesOfDay
+            }
+        }
+        return LocalTime.of(0, 0).plusMinutes(minutesDelta)
     }
 }

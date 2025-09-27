@@ -44,9 +44,7 @@ internal fun NewTimeSlotItemView(
     hourHeight: Dp,
     sendIntent: (TimeRoutinePageUiIntent) -> Unit,
 ) {
-
     val currentSlot by rememberUpdatedState(slotItem)
-    Timber.d("slotItem changed: $currentSlot")
     val density = LocalDensity.current
     val hourHeightPx = density.run { hourHeight.toPx() }
 
@@ -122,17 +120,9 @@ internal fun NewTimeSlotItemView(
                     if (longPressed) {
                         event.consume()
 
-                        // TODO: 어..왠지 캡쳐 문제 같은데..여기 스레드가..이전의 것을 가지고 있는것 같아. 그걸 기반으로 더할려니..안되는것 같고..
                         when (activeDragTarget) {
                             NewDragTarget.Card -> {
                                 val minutesFactor = dragAmount.y.pxToMinutes(hourHeightPx).toInt()
-                                Timber.d(
-                                    "drag. item. startTime=${
-                                        LocalDateTimeUtil.createFromMinutesOfDay(
-                                            currentSlot.startMinutesOfDay.toLong()
-                                        )
-                                    }, endTime=${LocalDateTimeUtil.createFromMinutesOfDay(currentSlot.startMinutesOfDay.toLong())}"
-                                )
                                 val startTime =
                                     LocalDateTimeUtil.createFromMinutesOfDay(currentSlot.startMinutesOfDay.toLong() + minutesFactor)
                                 val endTime =
