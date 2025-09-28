@@ -209,7 +209,7 @@ private fun TimeRoutinePageUiState.reduce(
         val routineState = this as? TimeRoutinePageUiState.Routine
             ?: TimeRoutinePageUiState.Routine.default()
 
-        val newSlotItemList = routineState.newSlotItemList.map {
+        val newSlotItemList = routineState.slotItemList.map {
             if (it.slotUuid == intent.uuid) {
                 it.copy(
                     startMinutesOfDay = intent.newStart.asMinutes(),
@@ -223,7 +223,7 @@ private fun TimeRoutinePageUiState.reduce(
         }.flatten().distinct()
 
         routineState.copy(
-            newSlotItemList = newSlotItemList
+            slotItemList = newSlotItemList
         )
     }
 
@@ -253,8 +253,8 @@ private fun TimeRoutinePageUiState.reduce(value: UiPreState.Routine): TimeRoutin
             val routineUuid = routineComposition.timeRoutine.uuid
             routineState.copy(
                 title = routineComposition.timeRoutine.title,
-                newSlotItemList = routineComposition.timeSlots.map { slotEntity: TimeSlotEntity ->
-                    val defaultSlotItem = NewTimeSlotCardUiState(
+                slotItemList = routineComposition.timeSlots.map { slotEntity: TimeSlotEntity ->
+                    val defaultSlotItem = TimeSlotCardUiState(
                         slotUuid = slotEntity.uuid,
                         routineUuid = routineUuid,
                         title = slotEntity.title,
@@ -284,7 +284,7 @@ private fun TimeRoutinePageUiState.reduce(value: UiPreState.Routine): TimeRoutin
     }
 }
 
-private fun NewTimeSlotCardUiState.splitOverMidnight(): List<NewTimeSlotCardUiState> {
+private fun TimeSlotCardUiState.splitOverMidnight(): List<TimeSlotCardUiState> {
     return if (this.startMinutesOfDay > this.endMinutesOfDay) {
         //ex: 22 ~ 6
 

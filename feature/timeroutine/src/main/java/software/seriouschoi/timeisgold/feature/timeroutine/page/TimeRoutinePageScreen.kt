@@ -108,9 +108,9 @@ private fun Routine(
                 .fillMaxWidth()
                 .height(hourHeight * 24)
         ) {
-            Timber.d("slotItemList size=${state.newSlotItemList.size}")
-            state.newSlotItemList.forEach { slot ->
-                NewTimeSlotItemView(
+            Timber.d("slotItemList size=${state.slotItemList.size}")
+            state.slotItemList.forEach { slot ->
+                TimeSlotItemView(
                     modifier = Modifier.fillMaxWidth(),
                     slotItem = slot,
                     hourHeight = hourHeight,
@@ -162,8 +162,8 @@ private fun PreviewRoutine() {
             TimeRoutinePageUiState.Routine(
                 title = "루틴 1",
                 dayOfWeekName = "월",
-                newSlotItemList = listOf(
-                    NewTimeSlotCardUiState(
+                slotItemList = listOf(
+                    TimeSlotCardUiState(
                         slotUuid = "temp_uuid",
                         routineUuid = "temp_routine_uuid",
                         title = "Some Slot Title",
