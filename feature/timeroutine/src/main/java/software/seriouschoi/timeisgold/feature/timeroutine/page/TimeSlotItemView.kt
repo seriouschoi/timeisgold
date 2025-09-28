@@ -59,6 +59,7 @@ internal fun TimeSlotItemView(
     var isDowned by remember { mutableStateOf(false) }
 
     val pointerInputEventHandler: PointerInputEventHandler = remember {
+        //원인 불명의 두번 터치 이벤트를 막기위해, PointerInputEventHandler를 분리하여 remember로 감쌈.
         PointerInputEventHandler {
             Timber.d("PointerInput block CREATED")
             val movedOffset = Offset(5f, 5f)
