@@ -24,7 +24,7 @@ import software.seriouschoi.timeisgold.core.common.ui.UiText
 import software.seriouschoi.timeisgold.core.common.ui.asResultState
 import software.seriouschoi.timeisgold.core.common.ui.flowResultState
 import software.seriouschoi.timeisgold.core.common.util.Envelope
-import software.seriouschoi.timeisgold.core.common.util.LocalDateTimeUtil
+import software.seriouschoi.timeisgold.core.common.util.LocalTimeUtil
 import software.seriouschoi.timeisgold.core.common.util.asFormattedString
 import software.seriouschoi.timeisgold.core.common.util.asMinutes
 import software.seriouschoi.timeisgold.core.domain.mapper.onlyDomainResult
@@ -289,10 +289,10 @@ private fun TimeSlotCardUiState.splitOverMidnight(): List<TimeSlotCardUiState> {
         //ex: 22 ~ 6
 
         //24 + 6(endTime)
-        val overEndMinutes = LocalDateTimeUtil.DAY_MINUTES + (this.endMinutesOfDay)
+        val overEndMinutes = LocalTimeUtil.DAY_MINUTES + (this.endMinutesOfDay)
         //00 - (24 - 22(startTime))
         val negativeStartMinutes =
-            0 - (LocalDateTimeUtil.DAY_MINUTES - this.startMinutesOfDay)
+            0 - (LocalTimeUtil.DAY_MINUTES - this.startMinutesOfDay)
         listOf(
             this.copy(
                 startMinutesOfDay = this.startMinutesOfDay,

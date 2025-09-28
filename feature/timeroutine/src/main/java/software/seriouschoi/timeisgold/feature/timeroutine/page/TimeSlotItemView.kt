@@ -31,7 +31,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import software.seriouschoi.timeisgold.core.common.ui.TigTheme
-import software.seriouschoi.timeisgold.core.common.util.LocalDateTimeUtil
+import software.seriouschoi.timeisgold.core.common.util.LocalTimeUtil
 import software.seriouschoi.timeisgold.core.common.util.normalize
 import timber.log.Timber
 import kotlin.math.absoluteValue
@@ -47,18 +47,12 @@ internal fun TimeSlotItemView(
     val density = LocalDensity.current
     val hourHeightPx = density.run { hourHeight.toPx() }
 
-    val topOffsetPx = currentSlot.startMinutesOfDay.minutesToPx(hourHeightPx)
-
-    // height.
-    val slotHeightPx =
-        (currentSlot.endMinutesOfDay - currentSlot.startMinutesOfDay).minutesToPx(hourHeightPx)
-    val slotHeight = slotHeightPx.let { density.run { it.toDp() } }
     Timber.d(
         """
         show card. 
         title=${currentSlot.title}, 
-        startMinutesOfDay=${LocalDateTimeUtil.createFromMinutesOfDay(currentSlot.startMinutesOfDay.toLong())}, 
-        endMinutesOfDay=${LocalDateTimeUtil.createFromMinutesOfDay(currentSlot.endMinutesOfDay.toLong())},
+        startMinutesOfDay=${LocalTimeUtil.create(currentSlot.startMinutesOfDay.toLong())}, 
+        endMinutesOfDay=${LocalTimeUtil.create(currentSlot.endMinutesOfDay.toLong())},
     """.trimIndent()
     )
 
@@ -75,18 +69,22 @@ internal fun TimeSlotItemView(
                     Timber.d("downed.")
                     return@awaitEachGesture
                 }
-
+                // TODO: jhchoi 2025. 9. 29. 분리 해야함.
                 isDowned = true
                 var distanceX = 0L
                 var distanceY = 0L
                 longPressed = false
                 var isMoved = false
+                val slotHeightPx =
+                    (currentSlot.endMinutesOfDay - currentSlot.startMinutesOfDay).minutesToPx(
+                        hourHeightPx
+                    )
                 val activeDragTarget = when {
                     down.position.y < 20.dp.toPx() -> DragTarget.Top
                     down.position.y > (slotHeightPx - 20.dp.toPx()) -> DragTarget.Bottom
                     else -> DragTarget.Card
                 }
-                Timber.d("down. activeDragTarget=$activeDragTarget, down.position.y=${down.position.y}, bottomPosition=${slotHeightPx - 20.dp.toPx()}")
+                Timber.d("down. activeDragTarget=$activeDragTarget, slotHeightPx=$slotHeightPx, down.position.y=${down.position.y}")
 
                 val downTimeStamp = System.currentTimeMillis()
                 while (true) {
@@ -124,9 +122,9 @@ internal fun TimeSlotItemView(
                             DragTarget.Card -> {
                                 val minutesFactor = dragAmount.y.pxToMinutes(hourHeightPx).toInt()
                                 val startTime =
-                                    LocalDateTimeUtil.createFromMinutesOfDay(currentSlot.startMinutesOfDay.toLong() + minutesFactor)
+                                    LocalTimeUtil.create(currentSlot.startMinutesOfDay.toLong() + minutesFactor)
                                 val endTime =
-                                    LocalDateTimeUtil.createFromMinutesOfDay(currentSlot.endMinutesOfDay.toLong() + minutesFactor)
+                                    LocalTimeUtil.create(currentSlot.endMinutesOfDay.toLong() + minutesFactor)
                                 sendIntent.invoke(
                                     TimeRoutinePageUiIntent.UpdateSlot(
                                         uuid = currentSlot.slotUuid,
@@ -134,19 +132,19 @@ internal fun TimeSlotItemView(
                                         newEnd = endTime,
                                         onlyUi = true,
 
-                                    )
+                                        )
                                 )
                             }
 
                             DragTarget.Top -> {
                                 val minutesFactor = dragAmount.y.pxToMinutes(hourHeightPx).toInt()
                                 val startTime =
-                                    LocalDateTimeUtil.createFromMinutesOfDay(currentSlot.startMinutesOfDay.toLong() + minutesFactor)
+                                    LocalTimeUtil.create(currentSlot.startMinutesOfDay.toLong() + minutesFactor)
                                 sendIntent.invoke(
                                     TimeRoutinePageUiIntent.UpdateSlot(
                                         currentSlot.slotUuid,
                                         startTime,
-                                        LocalDateTimeUtil.createFromMinutesOfDay(currentSlot.endMinutesOfDay.toLong()),
+                                        LocalTimeUtil.create(currentSlot.endMinutesOfDay.toLong()),
                                         true
                                     )
                                 )
@@ -155,11 +153,11 @@ internal fun TimeSlotItemView(
                             DragTarget.Bottom -> {
                                 val minutesFactor = dragAmount.y.pxToMinutes(hourHeightPx).toInt()
                                 val endTime =
-                                    LocalDateTimeUtil.createFromMinutesOfDay(currentSlot.endMinutesOfDay.toLong() + minutesFactor)
+                                    LocalTimeUtil.create(currentSlot.endMinutesOfDay.toLong() + minutesFactor)
                                 sendIntent.invoke(
                                     TimeRoutinePageUiIntent.UpdateSlot(
                                         uuid = currentSlot.slotUuid,
-                                        newStart = LocalDateTimeUtil.createFromMinutesOfDay(
+                                        newStart = LocalTimeUtil.create(
                                             currentSlot.startMinutesOfDay.toLong()
                                         ),
                                         newEnd = endTime,
@@ -175,10 +173,10 @@ internal fun TimeSlotItemView(
                 isDowned = false
                 if (longPressed) {
                     val startTime =
-                        LocalDateTimeUtil.createFromMinutesOfDay(currentSlot.startMinutesOfDay.toLong())
+                        LocalTimeUtil.create(currentSlot.startMinutesOfDay.toLong())
                             .normalize()
                     val endTime =
-                        LocalDateTimeUtil.createFromMinutesOfDay(currentSlot.endMinutesOfDay.toLong())
+                        LocalTimeUtil.create(currentSlot.endMinutesOfDay.toLong())
                             .normalize()
                     sendIntent.invoke(
                         TimeRoutinePageUiIntent.UpdateSlot(
@@ -204,10 +202,13 @@ internal fun TimeSlotItemView(
     }
     val cardGestureModifier = remember { Modifier.pointerInput(Unit, pointerInputEventHandler) }
 
+    val topOffsetPx = currentSlot.startMinutesOfDay.minutesToPx(hourHeightPx)
+    val slotHeightPx =
+        (currentSlot.endMinutesOfDay - currentSlot.startMinutesOfDay).minutesToPx(hourHeightPx)
     ItemCardView(
         modifier = modifier.then(cardGestureModifier),
         item = currentSlot,
-        heightDp = slotHeight,
+        heightDp = slotHeightPx.let { density.run { it.toDp() } },
         topOffsetPx = topOffsetPx.toInt(),
     )
 }
