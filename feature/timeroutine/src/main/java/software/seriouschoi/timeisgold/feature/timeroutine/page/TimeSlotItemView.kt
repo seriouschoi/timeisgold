@@ -58,150 +58,146 @@ internal fun TimeSlotItemView(
 
     var isDowned by remember { mutableStateOf(false) }
 
-    val pointerInputEventHandler: PointerInputEventHandler = remember {
-        //원인 불명의 두번 터치 이벤트를 막기위해, PointerInputEventHandler를 분리하여 remember로 감쌈.
-        PointerInputEventHandler {
-            Timber.d("PointerInput block CREATED")
-            val movedOffset = Offset(5f, 5f)
-            awaitEachGesture {
-                val down = awaitFirstDown()
-                var longPressed = false
-                if (isDowned) {
-                    Timber.d("downed.")
-                    return@awaitEachGesture
-                }
-                // TODO: jhchoi 2025. 9. 29. 분리 해야함.
-                isDowned = true
-                var distanceX = 0L
-                var distanceY = 0L
-                longPressed = false
-                var isMoved = false
-                val slotHeightPx =
-                    (currentSlot.endMinutesOfDay - currentSlot.startMinutesOfDay).minutesToPx(
-                        hourHeightPx
-                    )
-                val activeDragTarget = when {
-                    down.position.y < 20.dp.toPx() -> DragTarget.Top
-                    down.position.y > (slotHeightPx - 20.dp.toPx()) -> DragTarget.Bottom
-                    else -> DragTarget.Card
-                }
-                Timber.d("down. activeDragTarget=$activeDragTarget, slotHeightPx=$slotHeightPx, down.position.y=${down.position.y}")
+    val cardGestureModifier = remember { Modifier.pointerInput(Unit) {
+        Timber.d("PointerInput block CREATED")
+        val movedOffset = Offset(5f, 5f)
+        awaitEachGesture {
+            val down = awaitFirstDown()
+            var longPressed = false
+            if (isDowned) {
+                Timber.d("downed.")
+                return@awaitEachGesture
+            }
+            // TODO: jhchoi 2025. 9. 29. 분리 해야함.
+            isDowned = true
+            var distanceX = 0L
+            var distanceY = 0L
+            var isMoved = false
+            val slotHeightPx =
+                (currentSlot.endMinutesOfDay - currentSlot.startMinutesOfDay).minutesToPx(
+                    hourHeightPx
+                )
+            val activeDragTarget = when {
+                down.position.y < 20.dp.toPx() -> DragTarget.Top
+                down.position.y > (slotHeightPx - 20.dp.toPx()) -> DragTarget.Bottom
+                else -> DragTarget.Card
+            }
+            Timber.d("down. activeDragTarget=$activeDragTarget, slotHeightPx=$slotHeightPx, down.position.y=${down.position.y}")
 
-                val downTimeStamp = System.currentTimeMillis()
-                while (true) {
-                    val event = awaitPointerEvent().changes.firstOrNull() ?: break
-                    if (event.pressed.not()) {
-                        Timber.d("up. distanceX=$distanceX, distanceY=$distanceY")
-                        event.consume()
-                        break
-                    }
-
-                    val dragAmount = event.positionChange()
-                    distanceX += dragAmount.x.absoluteValue.toLong()
-                    distanceY += dragAmount.y.absoluteValue.toLong()
-                    if (distanceX > movedOffset.x || distanceY > movedOffset.y) {
-                        if (!isMoved) {
-                            Timber.d("move!! distanceX=$distanceX, distanceY=$distanceY")
-                        }
-                        isMoved = true
-                    }
-
-                    val now = System.currentTimeMillis()
-                    if (now - downTimeStamp > 300) {
-                        if (!isMoved && !longPressed) {
-                            //long press!!
-                            Timber.d("long press!!")
-                            longPressed = true
-                        }
-                    }
-
-                    if (longPressed) {
-                        event.consume()
-
-
-                        when (activeDragTarget) {
-                            DragTarget.Card -> {
-                                val minutesFactor = dragAmount.y.pxToMinutes(hourHeightPx).toInt()
-                                val startTime =
-                                    LocalTimeUtil.create(currentSlot.startMinutesOfDay.toLong() + minutesFactor)
-                                val endTime =
-                                    LocalTimeUtil.create(currentSlot.endMinutesOfDay.toLong() + minutesFactor)
-                                sendIntent.invoke(
-                                    TimeRoutinePageUiIntent.UpdateSlot(
-                                        uuid = currentSlot.slotUuid,
-                                        newStart = startTime,
-                                        newEnd = endTime,
-                                        onlyUi = true,
-
-                                        )
-                                )
-                            }
-
-                            DragTarget.Top -> {
-                                val minutesFactor = dragAmount.y.pxToMinutes(hourHeightPx).toInt()
-                                val startTime =
-                                    LocalTimeUtil.create(currentSlot.startMinutesOfDay.toLong() + minutesFactor)
-                                sendIntent.invoke(
-                                    TimeRoutinePageUiIntent.UpdateSlot(
-                                        currentSlot.slotUuid,
-                                        startTime,
-                                        LocalTimeUtil.create(currentSlot.endMinutesOfDay.toLong()),
-                                        true
-                                    )
-                                )
-                            }
-
-                            DragTarget.Bottom -> {
-                                val minutesFactor = dragAmount.y.pxToMinutes(hourHeightPx).toInt()
-                                val endTime =
-                                    LocalTimeUtil.create(currentSlot.endMinutesOfDay.toLong() + minutesFactor)
-                                sendIntent.invoke(
-                                    TimeRoutinePageUiIntent.UpdateSlot(
-                                        uuid = currentSlot.slotUuid,
-                                        newStart = LocalTimeUtil.create(
-                                            currentSlot.startMinutesOfDay.toLong()
-                                        ),
-                                        newEnd = endTime,
-                                        true
-                                    )
-                                )
-                            }
-                        }
-                    }
+            val downTimeStamp = System.currentTimeMillis()
+            while (true) {
+                val event = awaitPointerEvent().changes.firstOrNull() ?: break
+                if (event.pressed.not()) {
+                    Timber.d("up. distanceX=$distanceX, distanceY=$distanceY")
+                    event.consume()
+                    break
                 }
 
-                Timber.d("gesture finished. longPressed=$longPressed, isMoved=$isMoved")
-                isDowned = false
-                if (longPressed) {
-                    val startTime =
-                        LocalTimeUtil.create(currentSlot.startMinutesOfDay.toLong())
-                            .normalize()
-                    val endTime =
-                        LocalTimeUtil.create(currentSlot.endMinutesOfDay.toLong())
-                            .normalize()
-                    sendIntent.invoke(
-                        TimeRoutinePageUiIntent.UpdateSlot(
-                            uuid = currentSlot.slotUuid,
-                            newStart = startTime,
-                            newEnd = endTime,
-                            onlyUi = false
-                        )
-                    )
-                } else {
+                val dragAmount = event.positionChange()
+                distanceX += dragAmount.x.absoluteValue.toLong()
+                distanceY += dragAmount.y.absoluteValue.toLong()
+                if (distanceX > movedOffset.x || distanceY > movedOffset.y) {
                     if (!isMoved) {
-                        sendIntent.invoke(
-                            TimeRoutinePageUiIntent.ShowSlotEdit(
-                                slotId = currentSlot.slotUuid,
-                                routineId = currentSlot.routineUuid
-
-                            )
-                        )
+                        Timber.d("move!! distanceX=$distanceX, distanceY=$distanceY")
                     }
+                    isMoved = true
+                }
+
+                val now = System.currentTimeMillis()
+                if (now - downTimeStamp > 300) {
+                    if (!isMoved && !longPressed) {
+                        //long press!!
+                        Timber.d("long press!!")
+                        longPressed = true
+                    }
+                }
+
+                if (longPressed) {
+                    event.consume()
+
+
+                    when (activeDragTarget) {
+                        DragTarget.Card -> {
+                            val minutesFactor = dragAmount.y.pxToMinutes(hourHeightPx).toInt()
+                            val startTime =
+                                LocalTimeUtil.create(currentSlot.startMinutesOfDay.toLong() + minutesFactor)
+                            val endTime =
+                                LocalTimeUtil.create(currentSlot.endMinutesOfDay.toLong() + minutesFactor)
+                            sendIntent.invoke(
+                                TimeRoutinePageUiIntent.UpdateSlot(
+                                    uuid = currentSlot.slotUuid,
+                                    newStart = startTime,
+                                    newEnd = endTime,
+                                    onlyUi = true,
+
+                                    )
+                            )
+                        }
+
+                        DragTarget.Top -> {
+                            val minutesFactor = dragAmount.y.pxToMinutes(hourHeightPx).toInt()
+                            val startTime =
+                                LocalTimeUtil.create(currentSlot.startMinutesOfDay.toLong() + minutesFactor)
+                            sendIntent.invoke(
+                                TimeRoutinePageUiIntent.UpdateSlot(
+                                    currentSlot.slotUuid,
+                                    startTime,
+                                    LocalTimeUtil.create(currentSlot.endMinutesOfDay.toLong()),
+                                    true
+                                )
+                            )
+                        }
+
+                        DragTarget.Bottom -> {
+                            val minutesFactor = dragAmount.y.pxToMinutes(hourHeightPx).toInt()
+                            val endTime =
+                                LocalTimeUtil.create(currentSlot.endMinutesOfDay.toLong() + minutesFactor)
+                            sendIntent.invoke(
+                                TimeRoutinePageUiIntent.UpdateSlot(
+                                    uuid = currentSlot.slotUuid,
+                                    newStart = LocalTimeUtil.create(
+                                        currentSlot.startMinutesOfDay.toLong()
+                                    ),
+                                    newEnd = endTime,
+                                    true
+                                )
+                            )
+                        }
+                    }
+                }
+            }
+
+            Timber.d("gesture finished. longPressed=$longPressed, isMoved=$isMoved")
+            isDowned = false
+            if (longPressed) {
+                val startTime =
+                    LocalTimeUtil.create(currentSlot.startMinutesOfDay.toLong())
+                        .normalize()
+                val endTime =
+                    LocalTimeUtil.create(currentSlot.endMinutesOfDay.toLong())
+                        .normalize()
+                sendIntent.invoke(
+                    TimeRoutinePageUiIntent.UpdateSlot(
+                        uuid = currentSlot.slotUuid,
+                        newStart = startTime,
+                        newEnd = endTime,
+                        onlyUi = false
+                    )
+                )
+            } else {
+                if (!isMoved) {
+                    sendIntent.invoke(
+                        TimeRoutinePageUiIntent.ShowSlotEdit(
+                            slotId = currentSlot.slotUuid,
+                            routineId = currentSlot.routineUuid
+
+                        )
+                    )
                 }
             }
         }
     }
-    val cardGestureModifier = remember { Modifier.pointerInput(Unit, pointerInputEventHandler) }
+    }
 
     val topOffsetPx = currentSlot.startMinutesOfDay.minutesToPx(hourHeightPx)
     val slotHeightPx =
