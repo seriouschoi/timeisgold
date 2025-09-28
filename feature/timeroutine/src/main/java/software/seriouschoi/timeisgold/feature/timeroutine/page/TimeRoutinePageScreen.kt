@@ -175,8 +175,9 @@ private fun PreviewRoutine() {
                             uuid = "temp_uuid",
                             newStart = startTime,
                             newEnd = endTime,
-                            onlyState = false
-                        )
+                            onlyUi = false
+                        ),
+                        isSelected = false
                     )
                 ),
                 dayOfWeeks = listOf(

@@ -32,7 +32,6 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import software.seriouschoi.timeisgold.core.common.ui.TigTheme
 import software.seriouschoi.timeisgold.core.common.util.LocalDateTimeUtil
-import software.seriouschoi.timeisgold.core.common.util.asFormattedString
 import software.seriouschoi.timeisgold.core.common.util.normalize
 import timber.log.Timber
 import kotlin.math.absoluteValue
@@ -63,7 +62,6 @@ internal fun TimeSlotItemView(
     """.trimIndent()
     )
 
-    var longPressed by remember { mutableStateOf(false) }
     var isDowned by remember { mutableStateOf(false) }
 
     val pointerInputEventHandler: PointerInputEventHandler = remember {
@@ -72,6 +70,7 @@ internal fun TimeSlotItemView(
             val movedOffset = Offset(5f, 5f)
             awaitEachGesture {
                 val down = awaitFirstDown()
+                var longPressed = false
                 if (isDowned) {
                     Timber.d("downed.")
                     return@awaitEachGesture
@@ -120,6 +119,7 @@ internal fun TimeSlotItemView(
                     if (longPressed) {
                         event.consume()
 
+
                         when (activeDragTarget) {
                             DragTarget.Card -> {
                                 val minutesFactor = dragAmount.y.pxToMinutes(hourHeightPx).toInt()
@@ -129,10 +129,11 @@ internal fun TimeSlotItemView(
                                     LocalDateTimeUtil.createFromMinutesOfDay(currentSlot.endMinutesOfDay.toLong() + minutesFactor)
                                 sendIntent.invoke(
                                     TimeRoutinePageUiIntent.UpdateSlot(
-                                        currentSlot.slotUuid,
-                                        startTime,
-                                        endTime,
-                                        true
+                                        uuid = currentSlot.slotUuid,
+                                        newStart = startTime,
+                                        newEnd = endTime,
+                                        onlyUi = true,
+
                                     )
                                 )
                             }
@@ -158,7 +159,9 @@ internal fun TimeSlotItemView(
                                 sendIntent.invoke(
                                     TimeRoutinePageUiIntent.UpdateSlot(
                                         uuid = currentSlot.slotUuid,
-                                        newStart = LocalDateTimeUtil.createFromMinutesOfDay(currentSlot.startMinutesOfDay.toLong()),
+                                        newStart = LocalDateTimeUtil.createFromMinutesOfDay(
+                                            currentSlot.startMinutesOfDay.toLong()
+                                        ),
                                         newEnd = endTime,
                                         true
                                     )
@@ -182,7 +185,7 @@ internal fun TimeSlotItemView(
                             uuid = currentSlot.slotUuid,
                             newStart = startTime,
                             newEnd = endTime,
-                            onlyState = false
+                            onlyUi = false
                         )
                     )
                 } else {
@@ -196,7 +199,6 @@ internal fun TimeSlotItemView(
                         )
                     }
                 }
-                longPressed = false
             }
         }
     }
@@ -204,28 +206,20 @@ internal fun TimeSlotItemView(
 
     ItemCardView(
         modifier = modifier.then(cardGestureModifier),
-        title = currentSlot.title,
-        startTime = LocalDateTimeUtil.createFromMinutesOfDay(currentSlot.startMinutesOfDay.toLong())
-            .asFormattedString(),
-        endTime = LocalDateTimeUtil.createFromMinutesOfDay(currentSlot.endMinutesOfDay.toLong())
-            .asFormattedString(),
+        item = currentSlot,
         heightDp = slotHeight,
         topOffsetPx = topOffsetPx.toInt(),
-        isLongPressed = longPressed,
     )
 }
 
 @Composable
 private fun ItemCardView(
     modifier: Modifier,
-    title: String,
-    startTime: String,
-    endTime: String,
+    item: TimeSlotCardUiState,
     heightDp: Dp,
     topOffsetPx: Int,
-    isLongPressed: Boolean,
 ) {
-    val cardColor = if (isLongPressed) {
+    val cardColor = if (item.isSelected) {
         MaterialTheme.colorScheme.primaryContainer
     } else {
         MaterialTheme.colorScheme.surfaceContainer
@@ -255,18 +249,18 @@ private fun ItemCardView(
                 modifier = Modifier.padding(10.dp)
             ) {
                 Text(
-                    text = title,
+                    text = item.title,
                     style = MaterialTheme.typography.titleLarge,
                 )
                 Text(
-                    text = startTime,
+                    text = item.startMinuteText,
                     style = MaterialTheme.typography.bodyLarge
                 )
                 Spacer(
                     modifier = Modifier.weight(1f)
                 )
                 Text(
-                    text = endTime,
+                    text = item.endMinuteText,
                     style = MaterialTheme.typography.bodyLarge,
                 )
             }
@@ -280,14 +274,23 @@ private fun Preview() {
     TigTheme {
         ItemCardView(
             modifier = Modifier
-                .fillMaxWidth()
-                .height(50.dp),
-            title = "title",
-            startTime = "09:00",
-            endTime = "10:00",
+                .fillMaxWidth(),
+            item = TimeSlotCardUiState(
+                slotUuid = "slotUuid",
+                routineUuid = "routineUuid",
+                title = "title",
+                startMinutesOfDay = 0,
+                endMinutesOfDay = 60,
+                startMinuteText = "09:00",
+                endMinuteText = "10:00",
+                slotClickIntent = TimeRoutinePageUiIntent.ShowSlotEdit(
+                    slotId = "slotUuid",
+                    routineId = "routineUuid"
+                ),
+                isSelected = false
+            ),
             heightDp = 50.dp,
             topOffsetPx = 0,
-            isLongPressed = false
         )
     }
 }

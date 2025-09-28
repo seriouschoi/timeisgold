@@ -1,6 +1,5 @@
 package software.seriouschoi.timeisgold.feature.timeroutine.page
 
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -53,7 +52,6 @@ import software.seriouschoi.timeisgold.core.common.ui.R as CommonR
 internal class TimeRoutinePageViewModel @Inject constructor(
     private val watchTimeRoutineCompositionUseCase: WatchTimeRoutineCompositionUseCase,
     private val navigator: DestNavigatorPort,
-    private val savedStateHandle: SavedStateHandle,
     private val setTimeSlotUseCase: SetTimeSlotUseCase,
     private val watchTimeSlotUseCase: WatchTimeSlotUseCase,
 ) : ViewModel() {
@@ -137,7 +135,7 @@ internal class TimeRoutinePageViewModel @Inject constructor(
             }
 
             is TimeRoutinePageUiIntent.UpdateSlot -> {
-                if (!intent.onlyState) {
+                if (!intent.onlyUi) {
                     updateTimeSlot(intent)
                 }
             }
@@ -215,7 +213,8 @@ private fun TimeRoutinePageUiState.reduce(
                     startMinutesOfDay = intent.newStart.asMinutes(),
                     endMinutesOfDay = intent.newEnd.asMinutes(),
                     startMinuteText = intent.newStart.asFormattedString(),
-                    endMinuteText = intent.newEnd.asFormattedString()
+                    endMinuteText = intent.newEnd.asFormattedString(),
+                    isSelected = intent.onlyUi
                 ).splitOverMidnight()
             } else {
                 listOf(it)
@@ -264,7 +263,8 @@ private fun TimeRoutinePageUiState.reduce(value: UiPreState.Routine): TimeRoutin
                         endMinuteText = slotEntity.endTime.asFormattedString(),
                         slotClickIntent = TimeRoutinePageUiIntent.ShowSlotEdit(
                             slotEntity.uuid, routineUuid
-                        )
+                        ),
+                        isSelected = false
                     )
                     defaultSlotItem.splitOverMidnight()
                 }.flatten(),

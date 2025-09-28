@@ -9,6 +9,5 @@ internal data class TimeSlotCardUiState(
     val startMinuteText: String,
     val endMinuteText: String,
     val slotClickIntent: TimeRoutinePageUiIntent,
+    val isSelected: Boolean
 )
-
-
