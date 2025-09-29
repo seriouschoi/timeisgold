@@ -33,9 +33,9 @@ fun LocalTime.normalize(stepMinutes: Float = 15f): LocalTime {
     return normalized
 }
 
-object LocalDateTimeUtil {
+object LocalTimeUtil {
     const val DAY_MINUTES = 60 * 24
-    fun createFromMinutesOfDay(
+    fun create(
         minutesOfDay: Long,
     ): LocalTime {
         val minutesDelta = when {

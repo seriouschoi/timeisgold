@@ -9,9 +9,7 @@ internal sealed interface TimeRoutinePageUiState {
         val title: String = "",
         val dayOfWeekName: String,
         val dayOfWeeks: List<DayOfWeek> = listOf(),
-        @Deprecated("use new slot item list.")
         val slotItemList: List<TimeSlotCardUiState> = emptyList(),
-        val newSlotItemList: List<NewTimeSlotCardUiState> = emptyList(),
     ) : TimeRoutinePageUiState {
         companion object {
             fun default(): Routine {

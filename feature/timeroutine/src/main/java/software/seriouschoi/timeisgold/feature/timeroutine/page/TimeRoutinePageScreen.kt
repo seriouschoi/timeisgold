@@ -35,6 +35,7 @@ import software.seriouschoi.timeisgold.core.common.util.asMinutes
 import timber.log.Timber
 import java.time.DayOfWeek
 import java.time.LocalTime
+import java.util.UUID
 import software.seriouschoi.timeisgold.core.common.ui.R as CommonR
 
 /**
@@ -108,9 +109,9 @@ private fun Routine(
                 .fillMaxWidth()
                 .height(hourHeight * 24)
         ) {
-            Timber.d("slotItemList size=${state.newSlotItemList.size}")
-            state.newSlotItemList.forEach { slot ->
-                NewTimeSlotItemView(
+            Timber.d("slotItemList size=${state.slotItemList.size}")
+            state.slotItemList.forEach { slot ->
+                TimeSlotItemView(
                     modifier = Modifier.fillMaxWidth(),
                     slotItem = slot,
                     hourHeight = hourHeight,
@@ -162,8 +163,8 @@ private fun PreviewRoutine() {
             TimeRoutinePageUiState.Routine(
                 title = "루틴 1",
                 dayOfWeekName = "월",
-                newSlotItemList = listOf(
-                    NewTimeSlotCardUiState(
+                slotItemList = listOf(
+                    TimeSlotCardUiState(
                         slotUuid = "temp_uuid",
                         routineUuid = "temp_routine_uuid",
                         title = "Some Slot Title",
@@ -175,8 +176,9 @@ private fun PreviewRoutine() {
                             uuid = "temp_uuid",
                             newStart = startTime,
                             newEnd = endTime,
-                            onlyState = false
-                        )
+                            onlyUi = false
+                        ),
+                        isSelected = false,
                     )
                 ),
                 dayOfWeeks = listOf(
