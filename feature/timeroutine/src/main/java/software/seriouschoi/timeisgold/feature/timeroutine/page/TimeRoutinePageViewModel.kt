@@ -225,12 +225,7 @@ private fun TimeRoutinePageUiState.reduce(
             } else {
                 listOf(it)
             }
-        }.flatten().distinctBy {
-            //slotItemId을 제외한 나머지 요소의 중복 제거.
-            it.copy(
-                slotItemId = tempSlotUuid
-            )
-        }
+        }.flatten().distinct()
 
         routineState.copy(
             slotItemList = newSlotItemList
@@ -276,7 +271,6 @@ private fun TimeRoutinePageUiState.reduce(value: UiPreState.Routine): TimeRoutin
                             slotEntity.uuid, routineUuid
                         ),
                         isSelected = false,
-                        slotItemId = UUID.randomUUID()
                     )
                     defaultSlotItem.splitOverMidnight()
                 }.flatten(),
@@ -309,12 +303,10 @@ private fun TimeSlotCardUiState.splitOverMidnight(): List<TimeSlotCardUiState> {
             this.copy(
                 startMinutesOfDay = this.startMinutesOfDay,
                 endMinutesOfDay = overEndMinutes,
-                slotItemId = UUID.randomUUID()
             ),
             this.copy(
                 startMinutesOfDay = negativeStartMinutes,
                 endMinutesOfDay = this.endMinutesOfDay,
-                slotItemId = UUID.randomUUID()
             )
         )
     } else {

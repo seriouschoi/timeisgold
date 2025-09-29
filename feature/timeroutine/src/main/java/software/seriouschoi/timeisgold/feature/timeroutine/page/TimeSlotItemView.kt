@@ -16,10 +16,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
@@ -33,7 +30,6 @@ import software.seriouschoi.timeisgold.core.common.ui.TigTheme
 import software.seriouschoi.timeisgold.core.common.util.LocalTimeUtil
 import software.seriouschoi.timeisgold.core.common.util.normalize
 import timber.log.Timber
-import java.util.UUID
 import kotlin.math.absoluteValue
 
 @Composable
@@ -47,32 +43,13 @@ internal fun TimeSlotItemView(
     val density = LocalDensity.current
     val hourHeightPx = density.run { hourHeight.toPx() }
 
-    Timber.d(
-        """
-        show card. 
-        title=${currentSlot.title}, 
-        startMinutesOfDay=${LocalTimeUtil.create(currentSlot.startMinutesOfDay.toLong())}, 
-        endMinutesOfDay=${LocalTimeUtil.create(currentSlot.endMinutesOfDay.toLong())},
-    """.trimIndent()
-    )
-
-    // TODO: jhchoi 2025. 9. 29. 이거 없이도 잘 돌아가야 한다.
-    var isDowned by remember { mutableStateOf(false) }
-
-    val cardGestureModifier = remember {
-        Modifier.pointerInput(currentSlot.slotItemId) {
-            // TODO: jhchoi 2025. 9. 29. 현재 아이템의 id값을 하나 만들어서 키로 써야 디버깅도 수월하고 좋을듯.
+    val cardGestureModifier = Modifier.pointerInput(currentSlot.slotUuid) {
             Timber.d("PointerInput block CREATED")
             val movedOffset = Offset(5f, 5f)
             awaitEachGesture {
-
                 val down = awaitFirstDown()
+                Timber.d("down=${down}")
                 var longPressed = false
-                if (isDowned) {
-                    Timber.d("downed(${this.hashCode()}). startMins=${currentSlot.startMinutesOfDay}, endMins=${currentSlot.endMinutesOfDay}")
-                    return@awaitEachGesture
-                }
-                isDowned = true
                 var distanceX = 0L
                 var distanceY = 0L
                 var isMoved = false
@@ -85,7 +62,7 @@ internal fun TimeSlotItemView(
                     down.position.y > (slotHeightPx - 20.dp.toPx()) -> DragTarget.Bottom
                     else -> DragTarget.Card
                 }
-                Timber.d("down(${this.hashCode()}). activeDragTarget=$activeDragTarget, startMins=${currentSlot.startMinutesOfDay}, endMins=${currentSlot.endMinutesOfDay}")
+                Timber.d("activeDragTarget=$activeDragTarget")
 
                 val downTimeStamp = System.currentTimeMillis()
                 while (true) {
@@ -107,7 +84,7 @@ internal fun TimeSlotItemView(
                     }
 
                     val now = System.currentTimeMillis()
-                    if (now - downTimeStamp > 300) {
+                    if (now - downTimeStamp > 200) {
                         if (!isMoved && !longPressed) {
                             //long press!!
                             Timber.d("long press!!")
@@ -117,8 +94,6 @@ internal fun TimeSlotItemView(
 
                     if (longPressed) {
                         event.consume()
-
-
                         when (activeDragTarget) {
                             DragTarget.Card -> {
                                 val minutesFactor = dragAmount.y.pxToMinutes(hourHeightPx).toInt()
@@ -155,6 +130,7 @@ internal fun TimeSlotItemView(
                                 val minutesFactor = dragAmount.y.pxToMinutes(hourHeightPx).toInt()
                                 val endTime =
                                     LocalTimeUtil.create(currentSlot.endMinutesOfDay.toLong() + minutesFactor)
+                                Timber.d("bottom drag. endTime=$endTime")
                                 sendIntent.invoke(
                                     TimeRoutinePageUiIntent.UpdateSlot(
                                         uuid = currentSlot.slotUuid,
@@ -171,7 +147,6 @@ internal fun TimeSlotItemView(
                 }
 
                 Timber.d("gesture finished. longPressed=$longPressed, isMoved=$isMoved")
-                isDowned = false
                 if (longPressed) {
                     val startTime =
                         LocalTimeUtil.create(currentSlot.startMinutesOfDay.toLong())
@@ -200,16 +175,16 @@ internal fun TimeSlotItemView(
                 }
             }
         }
-    }
 
     val topOffsetPx = currentSlot.startMinutesOfDay.minutesToPx(hourHeightPx)
     val slotHeightPx =
         (currentSlot.endMinutesOfDay - currentSlot.startMinutesOfDay).minutesToPx(hourHeightPx)
     ItemCardView(
-        modifier = modifier.then(cardGestureModifier),
+        modifier = modifier,
         item = currentSlot,
         heightDp = slotHeightPx.let { density.run { it.toDp() } },
         topOffsetPx = topOffsetPx.toInt(),
+        gestureModifier = cardGestureModifier
     )
 }
 
@@ -219,6 +194,7 @@ private fun ItemCardView(
     item: TimeSlotCardUiState,
     heightDp: Dp,
     topOffsetPx: Int,
+    gestureModifier: Modifier = Modifier
 ) {
     val cardColor = if (item.isSelected) {
         MaterialTheme.colorScheme.primaryContainer
@@ -235,7 +211,7 @@ private fun ItemCardView(
             }
             .height(heightDp)
             .padding(start = 40.dp)
-            .then(modifier),
+            .then(gestureModifier),
         elevation = CardDefaults.cardElevation(
             defaultElevation = 10.dp
         ),
@@ -289,7 +265,6 @@ private fun Preview() {
                     routineId = "routineUuid"
                 ),
                 isSelected = false,
-                slotItemId = UUID.randomUUID()
             ),
             heightDp = 50.dp,
             topOffsetPx = 0,

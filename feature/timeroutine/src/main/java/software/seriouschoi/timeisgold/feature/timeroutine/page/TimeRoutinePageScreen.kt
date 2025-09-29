@@ -35,6 +35,7 @@ import software.seriouschoi.timeisgold.core.common.util.asMinutes
 import timber.log.Timber
 import java.time.DayOfWeek
 import java.time.LocalTime
+import java.util.UUID
 import software.seriouschoi.timeisgold.core.common.ui.R as CommonR
 
 /**
@@ -177,7 +178,7 @@ private fun PreviewRoutine() {
                             newEnd = endTime,
                             onlyUi = false
                         ),
-                        isSelected = false
+                        isSelected = false,
                     )
                 ),
                 dayOfWeeks = listOf(
