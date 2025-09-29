@@ -1,5 +1,7 @@
 package software.seriouschoi.timeisgold.feature.timeroutine.page
 
+import java.util.UUID
+
 internal data class TimeSlotCardUiState(
     val slotUuid: String,
     val routineUuid: String,
@@ -9,5 +11,6 @@ internal data class TimeSlotCardUiState(
     val startMinuteText: String,
     val endMinuteText: String,
     val slotClickIntent: TimeRoutinePageUiIntent,
-    val isSelected: Boolean
+    val isSelected: Boolean,
+    val slotItemId: UUID
 )

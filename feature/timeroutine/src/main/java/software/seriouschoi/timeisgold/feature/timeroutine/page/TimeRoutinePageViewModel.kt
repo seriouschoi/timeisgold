@@ -41,6 +41,7 @@ import timber.log.Timber
 import java.time.DayOfWeek
 import java.time.format.TextStyle
 import java.util.Locale
+import java.util.UUID
 import javax.inject.Inject
 import software.seriouschoi.timeisgold.core.common.ui.R as CommonR
 
@@ -203,12 +204,17 @@ private fun TimeRoutinePageUiState.reduce(
     value: UiPreState.Intent,
 ): TimeRoutinePageUiState = when (val intent = value.intent) {
     is TimeRoutinePageUiIntent.UpdateSlot -> {
-        Timber.d("uiState reduce by updateSlot. intent=$intent")
         val routineState = this as? TimeRoutinePageUiState.Routine
             ?: TimeRoutinePageUiState.Routine.default()
 
+        val tempSlotUuid = UUID.randomUUID()
         val newSlotItemList = routineState.slotItemList.map {
             if (it.slotUuid == intent.uuid) {
+                // TODO: jhchoi 2025. 9. 29. 어쨌든 여기서 매번 새로 쪼개겠네. 이미 쪼개진건 상관 없고..
+                /*
+                어..? 아니다 여기서 쪼갰으니깐...
+                overMidnight가 아니게 되는구나.
+                 */
                 it.copy(
                     startMinutesOfDay = intent.newStart.asMinutes(),
                     endMinutesOfDay = intent.newEnd.asMinutes(),
@@ -219,7 +225,12 @@ private fun TimeRoutinePageUiState.reduce(
             } else {
                 listOf(it)
             }
-        }.flatten().distinct()
+        }.flatten().distinctBy {
+            //slotItemId을 제외한 나머지 요소의 중복 제거.
+            it.copy(
+                slotItemId = tempSlotUuid
+            )
+        }
 
         routineState.copy(
             slotItemList = newSlotItemList
@@ -264,7 +275,8 @@ private fun TimeRoutinePageUiState.reduce(value: UiPreState.Routine): TimeRoutin
                         slotClickIntent = TimeRoutinePageUiIntent.ShowSlotEdit(
                             slotEntity.uuid, routineUuid
                         ),
-                        isSelected = false
+                        isSelected = false,
+                        slotItemId = UUID.randomUUID()
                     )
                     defaultSlotItem.splitOverMidnight()
                 }.flatten(),
@@ -296,11 +308,13 @@ private fun TimeSlotCardUiState.splitOverMidnight(): List<TimeSlotCardUiState> {
         listOf(
             this.copy(
                 startMinutesOfDay = this.startMinutesOfDay,
-                endMinutesOfDay = overEndMinutes
+                endMinutesOfDay = overEndMinutes,
+                slotItemId = UUID.randomUUID()
             ),
             this.copy(
                 startMinutesOfDay = negativeStartMinutes,
-                endMinutesOfDay = this.endMinutesOfDay
+                endMinutesOfDay = this.endMinutesOfDay,
+                slotItemId = UUID.randomUUID()
             )
         )
     } else {
