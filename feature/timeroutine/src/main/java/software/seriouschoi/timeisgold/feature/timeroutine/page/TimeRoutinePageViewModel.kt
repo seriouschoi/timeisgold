@@ -207,14 +207,8 @@ private fun TimeRoutinePageUiState.reduce(
         val routineState = this as? TimeRoutinePageUiState.Routine
             ?: TimeRoutinePageUiState.Routine.default()
 
-        val tempSlotUuid = UUID.randomUUID()
         val newSlotItemList = routineState.slotItemList.map {
             if (it.slotUuid == intent.uuid) {
-                // TODO: jhchoi 2025. 9. 29. 어쨌든 여기서 매번 새로 쪼개겠네. 이미 쪼개진건 상관 없고..
-                /*
-                어..? 아니다 여기서 쪼갰으니깐...
-                overMidnight가 아니게 되는구나.
-                 */
                 it.copy(
                     startMinutesOfDay = intent.newStart.asMinutes(),
                     endMinutesOfDay = intent.newEnd.asMinutes(),
