@@ -226,18 +226,7 @@ private fun TimeRoutinePageUiState.reduce(
         val routineState = this as? TimeRoutinePageUiState.Routine
             ?: TimeRoutinePageUiState.Routine.default()
 
-        val isOverlap = routineState.slotItemList.any {
-            if (it.slotUuid == intent.uuid) false
-            else {
-                val intentRange = intent.newStart.asMinutes() until intent.newEnd.asMinutes()
-                val slotRange = it.let {
-                    it.startMinutesOfDay until it.endMinutesOfDay
-                }
-                intentRange.any {
-                    slotRange.contains(it)
-                }
-            }
-        }
+        val isOverlap = intent.isOverlap(routineState.slotItemList)
         if (!isOverlap) {
             val newSlotItemList = routineState.slotItemList.map {
                 if (it.slotUuid == intent.uuid) {
@@ -288,7 +277,7 @@ private fun TimeRoutinePageUiState.reduce(value: UiPreState.Routine): TimeRoutin
                 slotItemList = routineComposition.timeSlots.map { slotEntity: TimeSlotEntity ->
                     val slotItem = slotEntity.toSlotItem(routineUuid)
                     slotItem.splitOverMidnight()
-                }.flatten().sortedByDescending { it.startMinutesOfDay },
+                }.flatten(),
                 dayOfWeeks = routineComposition.dayOfWeeks.map {
                     it.dayOfWeek
                 }.sorted(),
@@ -357,3 +346,34 @@ private fun TimeSlotEntity.toSlotItem(routineUuid: String): TimeSlotCardUiState 
         isSelected = false,
     )
 }
+
+private fun TimeRoutinePageUiIntent.UpdateSlot.isOverlap(slotItemList: List<TimeSlotCardUiState>) =
+    slotItemList.any {
+        if (it.slotUuid == this.uuid) false
+        else {
+            val intentRanges = if (this.newStart > this.newEnd) {
+                listOf(
+                    0 until this.newEnd.asMinutes(),
+                    this.newStart.asMinutes() until LocalTimeUtil.DAY_MINUTES
+                )
+            } else {
+                listOf(
+                    this.newStart.asMinutes() until this.newEnd.asMinutes()
+                )
+            }
+            intentRanges.any { intentRange ->
+                if (intentRange.first > intentRange.last) {
+                    0 until intentRange.last
+                    intentRange.first until LocalTimeUtil.DAY_MINUTES
+                    false
+                } else {
+                    val slotRange = it.let {
+                        it.startMinutesOfDay until it.endMinutesOfDay
+                    }
+                    intentRange.any {
+                        slotRange.contains(it)
+                    }
+                }
+            }
+        }
+    }
