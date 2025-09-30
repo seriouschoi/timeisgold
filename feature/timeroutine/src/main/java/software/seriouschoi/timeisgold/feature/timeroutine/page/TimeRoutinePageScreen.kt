@@ -55,7 +55,6 @@ fun TimeRoutinePageScreen(
         viewModel.load(dayOfWeek)
     }
 
-    // TODO: jhchoi 2025. 9. 30. scaffolds 추가..
     val snackBarHostState = remember { SnackbarHostState() }
 
     Scaffold(
