@@ -14,8 +14,8 @@ class TimeSlotDomainService @Inject constructor(
 ) {
 
     suspend fun isValid(
-        routineUuid: String,
         timeSlotData: TimeSlotEntity,
+        routineUuid: String,
     ): DomainResult<Unit> {
         val newSlotTitle = timeSlotData.title
         if (newSlotTitle.length !in 1..15) {
@@ -27,18 +27,46 @@ class TimeSlotDomainService @Inject constructor(
         if (abs(timeSlotData.endTime.asMinutes() - timeSlotData.startTime.asMinutes()) <= 15) {
             return DomainResult.Failure(DomainError.Conflict.Time)
         }
-
+        // TODO: jhchoi 2025. 9. 30. 자정 넘어가는 데이터 valid처리 누락됨.
 
         //timeslot의 시간이 겹치는지 확인하는 로직.
         val isDuplicateTime = allTimeSlotList.filter {
             it.uuid != timeSlotData.uuid
         }.any {
-            timeSlotData.startTime in (it.startTime..it.endTime)
-                    || timeSlotData.endTime in (it.startTime..it.endTime)
+            val existSlotRange = it.startTime.asMinutes() until it.endTime.asMinutes()
+            val newSlotRange =
+                timeSlotData.startTime.asMinutes() until timeSlotData.endTime.asMinutes()
+            newSlotRange.first in existSlotRange || newSlotRange.last in existSlotRange
         }
         if (isDuplicateTime) {
             return DomainResult.Failure(DomainError.Conflict.Data)
         }
+        return DomainResult.Success(Unit)
+    }
+
+    suspend fun isValid(
+        timeSlotList: List<TimeSlotEntity>
+    ): DomainResult<Unit> {
+        val sorted = timeSlotList.sortedBy {
+            it.endTime.asMinutes()
+        }.sortedBy {
+            it.startTime.asMinutes()
+        }
+
+        var current: TimeSlotEntity? = null
+        for (next in sorted) {
+            if (current == null) {
+                current = next
+                continue
+            }
+            val currentRange = current.startTime.asMinutes() until current.endTime.asMinutes()
+            val nextRange = next.startTime.asMinutes() until next.endTime.asMinutes()
+
+            val overlap = currentRange.first in nextRange || currentRange.last in nextRange
+
+            if (overlap) return DomainResult.Failure(DomainError.Conflict.Data)
+        }
+
         return DomainResult.Success(Unit)
     }
 }

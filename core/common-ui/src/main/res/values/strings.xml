@@ -20,6 +20,7 @@
 
     <string name="message_format_notfound_data">%1$s을(를) 찾을 수 없습니다..</string>
     <string name="message_format_complete">%1$s을(를) 완료했습니다.</string>
+    <string name="message_format_changed">%1$s(으)로 변경되었습니다.</string>
     <string name="message_format_failed">%1$s을(를) 실패했습니다.</string>
     <string name="message_format_loading">%1$s을(를) 불러오는 중….</string>
     <string name="message_format_confirm">%1$s하시겠습니까?</string>

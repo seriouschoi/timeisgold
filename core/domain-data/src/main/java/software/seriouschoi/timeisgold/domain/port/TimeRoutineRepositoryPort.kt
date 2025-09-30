@@ -5,6 +5,7 @@ import software.seriouschoi.timeisgold.domain.data.DataResult
 import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineComposition
 import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineDefinition
 import software.seriouschoi.timeisgold.domain.data.entities.TimeRoutineEntity
+import software.seriouschoi.timeisgold.domain.data.entities.TimeSlotEntity
 import java.time.DayOfWeek
 
 interface TimeRoutineRepositoryPort {
@@ -23,4 +24,8 @@ interface TimeRoutineRepositoryPort {
     fun observeTimeRoutineDefinitionByDayOfWeek(dayOfWeek: DayOfWeek): Flow<TimeRoutineDefinition?>
     suspend fun getAllTimeRoutineDefinitions() : List<TimeRoutineDefinition>
     suspend fun getAllDayOfWeeks(): List<DayOfWeek>
+    suspend fun setTimeSlotList(
+        routineUuid: String,
+        incomingSlots: List<TimeSlotEntity>
+    ): DataResult<Unit>
 }

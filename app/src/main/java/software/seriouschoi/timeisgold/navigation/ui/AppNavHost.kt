@@ -8,7 +8,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import software.seriouschoi.timeisgold.feature.timeroutine.TimeRoutineBarNavRoot
 import software.seriouschoi.timeisgold.feature.timeroutine.timeRoutineBarSection
-import software.seriouschoi.timeisgold.presentation.navigation.PresentationRoot
 import software.seriouschoi.timeisgold.presentation.navigation.presentationSection
 
 @Composable

@@ -14,7 +14,7 @@ import software.seriouschoi.timeisgold.domain.data.entities.TimeSlotEntity
 import software.seriouschoi.timeisgold.domain.port.TimeSlotRepositoryPort
 import javax.inject.Inject
 
-internal class TimeSlotRepositoryAdapter @Inject constructor(
+internal class TimeSlotRepositoryPortAdapter @Inject constructor(
     private val database: AppDatabase,
 ) : TimeSlotRepositoryPort {
 

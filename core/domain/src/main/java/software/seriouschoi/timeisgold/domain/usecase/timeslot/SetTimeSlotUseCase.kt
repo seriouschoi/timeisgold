@@ -1,6 +1,5 @@
 package software.seriouschoi.timeisgold.domain.usecase.timeslot
 
-import software.seriouschoi.timeisgold.domain.data.DomainError
 import software.seriouschoi.timeisgold.domain.data.DomainResult
 import software.seriouschoi.timeisgold.domain.data.asDomainResult
 import software.seriouschoi.timeisgold.domain.data.entities.TimeSlotEntity
@@ -17,7 +16,10 @@ class SetTimeSlotUseCase @Inject constructor(
         timeRoutineUuid: String,
         timeSlotData: TimeSlotEntity
     ): DomainResult<String> {
-        val validResult = timeSlotDomainService.isValid(timeRoutineUuid, timeSlotData)
+        val validResult = timeSlotDomainService.isValid(
+            routineUuid = timeRoutineUuid,
+            timeSlotData = timeSlotData
+        )
         if(validResult is DomainResult.Failure) return validResult
 
         val dataResult = timeslotRepositoryPort.setTimeSlot(

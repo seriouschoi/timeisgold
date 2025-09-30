@@ -1,7 +1,9 @@
 package software.seriouschoi.timeisgold.core.common.ui
 
+import android.content.Context
 import androidx.annotation.StringRes
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 
 /**
@@ -35,29 +37,34 @@ sealed interface UiText {
 
 @Composable
 fun UiText.asString(): String {
+    val context = LocalContext.current
+    return asString(context)
+}
+
+fun UiText.asString(context: Context): String {
     return when (this) {
         is UiText.Raw -> {
             this.value
         }
 
         is UiText.Res -> {
-            stringResource(id, *args.toTypedArray())
+            context.getString(id, *args.toTypedArray())
         }
 
         is UiText.MultipleResArgs -> {
             val stringArgs = args.map {
-                stringResource(it)
+                context.getString(it)
             }
-            stringResource(id, *stringArgs.toTypedArray())
+            context.getString(id, *stringArgs.toTypedArray())
         }
 
         is UiText.MultipleUiTextArgs -> {
             val stringArgs = args.filter{
                 it !is UiText.MultipleUiTextArgs
             }.map {
-                it.asString()
+                it.asString(context)
             }
-            stringResource(id, *stringArgs.toTypedArray())
+            context.getString(id, *stringArgs.toTypedArray())
         }
     }
 }
