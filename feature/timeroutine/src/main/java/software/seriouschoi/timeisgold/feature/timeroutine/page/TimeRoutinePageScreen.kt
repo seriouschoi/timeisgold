@@ -1,5 +1,6 @@
 package software.seriouschoi.timeisgold.feature.timeroutine.page
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,6 +22,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -30,13 +32,11 @@ import software.seriouschoi.timeisgold.core.common.ui.TigThemePreview
 import software.seriouschoi.timeisgold.core.common.ui.UiText
 import software.seriouschoi.timeisgold.core.common.ui.asString
 import software.seriouschoi.timeisgold.core.common.ui.components.TigLabelButton
+import software.seriouschoi.timeisgold.core.common.util.Envelope
 import software.seriouschoi.timeisgold.core.common.util.asFormattedString
 import software.seriouschoi.timeisgold.core.common.util.asMinutes
-import timber.log.Timber
 import java.time.DayOfWeek
 import java.time.LocalTime
-import java.util.UUID
-import software.seriouschoi.timeisgold.core.common.ui.R as CommonR
 
 /**
  * Created by jhchoi on 2025. 8. 26.
@@ -52,18 +52,33 @@ fun TimeRoutinePageScreen(
         viewModel.load(dayOfWeek)
     }
 
-    val uiState by remember {
-        viewModel.uiState
-    }.collectAsState(
-        initial = TimeRoutinePageUiState.Loading(
-            loadingMessage = UiText.MultipleResArgs.create(
-                CommonR.string.message_format_loading,
-                CommonR.string.text_routine
-            )
-        )
-    )
+    val uiState by viewModel.uiState.collectAsState()
+    StateView(uiState) {
+        viewModel.sendIntent(it)
+    }
+    val uiEvent by viewModel.uiEvent.collectAsState(null)
+    EventView(uiEvent)
+}
 
-    val currentState = uiState
+@Composable
+private fun EventView(event: Envelope<TimeRoutinePageUiEvent>?) {
+    when (val payload = event?.payload) {
+        is TimeRoutinePageUiEvent.ShowToast -> {
+            Toast.makeText(LocalContext.current, payload.message.asString(), payload.toastTime)
+                .show()
+        }
+
+        null -> {
+            //no work.
+        }
+    }
+}
+
+@Composable
+private fun StateView(
+    currentState: TimeRoutinePageUiState,
+    sendIntent: (TimeRoutinePageUiIntent) -> Unit
+) {
 
     when (currentState) {
         is TimeRoutinePageUiState.Loading -> {
@@ -72,13 +87,13 @@ fun TimeRoutinePageScreen(
 
         is TimeRoutinePageUiState.Routine -> {
             Routine(currentState) {
-                viewModel.sendIntent(it)
+                sendIntent.invoke(it)
             }
         }
 
         is TimeRoutinePageUiState.Error -> {
             Error(currentState) {
-                viewModel.sendIntent(it)
+                sendIntent.invoke(it)
             }
         }
     }
@@ -90,7 +105,6 @@ private fun Routine(
     state: TimeRoutinePageUiState.Routine,
     sendIntent: (TimeRoutinePageUiIntent) -> Unit,
 ) {
-    Timber.d("Routine")
     val hourHeight = 60.dp
     Box(
         modifier = Modifier
@@ -109,7 +123,6 @@ private fun Routine(
                 .fillMaxWidth()
                 .height(hourHeight * 24)
         ) {
-            Timber.d("slotItemList size=${state.slotItemList.size}")
             state.slotItemList.forEach { slot ->
                 TimeSlotItemView(
                     modifier = Modifier.fillMaxWidth(),

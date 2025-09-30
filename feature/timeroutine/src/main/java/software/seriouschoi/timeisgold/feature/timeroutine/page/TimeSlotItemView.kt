@@ -39,6 +39,7 @@ internal fun TimeSlotItemView(
     hourHeight: Dp,
     sendIntent: (TimeRoutinePageUiIntent) -> Unit,
 ) {
+    Timber.d("TimeSlotItemView CREATED/UPDATED. slotItem.uuid=${slotItem.slotUuid}")
     val currentSlot by rememberUpdatedState(slotItem)
     val density = LocalDensity.current
     val hourHeightPx = density.run { hourHeight.toPx() }

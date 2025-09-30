@@ -1,11 +1,13 @@
 package software.seriouschoi.timeisgold.feature.timeroutine.page
 
+import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -29,6 +31,8 @@ import software.seriouschoi.timeisgold.core.common.util.asFormattedString
 import software.seriouschoi.timeisgold.core.common.util.asMinutes
 import software.seriouschoi.timeisgold.core.domain.mapper.onlyDomainResult
 import software.seriouschoi.timeisgold.core.domain.mapper.onlySuccess
+import software.seriouschoi.timeisgold.core.domain.mapper.toUiText
+import software.seriouschoi.timeisgold.domain.data.DomainError
 import software.seriouschoi.timeisgold.domain.data.DomainResult
 import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineComposition
 import software.seriouschoi.timeisgold.domain.data.entities.TimeSlotEntity
@@ -41,7 +45,6 @@ import timber.log.Timber
 import java.time.DayOfWeek
 import java.time.format.TextStyle
 import java.util.Locale
-import java.util.UUID
 import javax.inject.Inject
 import software.seriouschoi.timeisgold.core.common.ui.R as CommonR
 
@@ -101,6 +104,8 @@ internal class TimeRoutinePageViewModel @Inject constructor(
         started = SharingStarted.Eagerly,
         initialValue = TimeRoutinePageUiState.Loading.default()
     )
+    private val _uiEvent: MutableSharedFlow<Envelope<TimeRoutinePageUiEvent>> = MutableSharedFlow()
+    val uiEvent: SharedFlow<Envelope<TimeRoutinePageUiEvent>> = _uiEvent
 
     init {
         viewModelScope.launch {
@@ -146,10 +151,12 @@ internal class TimeRoutinePageViewModel @Inject constructor(
     private fun updateTimeSlot(intent: TimeRoutinePageUiIntent.UpdateSlot) {
         flowResultState {
             val currentRoutine =
-                routineCompositionFlow.onlySuccess().first() ?: return@flowResultState
+                routineCompositionFlow.onlySuccess().first()
+                    ?: return@flowResultState DomainResult.Failure(DomainError.NotFound.TimeRoutine)
 
             val timeSlot =
-                currentRoutine.timeSlots.find { it.uuid == intent.uuid } ?: return@flowResultState
+                currentRoutine.timeSlots.find { it.uuid == intent.uuid }
+                    ?: return@flowResultState DomainResult.Failure(DomainError.NotFound.TimeSlot)
 
             val newTimeSlot = timeSlot.copy(
                 startTime = intent.newStart,
@@ -160,23 +167,33 @@ internal class TimeRoutinePageViewModel @Inject constructor(
                 timeRoutineUuid = currentRoutine.timeRoutine.uuid,
                 timeSlotData = newTimeSlot
             )
-
-        }.onEach { state: ResultState<Unit> ->
-            when (state) {
-                is ResultState.Error -> {
-                    // TODO: jhchoi 2025. 9. 23. show error.
-                    Timber.w("update timeslot failed. ${state.throwable.message}")
-                    state.throwable.printStackTrace()
+        }.onlyDomainResult().onEach { domainResult ->
+            when (domainResult) {
+                is DomainResult.Failure -> {
+                    TimeRoutinePageUiEvent.ShowToast(
+                        domainResult.error.toUiText(),
+                        Toast.LENGTH_SHORT
+                    )
                 }
 
-                ResultState.Loading -> {
-                    //no working.
+                is DomainResult.Success -> {
+                    val startTimeText = intent.newStart.asFormattedString()
+                    val endTimeText = intent.newEnd.asFormattedString()
+                    TimeRoutinePageUiEvent.ShowToast(
+                        UiText.Res.create(
+                            CommonR.string.message_format_changed,
+                            "$startTimeText-$endTimeText"
+                        ),
+                        Toast.LENGTH_SHORT
+                    )
                 }
 
-                is ResultState.Success -> {
-                    //no working.
-                    Timber.d("update timeslot success. startTime=${intent.newStart.asFormattedString()}, endTime=${intent.newEnd.asFormattedString()}")
+                null -> {
+                    //no work
+                    null
                 }
+            }?.let {
+                _uiEvent.emit(Envelope(it))
             }
         }.launchIn(viewModelScope)
     }
