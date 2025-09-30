@@ -10,9 +10,10 @@ interface TimeSlotRepositoryPort {
     suspend fun watchTimeSlotList(timeRoutineUuid: String): Flow<List<TimeSlotEntity>>
     suspend fun getTimeSlotList(timeRoutineUuid: String): List<TimeSlotEntity>
 
-    suspend fun deleteTimeSlot(timeslotUuid: String) : DataResult<Unit>
+    suspend fun deleteTimeSlot(timeslotUuid: String): DataResult<Unit>
     suspend fun setTimeSlot(
         timeSlotData: TimeSlotEntity,
         timeRoutineUuid: String
     ): DataResult<String>
+
 }

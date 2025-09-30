@@ -111,6 +111,41 @@ internal class TimeRoutineRepositoryPortAdapter @Inject constructor(
         }.distinctUntilChanged()
     }
 
+    override suspend fun setTimeSlotList(
+        routineUuid: String,
+        incomingSlots: List<TimeSlotEntity>,
+    ): DataResult<Unit> = runSuspendCatching {
+        appDatabase.withTransaction {
+            val routineDao = appDatabase.TimeRoutineDao()
+            val slotDao = appDatabase.TimeSlotDao()
+            val slotJoinRoutineDao = appDatabase.TimeRoutineJoinTimeSlotViewDao()
+
+            val routineId = routineDao.get(routineUuid)?.id
+                ?: throw IllegalStateException("time routine is null")
+
+            val existingSlots = slotJoinRoutineDao
+                .getTimeSlotsByTimeRoutine(routineUuid).associateBy { it.timeSlotUuid }
+
+            //delete
+            val incomingSlotsUuids = incomingSlots.map { it.uuid }.toSet()
+            val toDelete = existingSlots.keys - incomingSlotsUuids //기존 slot중 새로 교체될 slot들에 없으면 삭제.
+            toDelete.forEach {
+                slotDao.delete(it)
+            }
+
+            //slots upsert
+            incomingSlots.forEach { incomingSlot ->
+                val slotId = existingSlots[incomingSlot.uuid]?.timeSlotId
+                slotDao.upsert(
+                    incomingSlot.toTimeSlotSchema(
+                        timeRoutineId = routineId,
+                        timeSlotId = slotId
+                    )
+                )
+            }
+        }
+    }.asDataResult()
+
     private suspend fun updateTimeSlots(
         incomingSlots: List<TimeSlotEntity>,
         routineUuid: String,

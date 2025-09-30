@@ -15,5 +15,5 @@ class GetTimeSlotValidUseCase @Inject constructor(
     suspend fun invoke(
         slotEntity: TimeSlotEntity,
         routineUuid: String,
-    ): DomainResult<Unit> = service.isValid(routineUuid, slotEntity)
+    ): DomainResult<Unit> = service.isValid(routineUuid = routineUuid, timeSlotData = slotEntity)
 }

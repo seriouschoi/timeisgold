@@ -173,7 +173,7 @@ internal class TimeRoutinePageViewModel @Inject constructor(
 
             setTimeSlotsUseCase.invoke(
                 timeRoutineUuid = currentRoutine.timeRoutine.uuid,
-                timeSlotData = updateSlots
+                timeSlotList = updateSlots
             )
         }.onlyDomainResult().onEach { domainResult ->
             when (domainResult) {

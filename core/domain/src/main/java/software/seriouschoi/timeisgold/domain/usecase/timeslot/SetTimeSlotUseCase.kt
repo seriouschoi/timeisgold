@@ -16,7 +16,10 @@ class SetTimeSlotUseCase @Inject constructor(
         timeRoutineUuid: String,
         timeSlotData: TimeSlotEntity
     ): DomainResult<String> {
-        val validResult = timeSlotDomainService.isValid(timeRoutineUuid, timeSlotData)
+        val validResult = timeSlotDomainService.isValid(
+            routineUuid = timeRoutineUuid,
+            timeSlotData = timeSlotData
+        )
         if(validResult is DomainResult.Failure) return validResult
 
         val dataResult = timeslotRepositoryPort.setTimeSlot(

@@ -1,13 +1,12 @@
 package software.seriouschoi.timeisgold.core.test.util
 
-import jdk.jfr.internal.OldObjectSample.emit
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import software.seriouschoi.timeisgold.domain.data.DataResult
-import software.seriouschoi.timeisgold.domain.data.DomainResult
 import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineComposition
 import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineDefinition
 import software.seriouschoi.timeisgold.domain.data.entities.TimeRoutineEntity
+import software.seriouschoi.timeisgold.domain.data.entities.TimeSlotEntity
 import software.seriouschoi.timeisgold.domain.port.TimeRoutineRepositoryPort
 import java.time.DayOfWeek
 
@@ -84,6 +83,13 @@ class FakeTimeRoutineRepositoryAdapter(
     }
 
     override suspend fun getAllDayOfWeeks(): List<DayOfWeek> {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun setTimeSlotList(
+        routineUuid: String,
+        incomingSlots: List<TimeSlotEntity>
+    ): DataResult<Unit> {
         TODO("Not yet implemented")
     }
 
