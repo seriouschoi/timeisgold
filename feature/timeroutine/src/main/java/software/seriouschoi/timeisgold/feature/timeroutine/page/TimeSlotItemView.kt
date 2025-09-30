@@ -198,7 +198,8 @@ private fun ItemCardView(
         ),
         colors = CardDefaults.cardColors(
             containerColor = cardColor
-        )
+        ),
+        border = CardDefaults.outlinedCardBorder()
     ) {
         Box(Modifier.fillMaxSize()) {
             //content

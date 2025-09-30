@@ -32,8 +32,11 @@ class TimeSlotDomainService @Inject constructor(
         val isDuplicateTime = allTimeSlotList.filter {
             it.uuid != timeSlotData.uuid
         }.any {
-            timeSlotData.startTime.asMinutes() in (it.startTime.asMinutes() until it.endTime.asMinutes())
-                    || timeSlotData.endTime.asMinutes() in (it.startTime.asMinutes() + 1..it.endTime.asMinutes())
+            val existSlotRange = it.startTime.asMinutes() until it.endTime.asMinutes()
+            val newSlotRange = timeSlotData.startTime.asMinutes() until timeSlotData.endTime.asMinutes()
+            newSlotRange.any {
+                existSlotRange.contains(it)
+            }
         }
         if (isDuplicateTime) {
             return DomainResult.Failure(DomainError.Conflict.Data)
