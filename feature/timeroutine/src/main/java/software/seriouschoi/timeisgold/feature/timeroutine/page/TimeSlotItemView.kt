@@ -106,13 +106,15 @@ internal fun TimeSlotItemView(
                             newStart = newStartTime,
                             newEnd = newEndTime,
                             onlyUi = true,
+                            orderChange = true
                         )
 
                         DragTarget.Top -> TimeRoutinePageUiIntent.UpdateSlot(
                             uuid = currentSlot.slotUuid,
                             newStart = newStartTime,
                             newEnd = LocalTimeUtil.create(currentSlot.endMinutesOfDay.toLong()),
-                            onlyUi = true
+                            onlyUi = true,
+                            orderChange = false
                         )
 
                         DragTarget.Bottom -> TimeRoutinePageUiIntent.UpdateSlot(
@@ -121,7 +123,8 @@ internal fun TimeSlotItemView(
                                 currentSlot.startMinutesOfDay.toLong()
                             ),
                             newEnd = newEndTime,
-                            onlyUi = true
+                            onlyUi = true,
+                            orderChange = false
                         )
                     }
                     sendIntent.invoke(intent)
@@ -141,7 +144,8 @@ internal fun TimeSlotItemView(
                         uuid = currentSlot.slotUuid,
                         newStart = startTime,
                         newEnd = endTime,
-                        onlyUi = false
+                        onlyUi = false,
+                        orderChange = false
                     ).let {
                         sendIntent.invoke(it)
                     }

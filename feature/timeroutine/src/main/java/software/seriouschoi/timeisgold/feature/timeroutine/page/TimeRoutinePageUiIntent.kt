@@ -9,8 +9,11 @@ internal sealed interface TimeRoutinePageUiIntent {
         val newStart: LocalTime,
         val newEnd: LocalTime,
         val onlyUi: Boolean,
+        val orderChange: Boolean
     ) : TimeRoutinePageUiIntent
 
     object CreateRoutine : TimeRoutinePageUiIntent
     object ModifyRoutine : TimeRoutinePageUiIntent
 }
+
+

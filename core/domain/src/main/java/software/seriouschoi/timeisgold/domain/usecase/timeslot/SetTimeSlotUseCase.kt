@@ -1,6 +1,5 @@
 package software.seriouschoi.timeisgold.domain.usecase.timeslot
 
-import software.seriouschoi.timeisgold.domain.data.DomainError
 import software.seriouschoi.timeisgold.domain.data.DomainResult
 import software.seriouschoi.timeisgold.domain.data.asDomainResult
 import software.seriouschoi.timeisgold.domain.data.entities.TimeSlotEntity
