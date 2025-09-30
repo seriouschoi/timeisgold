@@ -427,25 +427,14 @@ private fun TimeSlotEntity.toSlotItem(routineUuid: String): TimeSlotCardUiState 
 }
 
 private fun TimeRoutinePageUiIntent.UpdateSlot.isOverlap(slotItem: TimeSlotCardUiState): Boolean {
-    return if (slotItem.slotUuid == this.uuid) false
-    else {
-        val intentRanges = if (this.newStart > this.newEnd) {
-            listOf(
-                0 until this.newEnd.asMinutes(),
-                this.newStart.asMinutes() until LocalTimeUtil.DAY_MINUTES
-            )
-        } else {
-            listOf(
-                this.newStart.asMinutes() until this.newEnd.asMinutes()
-            )
-        }
-        intentRanges.any { intentRange ->
-            val slotRange = slotItem.let {
-                it.startMinutesOfDay until it.endMinutesOfDay
-            }
-            intentRange.any {
-                slotRange.contains(it)
-            }
-        }
+    return if (slotItem.slotUuid == this.uuid) {
+        //동일 슬롯이라 오버랩 아님.
+        false
+    } else {
+        LocalTimeUtil.overlab(
+            this.newStart to this.newEnd,
+            LocalTimeUtil.create(slotItem.startMinutesOfDay.toLong())
+                    to LocalTimeUtil.create(slotItem.endMinutesOfDay.toLong())
+        )
     }
 }

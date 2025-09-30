@@ -1,6 +1,7 @@
 package software.seriouschoi.timeisgold.domain.services
 
 import kotlinx.coroutines.flow.first
+import software.seriouschoi.timeisgold.core.common.util.LocalTimeUtil
 import software.seriouschoi.timeisgold.core.common.util.asMinutes
 import software.seriouschoi.timeisgold.domain.data.DomainError
 import software.seriouschoi.timeisgold.domain.data.DomainResult
@@ -27,18 +28,18 @@ class TimeSlotDomainService @Inject constructor(
         if (abs(timeSlotData.endTime.asMinutes() - timeSlotData.startTime.asMinutes()) <= 15) {
             return DomainResult.Failure(DomainError.Conflict.Time)
         }
-        // TODO: jhchoi 2025. 9. 30. 자정 넘어가는 데이터 valid처리 누락됨.
 
         //timeslot의 시간이 겹치는지 확인하는 로직.
-        val isDuplicateTime = allTimeSlotList.filter {
+        val overlapTime = allTimeSlotList.filter {
             it.uuid != timeSlotData.uuid
-        }.any {
-            val existSlotRange = it.startTime.asMinutes() until it.endTime.asMinutes()
-            val newSlotRange =
-                timeSlotData.startTime.asMinutes() until timeSlotData.endTime.asMinutes()
-            newSlotRange.first in existSlotRange || newSlotRange.last in existSlotRange
+        }.any { existTimeSlot ->
+            LocalTimeUtil.overlab(
+                existTimeSlot.startTime to existTimeSlot.endTime,
+                timeSlotData.startTime to timeSlotData.endTime
+            )
         }
-        if (isDuplicateTime) {
+
+        if (overlapTime) {
             return DomainResult.Failure(DomainError.Conflict.Data)
         }
         return DomainResult.Success(Unit)
@@ -59,10 +60,10 @@ class TimeSlotDomainService @Inject constructor(
                 current = next
                 continue
             }
-            val currentRange = current.startTime.asMinutes() until current.endTime.asMinutes()
-            val nextRange = next.startTime.asMinutes() until next.endTime.asMinutes()
-
-            val overlap = currentRange.first in nextRange || currentRange.last in nextRange
+            val overlap = LocalTimeUtil.overlab(
+                current.startTime to current.endTime,
+                next.startTime to next.endTime
+            )
 
             if (overlap) return DomainResult.Failure(DomainError.Conflict.Data)
         }
