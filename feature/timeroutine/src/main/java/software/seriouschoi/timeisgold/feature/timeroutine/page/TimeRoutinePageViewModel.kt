@@ -182,12 +182,10 @@ internal class TimeRoutinePageViewModel @Inject constructor(
                 }
 
                 is DomainResult.Success -> {
-                    val startTimeText = intent.newStart.asFormattedString()
-                    val endTimeText = intent.newEnd.asFormattedString()
                     TimeRoutinePageUiEvent.ShowToast(
-                        UiText.Res.create(
-                            CommonR.string.message_format_changed,
-                            "$startTimeText-$endTimeText"
+                        UiText.MultipleResArgs.create(
+                            CommonR.string.message_format_complete,
+                            CommonR.string.text_save,
                         ),
                         Toast.LENGTH_SHORT
                     )
@@ -235,6 +233,7 @@ private fun TimeRoutinePageUiState.reduce(
 private fun TimeRoutinePageUiState.reduce(
     intent: TimeRoutinePageUiIntent.UpdateSlot,
 ): TimeRoutinePageUiState {
+    // TODO: jhchoi 2025. 10. 1. 리팩토링.
     val routineState = this as? TimeRoutinePageUiState.Routine
         ?: TimeRoutinePageUiState.Routine.default()
 
@@ -262,13 +261,12 @@ private fun TimeRoutinePageUiState.reduce(
     }
 
     //오버랩 있음.
+    val intentItem =
+        routineState.slotItemList.find { it.slotUuid == intent.uuid } ?: return this
+    val intentItemMinutes = intentItem.run { this.endMinutesOfDay - this.startMinutesOfDay }
     if (intent.orderChange) {
         //오버랩 아이템 순번 전환.
-        val intentItem =
-            routineState.slotItemList.find { it.slotUuid == intent.uuid } ?: return this
-
         Timber.d("timeslot order change. intentItem=${intentItem.startMinuteText}~${intentItem.endMinuteText}, overlapItem=${overlapItem.startMinuteText}~${overlapItem.endMinuteText}")
-        val intentItemMinutes = intentItem.run { this.endMinutesOfDay - this.startMinutesOfDay }
 
         val newIntentItem = if (intentItem.startMinutesOfDay > overlapItem.startMinutesOfDay) {
             //아래에서 위로 드래그.
@@ -317,16 +315,35 @@ private fun TimeRoutinePageUiState.reduce(
 
         val newList = routineState.slotItemList.map {
             when (it.slotUuid) {
-                newOverlapItem.slotUuid -> newOverlapItem.splitOverMidnight()
-                newIntentItem.slotUuid -> newIntentItem.splitOverMidnight()
-                else -> listOf(it)
-            }
+                newOverlapItem.slotUuid -> newOverlapItem
+                newIntentItem.slotUuid -> newIntentItem
+                else -> it
+            }.splitOverMidnight()
         }.flatten().distinct()
         return routineState.copy(
             slotItemList = newList
         )
     } else {
-        return this
+        val newIntentItem = if (intentItem.startMinutesOfDay > overlapItem.startMinutesOfDay) {
+            // 아래에서 위로 드래그.
+            intentItem.copy(
+                startMinutesOfDay = overlapItem.endMinutesOfDay
+            )
+        } else {
+            // 위에서 아래로 드래그.
+            intentItem.copy(
+                endMinutesOfDay = overlapItem.startMinutesOfDay,
+            )
+        }
+        val newList = routineState.slotItemList.map {
+            when (it.slotUuid) {
+                newIntentItem.slotUuid -> newIntentItem
+                else -> it
+            }.splitOverMidnight()
+        }.flatten().distinct()
+        return routineState.copy(
+            slotItemList = newList
+        )
     }
 }
 

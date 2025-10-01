@@ -24,7 +24,6 @@ import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import software.seriouschoi.timeisgold.core.common.ui.TigTheme
 import software.seriouschoi.timeisgold.core.common.util.LocalTimeUtil
@@ -163,7 +162,7 @@ internal fun TimeSlotItemView(
     val topOffsetPx = currentSlot.startMinutesOfDay.minutesToPx(hourHeightPx)
     val slotHeightPx =
         (currentSlot.endMinutesOfDay - currentSlot.startMinutesOfDay).minutesToPx(hourHeightPx)
-    ItemCardView(
+    TimeSlotItemCardView(
         modifier = modifier,
         item = currentSlot,
         heightDp = slotHeightPx.let { density.run { it.toDp() } },
@@ -173,13 +172,15 @@ internal fun TimeSlotItemView(
 }
 
 @Composable
-private fun ItemCardView(
+internal fun TimeSlotItemCardView(
     modifier: Modifier,
     item: TimeSlotCardUiState,
     heightDp: Dp,
     topOffsetPx: Int,
     gestureModifier: Modifier = Modifier,
+    globalPositioned: Modifier = Modifier
 ) {
+    val density = LocalDensity.current
     val cardColor = if (item.isSelected) {
         MaterialTheme.colorScheme.primaryContainer
     } else {
@@ -187,15 +188,14 @@ private fun ItemCardView(
     }
     Card(
         modifier = modifier
-            .offset {
-                IntOffset(
-                    x = 0,
-                    y = topOffsetPx
-                )
-            }
+            .offset(
+                x = 0.dp,
+                y = density.run { topOffsetPx.toDp() }
+            )
             .height(heightDp)
             .padding(start = 40.dp)
-            .then(gestureModifier),
+            .then(gestureModifier)
+            .then(globalPositioned),
         elevation = CardDefaults.cardElevation(
             defaultElevation = 10.dp
         ),
@@ -233,7 +233,7 @@ private fun ItemCardView(
 @Composable
 private fun Preview() {
     TigTheme {
-        ItemCardView(
+        TimeSlotItemCardView(
             modifier = Modifier
                 .fillMaxWidth(),
             item = TimeSlotCardUiState(
