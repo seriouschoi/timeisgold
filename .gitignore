@@ -20,3 +20,4 @@ build/
 core/data-room-adapter/schemas/**
 .java-version
 **/.kotlin/*
+/keystore/*

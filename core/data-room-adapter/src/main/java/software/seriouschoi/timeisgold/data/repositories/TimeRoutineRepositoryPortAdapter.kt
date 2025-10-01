@@ -96,7 +96,7 @@ internal class TimeRoutineRepositoryPortAdapter @Inject constructor(
             .watchTimeSlotsByTimeRoutine(routineUuid)
             .distinctUntilChanged()
             .map { list ->
-                Timber.d("watchSlots - routineUuid=$routineUuid, list=$list")
+                Timber.d("watchSlots - routineUuid=$routineUuid, list.size=${list.size}")
                 list.map {
                     it.toTimeSlotEntity()
                 }.sortedBy { it.startTime }

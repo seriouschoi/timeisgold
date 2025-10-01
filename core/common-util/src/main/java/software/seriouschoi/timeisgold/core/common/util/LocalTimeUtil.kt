@@ -43,14 +43,51 @@ object LocalTimeUtil {
                 //-1시
                 DAY_MINUTES + minutesOfDay
             }
+
             minutesOfDay >= DAY_MINUTES -> {
                 //25시
                 0 + (minutesOfDay - DAY_MINUTES)
             }
+
             else -> {
                 minutesOfDay
             }
         }
         return LocalTime.of(0, 0).plusMinutes(minutesDelta)
+    }
+
+    fun splitOverMidnight(
+        startTime: LocalTime,
+        endTime: LocalTime,
+    ): List<IntRange> {
+        return if (startTime > endTime) {
+            listOf(
+                startTime.asMinutes() until DAY_MINUTES,
+                0 until endTime.asMinutes()
+            )
+        } else {
+            listOf(startTime.asMinutes() until endTime.asMinutes())
+        }
+    }
+
+    fun overlab(
+        timeRange1: Pair<LocalTime, LocalTime>,
+        timeRange2: Pair<LocalTime, LocalTime>,
+    ): Boolean {
+        val ranges1 = splitOverMidnight(timeRange1.first, timeRange1.second)
+        val ranges2 = splitOverMidnight(timeRange2.first, timeRange2.second)
+        return ranges1.any { range1 ->
+            ranges2.any { range2 ->
+                overlab(range1, range2)
+            }
+        }
+    }
+
+    fun overlab(
+        range1: IntRange,
+        range2: IntRange,
+    ): Boolean {
+        return range1.first in range2 || range1.last in range2
+                || range2.first in range1 || range2.last in range1
     }
 }

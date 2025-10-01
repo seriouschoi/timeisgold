@@ -38,7 +38,6 @@ import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineCompos
 import software.seriouschoi.timeisgold.domain.data.entities.TimeSlotEntity
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.WatchTimeRoutineCompositionUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeslot.SetTimeSlotListUseCase
-import software.seriouschoi.timeisgold.domain.usecase.timeslot.SetTimeSlotUseCase
 import software.seriouschoi.timeisgold.feature.timeroutine.edit.TimeRoutineEditScreenRoute
 import software.seriouschoi.timeisgold.feature.timeroutine.timeslot.edit.TimeSlotEditScreenRoute
 import timber.log.Timber
@@ -56,7 +55,6 @@ import software.seriouschoi.timeisgold.core.common.ui.R as CommonR
 internal class TimeRoutinePageViewModel @Inject constructor(
     private val watchTimeRoutineCompositionUseCase: WatchTimeRoutineCompositionUseCase,
     private val navigator: DestNavigatorPort,
-    private val setTimeSlotUseCase: SetTimeSlotUseCase,
     private val setTimeSlotsUseCase: SetTimeSlotListUseCase
 ) : ViewModel() {
 
@@ -150,7 +148,6 @@ internal class TimeRoutinePageViewModel @Inject constructor(
     }
 
     private fun updateTimeSlot(intent: TimeRoutinePageUiIntent.UpdateSlot) {
-        // TODO: jhchoi 2025. 9. 30. 이거..현재 timeSlot을 다 저장하는게 맞을것 같은데.. 왜냐면.. 드래그해서 순번도 바꾸는데.
         flowResultState {
             val currentRoutine =
                 routineCompositionFlow.onlySuccess().first()
@@ -430,31 +427,14 @@ private fun TimeSlotEntity.toSlotItem(routineUuid: String): TimeSlotCardUiState 
 }
 
 private fun TimeRoutinePageUiIntent.UpdateSlot.isOverlap(slotItem: TimeSlotCardUiState): Boolean {
-    return if (slotItem.slotUuid == this.uuid) false
-    else {
-        val intentRanges = if (this.newStart > this.newEnd) {
-            listOf(
-                0 until this.newEnd.asMinutes(),
-                this.newStart.asMinutes() until LocalTimeUtil.DAY_MINUTES
-            )
-        } else {
-            listOf(
-                this.newStart.asMinutes() until this.newEnd.asMinutes()
-            )
-        }
-        intentRanges.any { intentRange ->
-            if (intentRange.first > intentRange.last) {
-                0 until intentRange.last
-                intentRange.first until LocalTimeUtil.DAY_MINUTES
-                false
-            } else {
-                val slotRange = slotItem.let {
-                    it.startMinutesOfDay until it.endMinutesOfDay
-                }
-                intentRange.any {
-                    slotRange.contains(it)
-                }
-            }
-        }
+    return if (slotItem.slotUuid == this.uuid) {
+        //동일 슬롯이라 오버랩 아님.
+        false
+    } else {
+        LocalTimeUtil.overlab(
+            this.newStart to this.newEnd,
+            LocalTimeUtil.create(slotItem.startMinutesOfDay.toLong())
+                    to LocalTimeUtil.create(slotItem.endMinutesOfDay.toLong())
+        )
     }
 }
