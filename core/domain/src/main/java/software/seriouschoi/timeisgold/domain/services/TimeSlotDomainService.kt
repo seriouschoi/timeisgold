@@ -68,7 +68,7 @@ class TimeSlotDomainService @Inject constructor(
 }
 
 private fun TimeSlotEntity.isValid(): DomainResult<Unit> {
-    if (abs(this.endTime.asMinutes() - this.startTime.asMinutes()) <= 15) {
+    if (abs(this.endTime.asMinutes() - this.startTime.asMinutes()) < 15) {
         return DomainResult.Failure(DomainError.Conflict.Time)
     }
     return DomainResult.Success(Unit)

@@ -79,6 +79,7 @@ object LocalTimeUtil {
         return ranges1.any { range1 ->
             ranges2.any { range2 ->
                 range1.first in range2 || range1.last in range2
+                        || range2.first in range1 || range2.last in range1
             }
         }
     }
