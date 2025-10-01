@@ -78,9 +78,16 @@ object LocalTimeUtil {
         val ranges2 = splitOverMidnight(timeRange2.first, timeRange2.second)
         return ranges1.any { range1 ->
             ranges2.any { range2 ->
-                range1.first in range2 || range1.last in range2
-                        || range2.first in range1 || range2.last in range1
+                overlab(range1, range2)
             }
         }
+    }
+
+    fun overlab(
+        range1: IntRange,
+        range2: IntRange,
+    ): Boolean {
+        return range1.first in range2 || range1.last in range2
+                || range2.first in range1 || range2.last in range1
     }
 }
