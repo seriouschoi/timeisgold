@@ -6,6 +6,7 @@ import software.seriouschoi.timeisgold.core.common.util.asMinutes
 import software.seriouschoi.timeisgold.domain.data.DomainError
 import software.seriouschoi.timeisgold.domain.data.DomainResult
 import software.seriouschoi.timeisgold.domain.data.entities.TimeSlotEntity
+import software.seriouschoi.timeisgold.domain.policy.TimeSlotPolicy
 import software.seriouschoi.timeisgold.domain.port.TimeSlotRepositoryPort
 import javax.inject.Inject
 import kotlin.math.abs
@@ -19,30 +20,18 @@ class TimeSlotDomainService @Inject constructor(
         routineUuid: String,
     ): DomainResult<Unit> {
         val newSlotTitle = timeSlotData.title
-        if (newSlotTitle.length !in 1..15) {
+        if (newSlotTitle.length !in TimeSlotPolicy.titleLengthRange) {
             return DomainResult.Failure(DomainError.Validation.TitleLength)
         }
 
         val allTimeSlotList = timeSlotRepository.watchTimeSlotList(routineUuid).first()
+            .filter {
+                it.uuid != timeSlotData.uuid
+            }.toMutableList().apply {
+                this.add(timeSlotData)
+            }
 
-        if (abs(timeSlotData.endTime.asMinutes() - timeSlotData.startTime.asMinutes()) <= 15) {
-            return DomainResult.Failure(DomainError.Conflict.Time)
-        }
-
-        //timeslot의 시간이 겹치는지 확인하는 로직.
-        val overlapTime = allTimeSlotList.filter {
-            it.uuid != timeSlotData.uuid
-        }.any { existTimeSlot ->
-            LocalTimeUtil.overlab(
-                existTimeSlot.startTime to existTimeSlot.endTime,
-                timeSlotData.startTime to timeSlotData.endTime
-            )
-        }
-
-        if (overlapTime) {
-            return DomainResult.Failure(DomainError.Conflict.Data)
-        }
-        return DomainResult.Success(Unit)
+        return isValid(allTimeSlotList)
     }
 
     suspend fun isValid(
@@ -56,6 +45,12 @@ class TimeSlotDomainService @Inject constructor(
 
         var current: TimeSlotEntity? = null
         for (next in sorted) {
+
+            val slotValid = next.isValid()
+            if (slotValid is DomainResult.Failure) {
+                return slotValid
+            }
+
             if (current == null) {
                 current = next
                 continue
@@ -70,4 +65,11 @@ class TimeSlotDomainService @Inject constructor(
 
         return DomainResult.Success(Unit)
     }
+}
+
+private fun TimeSlotEntity.isValid(): DomainResult<Unit> {
+    if (abs(this.endTime.asMinutes() - this.startTime.asMinutes()) <= 15) {
+        return DomainResult.Failure(DomainError.Conflict.Time)
+    }
+    return DomainResult.Success(Unit)
 }
