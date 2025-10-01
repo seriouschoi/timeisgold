@@ -54,6 +54,7 @@ import software.seriouschoi.timeisgold.core.common.util.normalize
 import timber.log.Timber
 import java.time.DayOfWeek
 import java.time.LocalTime
+import kotlin.math.abs
 import kotlin.math.absoluteValue
 
 /**
@@ -257,15 +258,23 @@ private fun Routine(
                     if (longPressed) {
                         event.consume()
 
-                        val defaultIntent = TimeRoutinePageUiIntent.UpdateSlot(
+                        val dragIntent = TimeRoutinePageUiIntent.UpdateSlot(
                             uuid = currentSlot.slotUuid,
                             newStart = updateTime.first,
                             newEnd = updateTime.second,
                             onlyUi = true,
                             orderChange = false
-                        )
+                        ).let {
+                            when(activeDragTarget){
+                                RoutinePageSlotItemDragTarget.Card -> it.copy(
+                                    orderChange = true
+                                )
+                                RoutinePageSlotItemDragTarget.Top,
+                                RoutinePageSlotItemDragTarget.Bottom -> it
+                            }
+                        }
 
-                        sendIntent.invoke(defaultIntent)
+                        sendIntent.invoke(dragIntent)
 
                         continue
                     }
@@ -303,7 +312,7 @@ private fun Routine(
             state.slotItemList.forEachIndexed { index, slot ->
                 val topOffsetPx = slot.startMinutesOfDay.minutesToPx(hourHeightPx)
                 val slotHeightPx =
-                    (slot.endMinutesOfDay - slot.startMinutesOfDay).minutesToPx(hourHeightPx)
+                    abs(slot.endMinutesOfDay - slot.startMinutesOfDay).minutesToPx(hourHeightPx)
 
                 val globalPositioned = Modifier.onGloballyPositioned {
                     val bounds = it.boundsInParent()

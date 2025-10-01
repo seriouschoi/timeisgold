@@ -233,7 +233,7 @@ private fun TimeRoutinePageUiState.reduce(
 private fun TimeRoutinePageUiState.reduce(
     intent: TimeRoutinePageUiIntent.UpdateSlot,
 ): TimeRoutinePageUiState {
-    // TODO: jhchoi 2025. 10. 1. 리팩토링.
+    // TODO: jhchoi 2025. 10. 1. 리팩토링.(현재 reduce함수가 너무 많은 일을 함)
     val routineState = this as? TimeRoutinePageUiState.Routine
         ?: TimeRoutinePageUiState.Routine.default()
 
@@ -263,10 +263,14 @@ private fun TimeRoutinePageUiState.reduce(
     //오버랩 있음.
     val intentItem =
         routineState.slotItemList.find { it.slotUuid == intent.uuid } ?: return this
+    Timber.d("""
+        timeslot overlap. 
+        intentItem=(${intentItem.startMinuteText}~${intentItem.endMinuteText}, ${intentItem.startMinutesOfDay}~${intentItem.startMinutesOfDay})
+        overlapItem=(${overlapItem.startMinuteText}~${overlapItem.endMinuteText}, ${overlapItem.startMinutesOfDay}~${overlapItem.startMinutesOfDay})
+    """.trimIndent())
     val intentItemMinutes = intentItem.run { this.endMinutesOfDay - this.startMinutesOfDay }
     if (intent.orderChange) {
         //오버랩 아이템 순번 전환.
-        Timber.d("timeslot order change. intentItem=${intentItem.startMinuteText}~${intentItem.endMinuteText}, overlapItem=${overlapItem.startMinuteText}~${overlapItem.endMinuteText}")
 
         val newIntentItem = if (intentItem.startMinutesOfDay > overlapItem.startMinutesOfDay) {
             //아래에서 위로 드래그.
@@ -324,6 +328,7 @@ private fun TimeRoutinePageUiState.reduce(
             slotItemList = newList
         )
     } else {
+        //오버랩. 확장 제한.
         val newIntentItem = if (intentItem.startMinutesOfDay > overlapItem.startMinutesOfDay) {
             // 아래에서 위로 드래그.
             intentItem.copy(
@@ -334,7 +339,15 @@ private fun TimeRoutinePageUiState.reduce(
             intentItem.copy(
                 endMinutesOfDay = overlapItem.startMinutesOfDay,
             )
+        }.let {
+            it.copy(
+                startMinuteText = LocalTimeUtil.create(it.startMinutesOfDay.toLong())
+                    .asFormattedString(),
+                endMinuteText = LocalTimeUtil.create(it.endMinutesOfDay.toLong())
+                    .asFormattedString(),
+            )
         }
+        Timber.d("timeslot overlap changed. newIntentItem=${newIntentItem.startMinuteText}~${newIntentItem.endMinuteText}")
         val newList = routineState.slotItemList.map {
             when (it.slotUuid) {
                 newIntentItem.slotUuid -> newIntentItem
@@ -449,9 +462,8 @@ private fun TimeRoutinePageUiIntent.UpdateSlot.isOverlap(slotItem: TimeSlotCardU
         false
     } else {
         LocalTimeUtil.overlab(
-            this.newStart to this.newEnd,
-            LocalTimeUtil.create(slotItem.startMinutesOfDay.toLong())
-                    to LocalTimeUtil.create(slotItem.endMinutesOfDay.toLong())
+            this.newStart.asMinutes() until this.newEnd.asMinutes(),
+            slotItem.startMinutesOfDay until slotItem.endMinutesOfDay
         )
     }
 }
