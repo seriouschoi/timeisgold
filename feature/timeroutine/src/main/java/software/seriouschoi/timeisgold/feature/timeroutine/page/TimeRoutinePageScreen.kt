@@ -47,15 +47,13 @@ import software.seriouschoi.timeisgold.core.common.ui.UiText
 import software.seriouschoi.timeisgold.core.common.ui.asString
 import software.seriouschoi.timeisgold.core.common.ui.components.TigLabelButton
 import software.seriouschoi.timeisgold.core.common.util.Envelope
-import software.seriouschoi.timeisgold.core.common.util.LocalTimeUtil
-import software.seriouschoi.timeisgold.core.common.util.asFormattedString
 import software.seriouschoi.timeisgold.core.common.util.asMinutes
-import software.seriouschoi.timeisgold.core.common.util.normalize
 import timber.log.Timber
 import java.time.DayOfWeek
 import java.time.LocalTime
 import kotlin.math.abs
 import kotlin.math.absoluteValue
+import kotlin.math.roundToInt
 
 /**
  * Created by jhchoi on 2025. 8. 26.
@@ -211,20 +209,18 @@ private fun Routine(
                     distanceYAbs += dragAmount.y.absoluteValue.toLong()
                     distanceY += dragAmount.y.toLong()
 
-                    val minutesFactor = distanceY.toFloat().pxToMinutes(hourHeightPx).toLong()
-                    val newStartTime =
-                        LocalTimeUtil.create(currentSlot.startMinutesOfDay + minutesFactor)
-                    val newEndTime =
-                        LocalTimeUtil.create(currentSlot.endMinutesOfDay + minutesFactor)
+                    val minutesFactor = distanceY.toFloat().pxToMinutes(hourHeightPx)
+                    val newStartTime = currentSlot.startMinutesOfDay + minutesFactor.roundToInt()
+                    val newEndTime = currentSlot.endMinutesOfDay + minutesFactor.roundToInt()
                     val updateTime = when (activeDragTarget) {
                         RoutinePageSlotItemDragTarget.Card -> Pair(newStartTime, newEndTime)
                         RoutinePageSlotItemDragTarget.Top -> Pair(
                             newStartTime,
-                            LocalTimeUtil.create(currentSlot.endMinutesOfDay.toLong())
+                            currentSlot.endMinutesOfDay
                         )
 
                         RoutinePageSlotItemDragTarget.Bottom -> Pair(
-                            LocalTimeUtil.create(currentSlot.startMinutesOfDay.toLong()),
+                            currentSlot.startMinutesOfDay,
                             newEndTime
                         )
                     }
@@ -232,13 +228,7 @@ private fun Routine(
                     if (event.pressed.not()) {
                         Timber.d("up!")
                         if (longPressed) {
-                            val intent = TimeRoutinePageUiIntent.UpdateSlot(
-                                uuid = currentSlot.slotUuid,
-                                newStart = updateTime.first.normalize(),
-                                newEnd = updateTime.second.normalize(),
-                                onlyUi = false,
-                                orderChange = false
-                            )
+                            val intent = TimeRoutinePageUiIntent.UpdateTimeSlotList
                             sendIntent.invoke(intent)
                             return@awaitEachGesture
                         }
@@ -258,17 +248,17 @@ private fun Routine(
                     if (longPressed) {
                         event.consume()
 
-                        val dragIntent = TimeRoutinePageUiIntent.UpdateSlot(
+                        val dragIntent = TimeRoutinePageUiIntent.UpdateTimeSlotUi(
                             uuid = currentSlot.slotUuid,
                             newStart = updateTime.first,
                             newEnd = updateTime.second,
-                            onlyUi = true,
                             orderChange = false
                         ).let {
-                            when(activeDragTarget){
+                            when (activeDragTarget) {
                                 RoutinePageSlotItemDragTarget.Card -> it.copy(
                                     orderChange = true
                                 )
+
                                 RoutinePageSlotItemDragTarget.Top,
                                 RoutinePageSlotItemDragTarget.Bottom -> it
                             }
@@ -372,19 +362,16 @@ private fun PreviewRoutine() {
                 title = "루틴 1",
                 dayOfWeekName = "월",
                 slotItemList = listOf(
-                    TimeSlotCardUiState(
+                    TimeSlotItemUiState(
                         slotUuid = "temp_uuid",
                         routineUuid = "temp_routine_uuid",
                         title = "Some Slot Title",
                         startMinutesOfDay = startTime.asMinutes(),
                         endMinutesOfDay = endTime.asMinutes(),
-                        startMinuteText = startTime.asFormattedString(),
-                        endMinuteText = endTime.asFormattedString(),
-                        slotClickIntent = TimeRoutinePageUiIntent.UpdateSlot(
+                        slotClickIntent = TimeRoutinePageUiIntent.UpdateTimeSlotUi(
                             uuid = "temp_uuid",
-                            newStart = startTime,
-                            newEnd = endTime,
-                            onlyUi = false,
+                            newStart = startTime.asMinutes(),
+                            newEnd = endTime.asMinutes(),
                             orderChange = false
                         ),
                         isSelected = false,

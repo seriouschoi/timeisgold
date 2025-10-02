@@ -24,36 +24,39 @@ fun LocalTime.asMinutes(): Int {
     return this.hour * 60 + this.minute
 }
 
-fun LocalTime.normalize(stepMinutes: Float = 15f): LocalTime {
+fun LocalTime.normalize(stepMinutes: Int = 1): LocalTime {
     val totalMinutes = this.asMinutes()
-    val rounded = ((totalMinutes.toFloat() / stepMinutes).roundToInt() * stepMinutes) % (24 * 60)
+    val rounded = LocalTimeUtil.normalize(totalMinutes, stepMinutes)
     val newHour = rounded / 60
     val newMinute = rounded % 60
-    val normalized = LocalTime.of(newHour.toInt(), newMinute.toInt())
+    val normalized = LocalTime.of(newHour, newMinute)
     return normalized
 }
 
 object LocalTimeUtil {
     const val DAY_MINUTES = 60 * 24
     fun create(
-        minutesOfDay: Long,
+        minutesOfDay: Int, stepMinutes: Int = 1
     ): LocalTime {
-        val minutesDelta = when {
-            minutesOfDay < 0 -> {
-                //-1시
-                DAY_MINUTES + minutesOfDay
-            }
+        val rounded = normalize(minutesOfDay, stepMinutes)
 
-            minutesOfDay >= DAY_MINUTES -> {
-                //25시
-                0 + (minutesOfDay - DAY_MINUTES)
+        val minutesDelta = when {
+            rounded < 0 -> {
+                //-1시
+                DAY_MINUTES + rounded
             }
 
             else -> {
-                minutesOfDay
+                rounded
             }
         }
-        return LocalTime.of(0, 0).plusMinutes(minutesDelta)
+        return LocalTime.of(0, 0).plusMinutes(minutesDelta.toLong())
+    }
+    fun normalize(
+        minutesOfDay: Int, stepMinutes: Int = 1
+    ): Int {
+        val rounded = ((minutesOfDay.toFloat() / stepMinutes).roundToInt() * stepMinutes) % (24 * 60)
+        return rounded
     }
 
     fun splitOverMidnight(

@@ -1,33 +1,26 @@
 # 드래그 스왑버그.
-자정에 걸친 상태에서 스왑 문제 발생.
-timeslot order change.
-intentItem=03:00~04:00,
-overlapItem=22:00~03:00
 
-timeslot order changed.
-newIntentItem=02:00~03:00,
-newOverlapItem=03:00~08:00
+드래그로 인해 스왑이 되서 화면이 갱신이 되도, 
+드래그 중인 이벤트가 들고 있는 아이템을 기준으로 계속 intent를 발행하고 있어서,
+드래그가 정상적으로 이뤄지지 않는다.
 
-드래그 방향은 아래에서 위로.
-기대되는 값.
-timeslot order changed.
-newIntentItem=22:00~23:00,
-newOverlapItem=23:00~04:00
+일단 목표는 연속적으로 순서를 주욱 바꿀 수 있는 드래그이다.
 
-```
-timeslot order change.
-intentItem=03:03~04:03,
-overlapItem=21:00~03:00,
-intentItem.startMinutesOfDay=183,
-overlapItem.startMinutesOfDay=1260
+스왑이 되면 컴포즈에 있는 currentSlot을 갱신하여야 한다.
+하지만 스왑은 뷰모델에서 처리하고 있다.
+즉 뷰모델에서 스왑이 된걸 컴포즈에서 알아야 한다.
+이를 위해 뷰모델에서 이벤트를 발행하고,
+컴포즈에서 이벤트를 확인하면, currentSlot을 갱신해보자...
+[ ] 이벤트를 정의하고, 컴포즈에서 이벤트를 받아 currentSlot갱신하기.
 
-timeslot order changed.
-newIntentItem=02:00~03:00,
-newOverlapItem=03:03~09:03
-```
-아래에서 위로 올라가고 있고, 자정이 넘어가는 이벤트는, 마이너스 startMinutes를 쓰고 있어서 괜찮을 줄 알았지만..
-상단은 마이너스 시작 시간, 하단은 오버 타임 종료시간이 있다보니..
-하단의 오버타임이 시작시간은 인텐트의 시작시간보다 뒤에 있다.
+UpdateTime Intent에 의한 uiState reduce에서 구현을 하고 있었는데..
+이걸 구현하기 위해선, 이를 뷰모델 안에서 sideEffect로 처리해야 한다.
+[x] Update Time을 reduce -> sideEffect로 변경.
 
-**overlapItem을 찾을때... time으로 변환하지 않고 minutes를 기준으로.. 
-으로 하면...실시간드래그할때, splitMidnightOver 기준이 무너짐.**
+어...그러면.. sideEffect로 uiState를 갱신한다고 치자..
+그러면.. uiState는
+routineCompositionFlow + _intent를 관찰하면서 uiState를 만드는데..
+sideEffect로 uiState를 갱신하려면..
+updateSlotListState를 UiPreState.UpdateSlotList 콜드스트림으로 만들고,
+해당 콜드 스트림을 갱신해서, uiState가 갱신되게 하는건가..
+[x] UiPreState.UpdateSlotList 콜드스트림 만들기.
