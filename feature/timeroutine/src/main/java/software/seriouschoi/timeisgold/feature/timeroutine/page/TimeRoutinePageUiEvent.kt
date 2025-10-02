@@ -8,6 +8,10 @@ import software.seriouschoi.timeisgold.core.common.ui.UiText
  * jhchoi
  */
 internal sealed interface TimeRoutinePageUiEvent {
+    data class TimeSlotDragCursorRefresh(
+        val cursorSlotItem: TimeSlotItemUiState
+    ) : TimeRoutinePageUiEvent
+
     data class ShowToast(
         val message: UiText,
         val toastTime: Int = Toast.LENGTH_LONG

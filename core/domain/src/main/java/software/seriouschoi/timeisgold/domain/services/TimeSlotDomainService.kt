@@ -13,6 +13,7 @@ import kotlin.math.abs
 
 class TimeSlotDomainService @Inject constructor(
     val timeSlotRepository: TimeSlotRepositoryPort,
+    private val timeSlotPolicy: TimeSlotPolicy
 ) {
 
     suspend fun isValid(
@@ -20,7 +21,7 @@ class TimeSlotDomainService @Inject constructor(
         routineUuid: String,
     ): DomainResult<Unit> {
         val newSlotTitle = timeSlotData.title
-        if (newSlotTitle.length !in TimeSlotPolicy.titleLengthRange) {
+        if (newSlotTitle.length !in timeSlotPolicy.titleLengthRange) {
             return DomainResult.Failure(DomainError.Validation.TitleLength)
         }
 
