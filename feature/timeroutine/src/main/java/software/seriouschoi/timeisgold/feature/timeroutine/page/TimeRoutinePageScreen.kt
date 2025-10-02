@@ -52,7 +52,6 @@ import software.seriouschoi.timeisgold.core.common.util.asMinutes
 import timber.log.Timber
 import java.time.DayOfWeek
 import java.time.LocalTime
-import kotlin.math.abs
 import kotlin.math.absoluteValue
 
 /**
@@ -172,6 +171,51 @@ private fun Routine(
 
         val slotBoundsMap = remember { mutableStateMapOf<Int, Rect>() }
 
+        val gesture1 = Modifier.verticalDragGesture(
+            key = Unit,
+            itemList = { currentSlotList },
+            slotBoundsMap = {slotBoundsMap},
+            onSelected = { item, target ->
+                //no work.
+            },
+            onDrag = { item, dx, dy, target ->
+                val minutesFactor = TimePixelUtil.pxToMinutes(dy.toLong(), hourHeightPx)
+                val newStartTime = item.startMinutesOfDay + minutesFactor.toInt()
+                val newEndTime = item.endMinutesOfDay + minutesFactor.toInt()
+                val updateTime = when (target) {
+                    DragTarget.Card -> Pair(newStartTime, newEndTime)
+                    DragTarget.Top -> Pair(
+                        newStartTime,
+                        item.endMinutesOfDay
+                    )
+
+                    DragTarget.Bottom -> Pair(
+                        item.startMinutesOfDay,
+                        newEndTime
+                    )
+                }
+                val intent = TimeRoutinePageUiIntent.UpdateTimeSlotUi(
+                    uuid = item.slotUuid,
+                    newStart = updateTime.first,
+                    newEnd = updateTime.second,
+                    orderChange = target == DragTarget.Card
+                )
+                sendIntent.invoke(intent)
+            },
+            onDrop = { item, target ->
+                val intent = TimeRoutinePageUiIntent.UpdateTimeSlotList
+                sendIntent.invoke(intent)
+            },
+            onTap = { item, target ->
+                val intent = TimeRoutinePageUiIntent.ShowSlotEdit(
+                    slotId = item.slotUuid,
+                    routineId = item.routineUuid
+                )
+                sendIntent.invoke(intent)
+            }
+        )
+
+        // TODO: jhchoi 2025. 10. 2. 여기 분리하기.
         val gesture = Modifier.pointerInput(Unit) {
             awaitEachGesture {
                 val down = awaitFirstDown()
@@ -302,7 +346,7 @@ private fun Routine(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(hourHeight * 24)
-                .then(gesture)
+                .then(gesture1)
         ) {
             state.slotItemList.forEachIndexed { index, slot ->
                 val globalPositioned = Modifier.onGloballyPositioned {
@@ -444,6 +488,87 @@ private fun PreviewLoading() {
             UiText.Raw("불러오는 중...")
         )
     )
+}
+
+private fun <T> Modifier.verticalDragGesture(
+    key: Any,
+    itemList: () -> List<T>,
+    slotBoundsMap: () -> Map<Int, Rect>,
+    onSelected: (item: T, dragTarget: DragTarget) -> Unit,
+    onDrag: (item: T, dx: Float, dy: Float, dragTarget: DragTarget) -> Unit,
+    onDrop: (item: T, dragTarget: DragTarget) -> Unit,
+    onTap: (item: T, dragTarget: DragTarget) -> Unit
+) = pointerInput(key) {
+    awaitEachGesture {
+        val down = awaitFirstDown()
+        Timber.d("down position. x=${down.position.x}, y=${down.position.y}")
+
+        val hit = slotBoundsMap().entries.firstOrNull {
+            it.value.contains(down.position)
+        }
+        if (hit == null) return@awaitEachGesture
+        val activeDragTarget = when {
+            down.position.y - hit.value.top < 20.dp.toPx() -> DragTarget.Top
+            down.position.y - hit.value.top > hit.value.height - 20.dp.toPx() -> DragTarget.Bottom
+            else -> DragTarget.Card
+        }
+        val selectedItem = itemList().getOrNull(hit.key) ?: return@awaitEachGesture
+        onSelected(selectedItem, activeDragTarget)
+        Timber.d("gesture hit. index=${hit.key}, activeDragTarget=${activeDragTarget}")
+
+        var distanceX = 0f
+        var distanceY = 0f
+        var distanceXAbs = 0f
+        var distanceYAbs = 0f
+        val downTimeStamp = System.currentTimeMillis()
+        val movedOffset = Offset(5f, 5f)
+        var isMoved = false
+        var longPressed = false
+        while (true) {
+            val event = awaitPointerEvent().changes.firstOrNull() ?: break
+            if (event.pressed.not()) {
+                event.consume()
+                if (longPressed) {
+                    onDrop(selectedItem, activeDragTarget)
+                    break
+                }
+                if (!isMoved) {
+                    onTap(selectedItem, activeDragTarget)
+                    break
+                }
+                break
+            }
+
+            val dragAmount = event.positionChange()
+            distanceX += dragAmount.x
+            distanceY += dragAmount.y
+            distanceXAbs += dragAmount.x.absoluteValue
+            distanceYAbs += dragAmount.y.absoluteValue
+
+            if (longPressed) {
+                event.consume()
+
+                onDrag(selectedItem, distanceX, distanceY, activeDragTarget)
+                continue
+            }
+
+            if (distanceXAbs > movedOffset.x || distanceYAbs > movedOffset.y) {
+                if (!isMoved) {
+                    Timber.d("move!! distanceX=$distanceXAbs, distanceY=$distanceYAbs")
+                }
+                isMoved = true
+            }
+
+            val now = System.currentTimeMillis()
+            if (now - downTimeStamp > 200) {
+                if (!isMoved) {
+                    //long press!!
+                    Timber.d("long press!!")
+                    longPressed = true
+                }
+            }
+        }
+    }
 }
 
 private enum class DragTarget { Card, Top, Bottom }
