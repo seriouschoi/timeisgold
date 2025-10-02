@@ -166,27 +166,31 @@ internal class TimeRoutinePageViewModel @Inject constructor(
             endMinutesOfDay = normalizeForUiUseCase.invoke(intent.newEnd),
         ) ?: return
 
-        val newUpdateList = updateSlotListState(
+        val updateResult = updateSlotListState(
             intentItem, currentSlotItemList, intent.orderChange
-        ).map {
+        )
+        val newUpdateList = updateResult.first.map {
             it.splitOverMidnight()
         }.flatten().distinct()
 
         _timeSlotUpdatePreUiStateFlow.emit(
             UiPreState.UpdateSlotList(newUpdateList)
         )
+        updateResult.second?.let {
+            _uiEvent.emit(Envelope(it))
+        }
     }
 
     private fun updateSlotListState(
         updateItem: TimeSlotItemUiState,
         slotItemList: List<TimeSlotItemUiState>,
         orderChange: Boolean
-    ): List<TimeSlotItemUiState> {
+    ): Pair<List<TimeSlotItemUiState>, TimeRoutinePageUiEvent?> {
         //오버랩 있음.
         Timber.d("updateSlotListState updateItem=${updateItem.timeLog()}")
         val updateSourceTime = slotItemList.find {
             updateItem.slotUuid == it.slotUuid
-        } ?: return slotItemList
+        } ?: return Pair(slotItemList, null)
 
         val overlapItem = slotItemList.find {
             if (updateItem.slotUuid == it.slotUuid) return@find false
@@ -199,10 +203,11 @@ internal class TimeRoutinePageViewModel @Inject constructor(
 
         if (overlapItem == null) {
             //오버랩 없음.
-            return slotItemList.map {
+            val list = slotItemList.map {
                 if (it.slotUuid == updateItem.slotUuid) updateItem
                 else it
             }
+            return Pair(list, null)
         }
 
         //오버랩 있음.
@@ -247,16 +252,15 @@ internal class TimeRoutinePageViewModel @Inject constructor(
                     )
                 }
             Timber.d("timeslot order changed. newUpdateItem=${newUpdateItem.timeLog()}, newOverlapItem=${newOverlapItem.timeLog()}")
-            // TODO: jhchoi 2025. 10. 2. swap에 의한 이벤트 발행하기.
 
-
-            return slotItemList.map {
+            val list = slotItemList.map {
                 when (it.slotUuid) {
                     newOverlapItem.slotUuid -> newOverlapItem
                     newUpdateItem.slotUuid -> newUpdateItem
                     else -> it
                 }
             }
+            return Pair(list, TimeRoutinePageUiEvent.TimeSlotDragCursorRefresh(newUpdateItem))
         } else {
             //오버랩. 확장 제한.
             val newUpdateItem = if (updateItem.startMinutesOfDay > overlapItem.startMinutesOfDay) {
@@ -271,12 +275,13 @@ internal class TimeRoutinePageViewModel @Inject constructor(
                 )
             }
             Timber.d("timeslot overlap changed. newUpdateItem=${newUpdateItem.startMinutesOfDay}~${newUpdateItem.endMinutesOfDay}")
-            return slotItemList.map {
+            val list = slotItemList.map {
                 when (it.slotUuid) {
                     newUpdateItem.slotUuid -> newUpdateItem
                     else -> it
                 }
             }
+            return Pair(list, null)
         }
     }
 

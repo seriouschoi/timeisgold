@@ -64,6 +64,9 @@ fun TimeRoutinePageScreen(
     dayOfWeek: DayOfWeek,
 ) {
     val viewModel = hiltViewModel<TimeRoutinePageViewModel>(key = dayOfWeek.name)
+    val uiState by viewModel.uiState.collectAsState()
+    val uiEvent by viewModel.uiEvent.collectAsState(null)
+    val dragRefreshEvent by rememberUpdatedState(uiEvent?.payload as? TimeRoutinePageUiEvent.TimeSlotDragCursorRefresh)
 
     LaunchedEffect(dayOfWeek) {
         viewModel.load(dayOfWeek)
@@ -79,11 +82,9 @@ fun TimeRoutinePageScreen(
                     .fillMaxSize()
                     .padding(innerPadding)
             ) {
-                val uiState by viewModel.uiState.collectAsState()
-                StateView(uiState) {
+                StateView(uiState, dragRefreshEvent) {
                     viewModel.sendIntent(it)
                 }
-                val uiEvent by viewModel.uiEvent.collectAsState(null)
                 EventView(uiEvent, snackBarHostState)
             }
         },
@@ -109,6 +110,7 @@ private fun EventView(
                 snackBar.showSnackbar(message)
             }
 
+            is TimeRoutinePageUiEvent.TimeSlotDragCursorRefresh,
             null -> {
                 //no work.
             }
@@ -119,6 +121,7 @@ private fun EventView(
 @Composable
 private fun StateView(
     currentState: TimeRoutinePageUiState,
+    dragRefreshEvent: TimeRoutinePageUiEvent.TimeSlotDragCursorRefresh?,
     sendIntent: (TimeRoutinePageUiIntent) -> Unit
 ) {
     when (currentState) {
@@ -127,7 +130,7 @@ private fun StateView(
         }
 
         is TimeRoutinePageUiState.Routine -> {
-            Routine(currentState) {
+            Routine(currentState, dragRefreshEvent) {
                 sendIntent.invoke(it)
             }
         }
@@ -144,12 +147,16 @@ private fun StateView(
 @Composable
 private fun Routine(
     state: TimeRoutinePageUiState.Routine,
+    dragRefreshEvent: TimeRoutinePageUiEvent.TimeSlotDragCursorRefresh?,
     sendIntent: (TimeRoutinePageUiIntent) -> Unit,
 ) {
     val currentSlotList by rememberUpdatedState(state.slotItemList)
+    val dragCursorRefreshEvent by rememberUpdatedState(dragRefreshEvent)
     val hourHeight = 60.dp
     val density = LocalDensity.current
     val hourHeightPx = density.run { hourHeight.toPx() }
+
+
 
     Box(
         modifier = Modifier
@@ -176,20 +183,12 @@ private fun Routine(
                 if (hit == null) return@awaitEachGesture
                 Timber.d("gesture hit. index=${hit.key}")
 
+                val selectedSlot = currentSlotList.getOrNull(hit.key) ?: return@awaitEachGesture
+
                 val activeDragTarget = when {
                     down.position.y - hit.value.top < 20.dp.toPx() -> RoutinePageSlotItemDragTarget.Top
                     down.position.y - hit.value.top > hit.value.height - 20.dp.toPx() -> RoutinePageSlotItemDragTarget.Bottom
                     else -> RoutinePageSlotItemDragTarget.Card
-                }
-
-                // TODO: jhchoi 2025. 10. 1. swap을 해도... 이걸 계속 들고 있으니깐... 이걸로 기준으로 계속 갱신 하는구나..
-                /*
-                차라리 연속 스왑을 제공하지 말자.
-                 */
-                val currentSlot = currentSlotList.getOrNull(hit.key)
-                if (currentSlot == null) {
-                    Timber.d("not found slot item.")
-                    return@awaitEachGesture
                 }
 
                 var distanceXAbs = 0L
@@ -200,9 +199,15 @@ private fun Routine(
                 var longPressed = false
 
                 val downTimeStamp = System.currentTimeMillis()
+                var cursorSlot: TimeSlotItemUiState = selectedSlot
                 while (true) {
-
                     val event = awaitPointerEvent().changes.firstOrNull() ?: break
+
+                    val refreshCursorSlot = dragCursorRefreshEvent?.cursorSlotItem
+                    if(refreshCursorSlot != null && refreshCursorSlot != cursorSlot) {
+                        distanceY = 0
+                        cursorSlot = refreshCursorSlot
+                    }
 
                     val dragAmount = event.positionChange()
                     distanceXAbs += dragAmount.x.absoluteValue.toLong()
@@ -210,17 +215,17 @@ private fun Routine(
                     distanceY += dragAmount.y.toLong()
 
                     val minutesFactor = distanceY.toFloat().pxToMinutes(hourHeightPx)
-                    val newStartTime = currentSlot.startMinutesOfDay + minutesFactor.roundToInt()
-                    val newEndTime = currentSlot.endMinutesOfDay + minutesFactor.roundToInt()
+                    val newStartTime = cursorSlot.startMinutesOfDay + minutesFactor.roundToInt()
+                    val newEndTime = cursorSlot.endMinutesOfDay + minutesFactor.roundToInt()
                     val updateTime = when (activeDragTarget) {
                         RoutinePageSlotItemDragTarget.Card -> Pair(newStartTime, newEndTime)
                         RoutinePageSlotItemDragTarget.Top -> Pair(
                             newStartTime,
-                            currentSlot.endMinutesOfDay
+                            cursorSlot.endMinutesOfDay
                         )
 
                         RoutinePageSlotItemDragTarget.Bottom -> Pair(
-                            currentSlot.startMinutesOfDay,
+                            cursorSlot.startMinutesOfDay,
                             newEndTime
                         )
                     }
@@ -235,8 +240,8 @@ private fun Routine(
 
                         if (!isMoved) {
                             val intent = TimeRoutinePageUiIntent.ShowSlotEdit(
-                                slotId = currentSlot.slotUuid,
-                                routineId = currentSlot.routineUuid
+                                slotId = cursorSlot.slotUuid,
+                                routineId = cursorSlot.routineUuid
                             )
                             sendIntent.invoke(intent)
                             return@awaitEachGesture
@@ -249,7 +254,7 @@ private fun Routine(
                         event.consume()
 
                         val dragIntent = TimeRoutinePageUiIntent.UpdateTimeSlotUi(
-                            uuid = currentSlot.slotUuid,
+                            uuid = cursorSlot.slotUuid,
                             newStart = updateTime.first,
                             newEnd = updateTime.second,
                             orderChange = false
@@ -277,7 +282,7 @@ private fun Routine(
                     }
 
                     val now = System.currentTimeMillis()
-                    if (currentSlot.isSelected) {
+                    if (cursorSlot.isSelected) {
                         longPressed = true
                         continue
                     }
@@ -380,7 +385,8 @@ private fun PreviewRoutine() {
                 dayOfWeeks = listOf(
                     DayOfWeek.MONDAY,
                 )
-            )
+            ),
+            null
         ) {
 
         }
