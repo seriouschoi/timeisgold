@@ -46,6 +46,7 @@ import software.seriouschoi.timeisgold.core.common.ui.TigThemePreview
 import software.seriouschoi.timeisgold.core.common.ui.UiText
 import software.seriouschoi.timeisgold.core.common.ui.asString
 import software.seriouschoi.timeisgold.core.common.ui.components.TigLabelButton
+import software.seriouschoi.timeisgold.core.common.ui.times.TimePixelUtil
 import software.seriouschoi.timeisgold.core.common.util.Envelope
 import software.seriouschoi.timeisgold.core.common.util.asMinutes
 import timber.log.Timber
@@ -53,7 +54,6 @@ import java.time.DayOfWeek
 import java.time.LocalTime
 import kotlin.math.abs
 import kotlin.math.absoluteValue
-import kotlin.math.roundToInt
 
 /**
  * Created by jhchoi on 2025. 8. 26.
@@ -186,9 +186,9 @@ private fun Routine(
                 val selectedSlot = currentSlotList.getOrNull(hit.key) ?: return@awaitEachGesture
 
                 val activeDragTarget = when {
-                    down.position.y - hit.value.top < 20.dp.toPx() -> RoutinePageSlotItemDragTarget.Top
-                    down.position.y - hit.value.top > hit.value.height - 20.dp.toPx() -> RoutinePageSlotItemDragTarget.Bottom
-                    else -> RoutinePageSlotItemDragTarget.Card
+                    down.position.y - hit.value.top < 20.dp.toPx() -> DragTarget.Top
+                    down.position.y - hit.value.top > hit.value.height - 20.dp.toPx() -> DragTarget.Bottom
+                    else -> DragTarget.Card
                 }
 
                 var distanceXAbs = 0L
@@ -204,7 +204,7 @@ private fun Routine(
                     val event = awaitPointerEvent().changes.firstOrNull() ?: break
 
                     val refreshCursorSlot = dragCursorRefreshEvent?.cursorSlotItem
-                    if(refreshCursorSlot != null && refreshCursorSlot != cursorSlot) {
+                    if (refreshCursorSlot != null && refreshCursorSlot != cursorSlot) {
                         distanceY = 0
                         cursorSlot = refreshCursorSlot
                     }
@@ -214,17 +214,17 @@ private fun Routine(
                     distanceYAbs += dragAmount.y.absoluteValue.toLong()
                     distanceY += dragAmount.y.toLong()
 
-                    val minutesFactor = distanceY.toFloat().pxToMinutes(hourHeightPx)
-                    val newStartTime = cursorSlot.startMinutesOfDay + minutesFactor.roundToInt()
-                    val newEndTime = cursorSlot.endMinutesOfDay + minutesFactor.roundToInt()
+                    val minutesFactor = TimePixelUtil.pxToMinutes(distanceY, hourHeightPx)
+                    val newStartTime = cursorSlot.startMinutesOfDay + minutesFactor.toInt()
+                    val newEndTime = cursorSlot.endMinutesOfDay + minutesFactor.toInt()
                     val updateTime = when (activeDragTarget) {
-                        RoutinePageSlotItemDragTarget.Card -> Pair(newStartTime, newEndTime)
-                        RoutinePageSlotItemDragTarget.Top -> Pair(
+                        DragTarget.Card -> Pair(newStartTime, newEndTime)
+                        DragTarget.Top -> Pair(
                             newStartTime,
                             cursorSlot.endMinutesOfDay
                         )
 
-                        RoutinePageSlotItemDragTarget.Bottom -> Pair(
+                        DragTarget.Bottom -> Pair(
                             cursorSlot.startMinutesOfDay,
                             newEndTime
                         )
@@ -260,12 +260,12 @@ private fun Routine(
                             orderChange = false
                         ).let {
                             when (activeDragTarget) {
-                                RoutinePageSlotItemDragTarget.Card -> it.copy(
+                                DragTarget.Card -> it.copy(
                                     orderChange = true
                                 )
 
-                                RoutinePageSlotItemDragTarget.Top,
-                                RoutinePageSlotItemDragTarget.Bottom -> it
+                                DragTarget.Top,
+                                DragTarget.Bottom -> it
                             }
                         }
 
@@ -305,10 +305,6 @@ private fun Routine(
                 .then(gesture)
         ) {
             state.slotItemList.forEachIndexed { index, slot ->
-                val topOffsetPx = slot.startMinutesOfDay.minutesToPx(hourHeightPx)
-                val slotHeightPx =
-                    abs(slot.endMinutesOfDay - slot.startMinutesOfDay).minutesToPx(hourHeightPx)
-
                 val globalPositioned = Modifier.onGloballyPositioned {
                     val bounds = it.boundsInParent()
                     slotBoundsMap[index] = bounds
@@ -316,9 +312,8 @@ private fun Routine(
                 TimeSlotItemCardView(
                     modifier = Modifier.fillMaxWidth(),
                     item = slot,
-                    heightDp = density.run { slotHeightPx.toDp() },
-                    topOffsetPx = topOffsetPx.toInt(),
                     globalPositioned = globalPositioned,
+                    hourHeight = hourHeight
                 )
             }
         }
@@ -451,12 +446,4 @@ private fun PreviewLoading() {
     )
 }
 
-private fun Float.pxToMinutes(hourHeightPx: Float): Float {
-    return (this / hourHeightPx) * 60
-}
-
-private fun Int.minutesToPx(hourHeightPx: Float): Float {
-    return (this / 60f) * hourHeightPx
-}
-
-private enum class RoutinePageSlotItemDragTarget { Card, Top, Bottom }
+private enum class DragTarget { Card, Top, Bottom }
