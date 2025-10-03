@@ -155,8 +155,6 @@ private fun Routine(
     val density = LocalDensity.current
     val hourHeightPx = density.run { hourHeight.toPx() }
 
-
-
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -174,7 +172,8 @@ private fun Routine(
         val gesture1 = Modifier.verticalDragGesture(
             key = Unit,
             itemList = { currentSlotList },
-            slotBoundsMap = {slotBoundsMap},
+            refreshDragItem = { dragRefreshEvent?.cursorSlotItem },
+            slotBoundsMap = { slotBoundsMap },
             onSelected = { item, target ->
                 //no work.
             },
@@ -183,7 +182,11 @@ private fun Routine(
                 val newStartTime = item.startMinutesOfDay + minutesFactor.toInt()
                 val newEndTime = item.endMinutesOfDay + minutesFactor.toInt()
                 val updateTime = when (target) {
-                    DragTarget.Card -> Pair(newStartTime, newEndTime)
+                    DragTarget.Card -> Pair(
+                        newStartTime,
+                        newEndTime
+                    )
+
                     DragTarget.Top -> Pair(
                         newStartTime,
                         item.endMinutesOfDay
@@ -497,7 +500,8 @@ private fun <T> Modifier.verticalDragGesture(
     onSelected: (item: T, dragTarget: DragTarget) -> Unit,
     onDrag: (item: T, dx: Float, dy: Float, dragTarget: DragTarget) -> Unit,
     onDrop: (item: T, dragTarget: DragTarget) -> Unit,
-    onTap: (item: T, dragTarget: DragTarget) -> Unit
+    onTap: (item: T, dragTarget: DragTarget) -> Unit,
+    refreshDragItem: () -> T?
 ) = pointerInput(key) {
     awaitEachGesture {
         val down = awaitFirstDown()
@@ -512,7 +516,7 @@ private fun <T> Modifier.verticalDragGesture(
             down.position.y - hit.value.top > hit.value.height - 20.dp.toPx() -> DragTarget.Bottom
             else -> DragTarget.Card
         }
-        val selectedItem = itemList().getOrNull(hit.key) ?: return@awaitEachGesture
+        val selectedItem: T = itemList().getOrNull(hit.key) ?: return@awaitEachGesture
         onSelected(selectedItem, activeDragTarget)
         Timber.d("gesture hit. index=${hit.key}, activeDragTarget=${activeDragTarget}")
 
@@ -525,15 +529,17 @@ private fun <T> Modifier.verticalDragGesture(
         var isMoved = false
         var longPressed = false
         while (true) {
+            val cursorItem: T = refreshDragItem.invoke() ?: selectedItem
+
             val event = awaitPointerEvent().changes.firstOrNull() ?: break
             if (event.pressed.not()) {
                 event.consume()
                 if (longPressed) {
-                    onDrop(selectedItem, activeDragTarget)
+                    onDrop(cursorItem, activeDragTarget)
                     break
                 }
                 if (!isMoved) {
-                    onTap(selectedItem, activeDragTarget)
+                    onTap(cursorItem, activeDragTarget)
                     break
                 }
                 break
@@ -548,7 +554,7 @@ private fun <T> Modifier.verticalDragGesture(
             if (longPressed) {
                 event.consume()
 
-                onDrag(selectedItem, distanceX, distanceY, activeDragTarget)
+                onDrag(cursorItem, distanceX, distanceY, activeDragTarget)
                 continue
             }
 
