@@ -172,7 +172,6 @@ private fun Routine(
         val gesture1 = Modifier.verticalDragGesture(
             key = Unit,
             itemList = { currentSlotList },
-            refreshDragItem = { dragRefreshEvent?.cursorSlotItem },
             slotBoundsMap = { slotBoundsMap },
             onSelected = { item, target ->
                 //no work.
@@ -501,7 +500,6 @@ private fun <T> Modifier.verticalDragGesture(
     onDrag: (item: T, dx: Float, dy: Float, dragTarget: DragTarget) -> Unit,
     onDrop: (item: T, dragTarget: DragTarget) -> Unit,
     onTap: (item: T, dragTarget: DragTarget) -> Unit,
-    refreshDragItem: () -> T?
 ) = pointerInput(key) {
     awaitEachGesture {
         val down = awaitFirstDown()
@@ -528,9 +526,8 @@ private fun <T> Modifier.verticalDragGesture(
         val movedOffset = Offset(5.dp.toPx(), 5.dp.toPx())
         var isMoved = false
         var longPressed = false
+        val cursorItem: T = selectedItem
         while (true) {
-            val cursorItem: T = refreshDragItem.invoke() ?: selectedItem
-
             val event = awaitPointerEvent().changes.firstOrNull() ?: break
             if (event.pressed.not()) {
                 event.consume()

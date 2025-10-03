@@ -221,36 +221,40 @@ internal class TimeRoutinePageViewModel @Inject constructor(
         if (orderChange) {
             //오버랩 아이템 순번 전환.
 
-            val newUpdateItem = if (updateItem.startMinutesOfDay > overlapItem.startMinutesOfDay) {
-                //아래에서 위로 드래그.
-                updateItem.copy(
-                    startMinutesOfDay = overlapItem.startMinutesOfDay,
-                    endMinutesOfDay = overlapItem.startMinutesOfDay + intentItemMinutes
-                )
-            } else {
-                //위에서 아래로 드래그.
-                updateItem.copy(
-                    startMinutesOfDay = overlapItem.endMinutesOfDay - intentItemMinutes,
-                    endMinutesOfDay = overlapItem.endMinutesOfDay
-                )
-            }
-
             val overlapItemMinutes =
                 overlapItem.run { this.endMinutesOfDay - this.startMinutesOfDay }
-            val newOverlapItem =
-                if (updateSourceTime.startMinutesOfDay > overlapItem.startMinutesOfDay) {
-                    //아래에서 위로 드래그.
-                    overlapItem.copy(
+
+            val newUpdateItem: TimeSlotItemUiState
+            val newOverlapItem: TimeSlotItemUiState
+            when {
+                updateSourceTime.midMinute() < updateItem.midMinute() -> {
+                    //down to up.
+                    newUpdateItem = updateSourceTime.copy(
+                        startMinutesOfDay = overlapItem.startMinutesOfDay,
+                        endMinutesOfDay = overlapItem.startMinutesOfDay + intentItemMinutes
+                    )
+                    newOverlapItem = overlapItem.copy(
                         startMinutesOfDay = updateSourceTime.endMinutesOfDay - overlapItemMinutes,
                         endMinutesOfDay = updateSourceTime.endMinutesOfDay,
                     )
-                } else {
-                    //위에서 아래로 드래그.
-                    overlapItem.copy(
+                }
+                updateSourceTime.midMinute() > updateItem.midMinute() -> {
+                    //up to down
+                    newUpdateItem = updateSourceTime.copy(
+                        startMinutesOfDay = overlapItem.endMinutesOfDay - intentItemMinutes,
+                        endMinutesOfDay = overlapItem.endMinutesOfDay
+                    )
+                    newOverlapItem = overlapItem.copy(
                         startMinutesOfDay = updateSourceTime.startMinutesOfDay,
                         endMinutesOfDay = updateSourceTime.startMinutesOfDay + overlapItemMinutes,
                     )
                 }
+                else -> {
+                    newUpdateItem = updateSourceTime
+                    newOverlapItem = overlapItem
+                }
+            }
+
             Timber.d("timeslot order changed. newUpdateItem=${newUpdateItem.timeLog()}, newOverlapItem=${newOverlapItem.timeLog()}")
 
             val list = slotItemList.map {
