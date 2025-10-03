@@ -521,7 +521,7 @@ private fun <T> Modifier.verticalDragGesture(
         var distanceXAbs = 0f
         var distanceYAbs = 0f
         val downTimeStamp = System.currentTimeMillis()
-        val movedOffset = Offset(5f, 5f)
+        val movedOffset = Offset(5.dp.toPx(), 5.dp.toPx())
         var isMoved = false
         var longPressed = false
         while (true) {
