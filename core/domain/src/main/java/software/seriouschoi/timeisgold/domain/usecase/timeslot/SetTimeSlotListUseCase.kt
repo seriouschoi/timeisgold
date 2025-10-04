@@ -21,7 +21,7 @@ class SetTimeSlotListUseCase @Inject constructor(
 
         return timeRoutineRepositoryPort.setTimeSlotList(
             routineUuid = timeRoutineUuid,
-            incomingSlots = timeSlotList
+            incomingSlots = timeSlotList.distinct()
         ).asDomainResult()
     }
 }

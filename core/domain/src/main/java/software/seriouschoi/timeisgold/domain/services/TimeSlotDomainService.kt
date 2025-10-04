@@ -42,7 +42,7 @@ class TimeSlotDomainService @Inject constructor(
             it.endTime.asMinutes()
         }.sortedBy {
             it.startTime.asMinutes()
-        }
+        }.distinct()
 
         var current: TimeSlotEntity? = null
         for (next in sorted) {
