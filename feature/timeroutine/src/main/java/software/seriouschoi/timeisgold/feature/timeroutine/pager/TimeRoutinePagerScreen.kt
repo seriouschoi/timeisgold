@@ -3,6 +3,7 @@ package software.seriouschoi.timeisgold.feature.timeroutine.pager
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -17,6 +18,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraphBuilder
@@ -29,7 +31,8 @@ import software.seriouschoi.timeisgold.core.common.ui.UiText
 import software.seriouschoi.timeisgold.core.common.ui.asString
 import software.seriouschoi.timeisgold.core.common.ui.components.InfiniteHorizontalPager
 import software.seriouschoi.timeisgold.core.common.ui.components.TigCircleText
-import software.seriouschoi.timeisgold.feature.timeroutine.page.TimeRoutinePageScreen
+import software.seriouschoi.timeisgold.feature.timeroutine.pager.routine.TimeRoutineView
+import software.seriouschoi.timeisgold.feature.timeroutine.timeslots.TimeSlotListPageScreen
 
 /**
  * Created by jhchoi on 2025. 8. 26.
@@ -99,6 +102,8 @@ private fun TopBar(
 ) {
     TopAppBar(
         title = {
+            TimeRoutineView()
+            // TODO: jhchoi 2025. 10. 4. 아래 비활성.
             Text(text = uiState.title.asString())
         },
         navigationIcon = {
@@ -112,7 +117,7 @@ private fun TopBar(
             ) {
                 Icon(Icons.Default.Edit, contentDescription = null)
             }
-        }
+        },
     )
 }
 
@@ -127,6 +132,10 @@ private fun PagerView(
         pageList = pagerItems,
         initialPageIndex = uiState.initialPageIndex,
         onSelectPage = {
+            // TODO: jhchoi 2025. 10. 4. 현재 요일을 어딘가 공통 상태에서 가져와야 하는데..
+            /*
+            그게 가장 애매하네.
+             */
             val dayOfWeek = pagerItems.getOrNull(it)
             if (dayOfWeek != null) {
                 sendIntent(TimeRoutinePagerUiIntent.LoadRoutine(dayOfWeek))
@@ -134,7 +143,7 @@ private fun PagerView(
         }
     ) {
         val dayOfWeek = pagerItems[it]
-        TimeRoutinePageScreen(
+        TimeSlotListPageScreen(
             dayOfWeek = dayOfWeek
         )
     }
