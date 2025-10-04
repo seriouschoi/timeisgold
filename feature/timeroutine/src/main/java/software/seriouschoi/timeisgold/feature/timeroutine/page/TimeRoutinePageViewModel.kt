@@ -153,44 +153,62 @@ internal class TimeRoutinePageViewModel @Inject constructor(
         }
     }
 
+    private var dragMinsAcc = 0
     private suspend fun handleUpdateTimeSlot(
         intent: TimeRoutinePageUiIntent.UpdateTimeSlotUi,
     ) {
         val routineState = uiState.value as? TimeRoutinePageUiState.Routine ?: return
 
         val currentSlotItemList = routineState.slotItemList
-        val intentItem = currentSlotItemList.find { it.slotUuid == intent.uuid }?.copy(
-            isSelected = true
-        )?.copy(
-            startMinutesOfDay = normalizeForUiUseCase.invoke(intent.newStart),
-            endMinutesOfDay = normalizeForUiUseCase.invoke(intent.newEnd),
-        ) ?: return
+        val intentItem: TimeSlotItemUiState =
+            currentSlotItemList.find { it.slotUuid == intent.uuid }?.copy(
+                isSelected = true
+            )?.let {
+                val startMins = it.startMinutesOfDay
+                val endMins = it.endMinutesOfDay
+                val newStartMin = normalizeForUiUseCase.invoke(startMins + dragMinsAcc)
+                val newEndMin = normalizeForUiUseCase.invoke(endMins + dragMinsAcc)
+                // TODO: jhchoi 2025. 10. 4. state holder개념 같은게 있어야 하는구나..
+                if (startMins == newStartMin) {
+                    dragMinsAcc += intent.minuteFactor
+                } else {
+                    dragMinsAcc = 0
+                }
+                when (intent.updateTimeType) {
+                    TimeSlotUpdateTimeType.START -> it.copy(startMinutesOfDay = newStartMin)
+                    TimeSlotUpdateTimeType.END -> it.copy(endMinutesOfDay = newEndMin)
+                    TimeSlotUpdateTimeType.START_AND_END -> {
+                        it.copy(
+                            startMinutesOfDay = newStartMin,
+                            endMinutesOfDay = newEndMin
+                        )
+                    }
+                }
+            } ?: return
 
         val updateResult = updateSlotListState(
-            intentItem, currentSlotItemList, intent.orderChange
+            updateItem = intentItem,
+            slotItemList = currentSlotItemList,
+            orderChange = intent.updateTimeType == TimeSlotUpdateTimeType.START_AND_END
         )
-        val newUpdateList = updateResult.first.map {
+        val newUpdateList = updateResult.map {
             it.splitOverMidnight()
         }.flatten().distinct()
 
         _timeSlotUpdatePreUiStateFlow.emit(
             UiPreState.UpdateSlotList(newUpdateList)
         )
-        updateResult.second?.let {
-            _uiEvent.emit(Envelope(it))
-        }
     }
 
     private fun updateSlotListState(
         updateItem: TimeSlotItemUiState,
         slotItemList: List<TimeSlotItemUiState>,
         orderChange: Boolean
-    ): Pair<List<TimeSlotItemUiState>, TimeRoutinePageUiEvent?> {
+    ): List<TimeSlotItemUiState> {
         //오버랩 있음.
-        Timber.d("updateSlotListState updateItem=${updateItem.timeLog()}")
-        val updateSourceTime = slotItemList.find {
+        val updateSourceTime: TimeSlotItemUiState = slotItemList.find {
             updateItem.slotUuid == it.slotUuid
-        } ?: return Pair(slotItemList, null)
+        } ?: return slotItemList
 
         val overlapItem = slotItemList.find {
             if (updateItem.slotUuid == it.slotUuid) return@find false
@@ -203,64 +221,64 @@ internal class TimeRoutinePageViewModel @Inject constructor(
 
         if (overlapItem == null) {
             //오버랩 없음.
-            val list = slotItemList.map {
+            return slotItemList.map {
                 if (it.slotUuid == updateItem.slotUuid) updateItem
                 else it
             }
-            return Pair(list, null)
         }
 
         //오버랩 있음.
-        Timber.d(
-            """
-                updateSlotListState
-                overlapItem=${overlapItem.timeLog()}
-            """.trimIndent()
-        )
         val intentItemMinutes = updateItem.run { this.endMinutesOfDay - this.startMinutesOfDay }
         if (orderChange) {
             //오버랩 아이템 순번 전환.
 
-            val newUpdateItem = if (updateItem.startMinutesOfDay > overlapItem.startMinutesOfDay) {
-                //아래에서 위로 드래그.
-                updateItem.copy(
-                    startMinutesOfDay = overlapItem.startMinutesOfDay,
-                    endMinutesOfDay = overlapItem.startMinutesOfDay + intentItemMinutes
-                )
-            } else {
-                //위에서 아래로 드래그.
-                updateItem.copy(
-                    startMinutesOfDay = overlapItem.endMinutesOfDay - intentItemMinutes,
-                    endMinutesOfDay = overlapItem.endMinutesOfDay
-                )
-            }
-
             val overlapItemMinutes =
                 overlapItem.run { this.endMinutesOfDay - this.startMinutesOfDay }
-            val newOverlapItem =
-                if (updateSourceTime.startMinutesOfDay > overlapItem.startMinutesOfDay) {
-                    //아래에서 위로 드래그.
-                    overlapItem.copy(
+
+            val newUpdateItem: TimeSlotItemUiState
+            val newOverlapItem: TimeSlotItemUiState
+            when {
+                updateSourceTime.midMinute() > updateItem.midMinute() -> {
+                    //down to up.
+                    Timber.d("down to up.")
+                    newUpdateItem = updateSourceTime.copy(
+                        startMinutesOfDay = overlapItem.startMinutesOfDay,
+                        endMinutesOfDay = overlapItem.startMinutesOfDay + intentItemMinutes
+                    )
+                    newOverlapItem = overlapItem.copy(
                         startMinutesOfDay = updateSourceTime.endMinutesOfDay - overlapItemMinutes,
                         endMinutesOfDay = updateSourceTime.endMinutesOfDay,
                     )
-                } else {
-                    //위에서 아래로 드래그.
-                    overlapItem.copy(
+                }
+
+                updateSourceTime.midMinute() < updateItem.midMinute() -> {
+                    //up to down
+                    Timber.d("up to down.")
+                    newUpdateItem = updateSourceTime.copy(
+                        startMinutesOfDay = overlapItem.endMinutesOfDay - intentItemMinutes,
+                        endMinutesOfDay = overlapItem.endMinutesOfDay
+                    )
+                    newOverlapItem = overlapItem.copy(
                         startMinutesOfDay = updateSourceTime.startMinutesOfDay,
                         endMinutesOfDay = updateSourceTime.startMinutesOfDay + overlapItemMinutes,
                     )
                 }
+
+                else -> {
+                    newUpdateItem = updateSourceTime
+                    newOverlapItem = overlapItem
+                }
+            }
+
             Timber.d("timeslot order changed. newUpdateItem=${newUpdateItem.timeLog()}, newOverlapItem=${newOverlapItem.timeLog()}")
 
-            val list = slotItemList.map {
+            return slotItemList.map {
                 when (it.slotUuid) {
                     newOverlapItem.slotUuid -> newOverlapItem
                     newUpdateItem.slotUuid -> newUpdateItem
                     else -> it
                 }
             }
-            return Pair(list, TimeRoutinePageUiEvent.TimeSlotDragCursorRefresh(newUpdateItem))
         } else {
             //오버랩. 확장 제한.
             val newUpdateItem = if (updateItem.startMinutesOfDay > overlapItem.startMinutesOfDay) {
@@ -275,13 +293,12 @@ internal class TimeRoutinePageViewModel @Inject constructor(
                 )
             }
             Timber.d("timeslot overlap changed. newUpdateItem=${newUpdateItem.startMinutesOfDay}~${newUpdateItem.endMinutesOfDay}")
-            val list = slotItemList.map {
+            return slotItemList.map {
                 when (it.slotUuid) {
                     newUpdateItem.slotUuid -> newUpdateItem
                     else -> it
                 }
             }
-            return Pair(list, null)
         }
     }
 
@@ -462,9 +479,6 @@ private fun TimeSlotEntity.toSlotItem(routineUuid: String): TimeSlotItemUiState 
         title = this.title,
         startMinutesOfDay = this.startTime.asMinutes(),
         endMinutesOfDay = this.endTime.asMinutes(),
-        slotClickIntent = TimeRoutinePageUiIntent.ShowSlotEdit(
-            this.uuid, routineUuid
-        ),
         isSelected = false,
     )
 }

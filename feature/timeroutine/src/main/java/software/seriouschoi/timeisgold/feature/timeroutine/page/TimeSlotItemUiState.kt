@@ -9,7 +9,6 @@ internal data class TimeSlotItemUiState(
     val title: String,
     val startMinutesOfDay: Int,
     val endMinutesOfDay: Int,
-    val slotClickIntent: TimeRoutinePageUiIntent,
     val isSelected: Boolean,
 )
 
@@ -25,4 +24,8 @@ internal fun TimeSlotItemUiState.timeLog(): String {
     return """
         ${this.getStartTimeText()}(${this.startMinutesOfDay}) ~ ${this.getEndTimeText()}(${this.endMinutesOfDay})
     """.trimIndent()
+}
+
+internal fun TimeSlotItemUiState.midMinute() : Float {
+    return startMinutesOfDay + ((endMinutesOfDay - startMinutesOfDay) / 2f)
 }

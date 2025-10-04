@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -15,21 +14,29 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import software.seriouschoi.timeisgold.core.common.ui.TigTheme
+import software.seriouschoi.timeisgold.core.common.ui.times.TimePixelUtil
+import kotlin.math.abs
 
 @Composable
 internal fun TimeSlotItemCardView(
     modifier: Modifier,
     item: TimeSlotItemUiState,
-    heightDp: Dp,
-    topOffsetPx: Int,
-    gestureModifier: Modifier = Modifier,
-    globalPositioned: Modifier = Modifier
+    globalPositioned: Modifier = Modifier,
+    hourHeight: Dp
 ) {
     val density = LocalDensity.current
+    val hourHeightPx = density.run { hourHeight.toPx() }
+    val topOffsetPx = TimePixelUtil.minutesToPx(item.startMinutesOfDay.toLong(), hourHeightPx)
+    val slotHeightPx =
+        abs(item.endMinutesOfDay - item.startMinutesOfDay).let {
+            TimePixelUtil.minutesToPx(it.toLong(), hourHeightPx)
+        }
+
+    val topOffset = density.run { topOffsetPx.toDp() }
+    val slotHeight = density.run { slotHeightPx.toDp() }
+
     val cardColor = if (item.isSelected) {
         MaterialTheme.colorScheme.primaryContainer
     } else {
@@ -37,13 +44,12 @@ internal fun TimeSlotItemCardView(
     }
     Card(
         modifier = modifier
+            .padding(start = 40.dp)
+            .height(slotHeight)
             .offset(
                 x = 0.dp,
-                y = density.run { topOffsetPx.toDp() }
+                y = topOffset
             )
-            .height(heightDp)
-            .padding(start = 40.dp)
-            .then(gestureModifier)
             .then(globalPositioned),
         elevation = CardDefaults.cardElevation(
             defaultElevation = 10.dp
@@ -77,38 +83,3 @@ internal fun TimeSlotItemCardView(
         }
     }
 }
-
-@Preview
-@Composable
-private fun Preview() {
-    TigTheme {
-        TimeSlotItemCardView(
-            modifier = Modifier
-                .fillMaxWidth(),
-            item = TimeSlotItemUiState(
-                slotUuid = "slotUuid",
-                routineUuid = "routineUuid",
-                title = "title",
-                startMinutesOfDay = 0,
-                endMinutesOfDay = 60,
-                slotClickIntent = TimeRoutinePageUiIntent.ShowSlotEdit(
-                    slotId = "slotUuid",
-                    routineId = "routineUuid"
-                ),
-                isSelected = false,
-            ),
-            heightDp = 50.dp,
-            topOffsetPx = 0,
-        )
-    }
-}
-
-private fun Float.pxToMinutes(hourHeightPx: Float): Float {
-    return (this / hourHeightPx) * 60
-}
-
-private fun Int.minutesToPx(hourHeightPx: Float): Float {
-    return (this / 60f) * hourHeightPx
-}
-
-private enum class DragTarget { Card, Top, Bottom }
