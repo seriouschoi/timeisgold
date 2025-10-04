@@ -9,7 +9,6 @@ internal data class TimeSlotItemUiState(
     val title: String,
     val startMinutesOfDay: Int,
     val endMinutesOfDay: Int,
-    val slotClickIntent: TimeRoutinePageUiIntent,
     val isSelected: Boolean,
 )
 

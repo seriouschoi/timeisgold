@@ -4,15 +4,18 @@ internal sealed interface TimeRoutinePageUiIntent {
     data class ShowSlotEdit(val slotId: String, val routineId: String) : TimeRoutinePageUiIntent
     data class UpdateTimeSlotUi(
         val uuid: String,
-        val newStart: Int,
-        val newEnd: Int,
-        val orderChange: Boolean
+        val minuteFactor: Int,
+        val updateTimeType: TimeSlotUpdateTimeType
     ) : TimeRoutinePageUiIntent
 
     data object UpdateTimeSlotList : TimeRoutinePageUiIntent
 
     object CreateRoutine : TimeRoutinePageUiIntent
     object ModifyRoutine : TimeRoutinePageUiIntent
+}
+
+internal enum class TimeSlotUpdateTimeType {
+    START, END, START_AND_END
 }
 
 
