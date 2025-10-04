@@ -1,4 +1,4 @@
-package software.seriouschoi.timeisgold.feature.timeroutine.page
+package software.seriouschoi.timeisgold.feature.timeroutine.timeslots.list
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,10 +21,14 @@ import androidx.compose.ui.unit.dp
 import software.seriouschoi.timeisgold.core.common.ui.components.DragTarget
 import software.seriouschoi.timeisgold.core.common.ui.components.multipleGesture
 import software.seriouschoi.timeisgold.core.common.ui.times.TimePixelUtil
+import software.seriouschoi.timeisgold.feature.timeroutine.timeslots.TimeRoutinePageUiIntent
+import software.seriouschoi.timeisgold.feature.timeroutine.timeslots.TimeRoutinePageUiState
+import software.seriouschoi.timeisgold.feature.timeroutine.timeslots.TimeSliceView
+import software.seriouschoi.timeisgold.feature.timeroutine.timeslots.TimeSlotUpdateTimeType
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun TimeRoutineSlotListView(
+internal fun TimeSlotListView(
     state: TimeRoutinePageUiState.Routine,
     sendIntent: (TimeRoutinePageUiIntent) -> Unit,
 ) {

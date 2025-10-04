@@ -1,4 +1,4 @@
-package software.seriouschoi.timeisgold.feature.timeroutine.page
+package software.seriouschoi.timeisgold.feature.timeroutine.timeslots
 
 internal sealed interface TimeRoutinePageUiIntent {
     data class ShowSlotEdit(val slotId: String, val routineId: String) : TimeRoutinePageUiIntent

@@ -1,4 +1,4 @@
-package software.seriouschoi.timeisgold.feature.timeroutine.page
+package software.seriouschoi.timeisgold.feature.timeroutine.timeslots.list
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column

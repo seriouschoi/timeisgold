@@ -1,6 +1,7 @@
-package software.seriouschoi.timeisgold.feature.timeroutine.page
+package software.seriouschoi.timeisgold.feature.timeroutine.timeslots
 
 import software.seriouschoi.timeisgold.core.common.ui.UiText
+import software.seriouschoi.timeisgold.feature.timeroutine.timeslots.list.TimeSlotItemUiState
 import java.time.DayOfWeek
 import software.seriouschoi.timeisgold.core.common.ui.R as CommonR
 

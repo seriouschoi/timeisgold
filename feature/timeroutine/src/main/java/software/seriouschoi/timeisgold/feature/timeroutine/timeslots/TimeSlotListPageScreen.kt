@@ -1,4 +1,4 @@
-package software.seriouschoi.timeisgold.feature.timeroutine.page
+package software.seriouschoi.timeisgold.feature.timeroutine.timeslots
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,7 +20,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -34,6 +33,8 @@ import software.seriouschoi.timeisgold.core.common.ui.asString
 import software.seriouschoi.timeisgold.core.common.ui.components.TigLabelButton
 import software.seriouschoi.timeisgold.core.common.util.Envelope
 import software.seriouschoi.timeisgold.core.common.util.asMinutes
+import software.seriouschoi.timeisgold.feature.timeroutine.timeslots.list.TimeSlotItemUiState
+import software.seriouschoi.timeisgold.feature.timeroutine.timeslots.list.TimeSlotListView
 import java.time.DayOfWeek
 import java.time.LocalTime
 
@@ -42,13 +43,12 @@ import java.time.LocalTime
  * jhchoi
  */
 @Composable
-fun TimeRoutinePageScreen(
+fun TimeSlotListPageScreen(
     dayOfWeek: DayOfWeek,
 ) {
     val viewModel = hiltViewModel<TimeRoutinePageViewModel>(key = dayOfWeek.name)
     val uiState by viewModel.uiState.collectAsState()
     val uiEvent by viewModel.uiEvent.collectAsState(null)
-    val dragRefreshEvent by rememberUpdatedState(uiEvent?.payload as? TimeRoutinePageUiEvent.TimeSlotDragCursorRefresh)
 
     LaunchedEffect(dayOfWeek) {
         viewModel.load(dayOfWeek)
@@ -80,19 +80,18 @@ fun TimeRoutinePageScreen(
 
 @Composable
 private fun EventView(
-    event: Envelope<TimeRoutinePageUiEvent>?,
+    event: Envelope<TimeSlotListPageUiEvent>?,
     snackBar: SnackbarHostState
 ) {
     val context = LocalContext.current
     LaunchedEffect(event) {
         when (val payload = event?.payload) {
-            is TimeRoutinePageUiEvent.ShowToast -> {
+            is TimeSlotListPageUiEvent.ShowToast -> {
 
                 val message = payload.message.asString(context)
                 snackBar.showSnackbar(message)
             }
 
-            is TimeRoutinePageUiEvent.TimeSlotDragCursorRefresh,
             null -> {
                 //no work.
             }
@@ -111,7 +110,7 @@ private fun StateView(
         }
 
         is TimeRoutinePageUiState.Routine -> {
-            TimeRoutineSlotListView(currentState) {
+            TimeSlotListView(currentState) {
                 sendIntent.invoke(it)
             }
         }
@@ -161,7 +160,7 @@ private fun PreviewRoutine() {
     TigTheme {
         val startTime = LocalTime.of(1, 30)
         val endTime = LocalTime.of(4, 20)
-        TimeRoutineSlotListView(
+        TimeSlotListView(
             TimeRoutinePageUiState.Routine(
                 title = "루틴 1",
                 dayOfWeekName = "월",

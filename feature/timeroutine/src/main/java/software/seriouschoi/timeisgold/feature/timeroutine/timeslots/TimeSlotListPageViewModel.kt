@@ -1,4 +1,4 @@
-package software.seriouschoi.timeisgold.feature.timeroutine.page
+package software.seriouschoi.timeisgold.feature.timeroutine.timeslots
 
 import android.widget.Toast
 import androidx.lifecycle.ViewModel
@@ -40,6 +40,9 @@ import software.seriouschoi.timeisgold.domain.usecase.timeslot.NormalizeForUiUse
 import software.seriouschoi.timeisgold.domain.usecase.timeslot.SetTimeSlotListUseCase
 import software.seriouschoi.timeisgold.feature.timeroutine.edit.TimeRoutineEditScreenRoute
 import software.seriouschoi.timeisgold.feature.timeroutine.timeslot.edit.TimeSlotEditScreenRoute
+import software.seriouschoi.timeisgold.feature.timeroutine.timeslots.list.TimeSlotItemUiState
+import software.seriouschoi.timeisgold.feature.timeroutine.timeslots.list.midMinute
+import software.seriouschoi.timeisgold.feature.timeroutine.timeslots.list.timeLog
 import timber.log.Timber
 import java.time.DayOfWeek
 import java.time.format.TextStyle
@@ -107,8 +110,8 @@ internal class TimeRoutinePageViewModel @Inject constructor(
         started = SharingStarted.Eagerly,
         initialValue = TimeRoutinePageUiState.Loading.default()
     )
-    private val _uiEvent: MutableSharedFlow<Envelope<TimeRoutinePageUiEvent>> = MutableSharedFlow()
-    val uiEvent: SharedFlow<Envelope<TimeRoutinePageUiEvent>> = _uiEvent
+    private val _uiEvent: MutableSharedFlow<Envelope<TimeSlotListPageUiEvent>> = MutableSharedFlow()
+    val uiEvent: SharedFlow<Envelope<TimeSlotListPageUiEvent>> = _uiEvent
 
     init {
         viewModelScope.launch {
@@ -329,14 +332,14 @@ internal class TimeRoutinePageViewModel @Inject constructor(
         }.onlyDomainResult().onEach { domainResult ->
             when (domainResult) {
                 is DomainResult.Failure -> {
-                    TimeRoutinePageUiEvent.ShowToast(
+                    TimeSlotListPageUiEvent.ShowToast(
                         domainResult.error.toUiText(),
                         Toast.LENGTH_SHORT
                     )
                 }
 
                 is DomainResult.Success -> {
-                    TimeRoutinePageUiEvent.ShowToast(
+                    TimeSlotListPageUiEvent.ShowToast(
                         UiText.MultipleResArgs.create(
                             CommonR.string.message_format_complete,
                             CommonR.string.text_save,
