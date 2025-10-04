@@ -26,6 +26,6 @@ internal fun TimeSlotItemUiState.timeLog(): String {
     """.trimIndent()
 }
 
-internal fun TimeSlotItemUiState.midMinute() : Int {
-    return startMinutesOfDay + (endMinutesOfDay - startMinutesOfDay)
+internal fun TimeSlotItemUiState.midMinute() : Float {
+    return startMinutesOfDay + ((endMinutesOfDay - startMinutesOfDay) / 2f)
 }
