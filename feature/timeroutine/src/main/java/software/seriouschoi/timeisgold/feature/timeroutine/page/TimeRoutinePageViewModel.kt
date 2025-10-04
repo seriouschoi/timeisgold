@@ -168,7 +168,6 @@ internal class TimeRoutinePageViewModel @Inject constructor(
                 val endMins = it.endMinutesOfDay
                 val newStartMin = normalizeForUiUseCase.invoke(startMins + dragMinsAcc)
                 val newEndMin = normalizeForUiUseCase.invoke(endMins + dragMinsAcc)
-                // TODO: jhchoi 2025. 10. 4. state holder개념 같은게 있어야 하는구나..
                 if (startMins == newStartMin) {
                     dragMinsAcc += intent.minuteFactor
                 } else {
