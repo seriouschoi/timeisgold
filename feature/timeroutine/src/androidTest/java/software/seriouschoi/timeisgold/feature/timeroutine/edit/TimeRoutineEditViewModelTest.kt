@@ -16,6 +16,9 @@ import software.seriouschoi.timeisgold.domain.usecase.timeroutine.WatchTimeRouti
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.GetValidTimeRoutineUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.SetTimeRoutineUseCase
 import software.seriouschoi.timeisgold.feature.timeroutine.fake.FakeDestNavigatorPortAdapter
+import software.seriouschoi.timeisgold.feature.timeroutine.presentation.edit.TimeRoutineEditScreenRoute
+import software.seriouschoi.timeisgold.feature.timeroutine.presentation.edit.TimeRoutineEditUiEvent
+import software.seriouschoi.timeisgold.feature.timeroutine.presentation.edit.TimeRoutineEditViewModel
 import java.time.DayOfWeek
 import kotlin.test.Test
 

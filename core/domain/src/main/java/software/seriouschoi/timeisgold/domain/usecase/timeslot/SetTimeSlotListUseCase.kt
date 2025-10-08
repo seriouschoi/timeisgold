@@ -16,7 +16,7 @@ class SetTimeSlotListUseCase @Inject constructor(
     private val timeSlotDomainService: TimeSlotDomainService
 ) {
     suspend fun invoke(timeRoutineUuid: String, timeSlotList: List<TimeSlotEntity>): DomainResult<Unit> {
-        val validResult = timeSlotDomainService.isValid(timeSlotList)
+        val validResult = timeSlotDomainService.isConflict(timeSlotList)
         if (validResult is DomainResult.Failure) return validResult
 
         return timeRoutineRepositoryPort.setTimeSlotList(
