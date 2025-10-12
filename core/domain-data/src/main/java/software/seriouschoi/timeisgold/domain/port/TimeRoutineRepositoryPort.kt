@@ -1,6 +1,7 @@
 package software.seriouschoi.timeisgold.domain.port
 
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
 import software.seriouschoi.timeisgold.domain.data.DataResult
 import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineComposition
 import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineDefinition
@@ -18,7 +19,6 @@ interface TimeRoutineRepositoryPort {
 
     fun observeTimeRoutineByDayOfWeek(day: DayOfWeek): Flow<TimeRoutineEntity?>
     suspend fun deleteTimeRoutine(timeRoutineUuid: String): DataResult<Unit>
-    fun observeAllRoutinesDayOfWeeks(): Flow<List<DayOfWeek>>
 
     suspend fun saveTimeRoutineDefinition(routine: TimeRoutineDefinition): DataResult<String>
     fun observeTimeRoutineDefinitionByDayOfWeek(dayOfWeek: DayOfWeek): Flow<TimeRoutineDefinition?>
@@ -28,4 +28,6 @@ interface TimeRoutineRepositoryPort {
         routineUuid: String,
         incomingSlots: List<TimeSlotEntity>
     ): DataResult<Unit>
+
+    val allRoutinesDayOfWeeks: StateFlow<DataResult<List<DayOfWeek>>>
 }

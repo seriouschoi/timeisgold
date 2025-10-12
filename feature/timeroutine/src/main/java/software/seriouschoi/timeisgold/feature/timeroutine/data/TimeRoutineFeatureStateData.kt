@@ -6,6 +6,6 @@ import java.time.DayOfWeek
  * Created by jhchoi on 2025. 10. 4.
  * jhchoi
  */
-data class TimeRoutineSharedStateData(
+internal data class TimeRoutineFeatureStateData(
     val dayOfWeek: DayOfWeek
 )

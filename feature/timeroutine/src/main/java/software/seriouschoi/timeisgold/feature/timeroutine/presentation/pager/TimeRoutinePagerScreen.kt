@@ -1,8 +1,9 @@
 package software.seriouschoi.timeisgold.feature.timeroutine.presentation.pager
 
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -12,7 +13,6 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -29,7 +29,8 @@ import software.seriouschoi.timeisgold.core.common.ui.UiText
 import software.seriouschoi.timeisgold.core.common.ui.asString
 import software.seriouschoi.timeisgold.core.common.ui.components.InfiniteHorizontalPager
 import software.seriouschoi.timeisgold.core.common.ui.components.TigCircleText
-import software.seriouschoi.timeisgold.feature.timeroutine.presentation.pager.routine.TimeRoutineView
+import software.seriouschoi.timeisgold.feature.timeroutine.presentation.dayofweeks.DayOfWeeksView
+import software.seriouschoi.timeisgold.feature.timeroutine.presentation.pager.routine.TimeRoutineDefinitionView
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.TimeSlotListPageScreen
 
 /**
@@ -67,12 +68,19 @@ private fun TimeRoutinePagerRootView(
             TopBar(uiState, sendIntent)
         },
         content = { innerPadding ->
-            Box(
+            Column(
                 Modifier.Companion
                     .fillMaxSize()
                     .padding(innerPadding)
             ) {
-                PagerView(uiState, sendIntent)
+                DayOfWeeksView(modifier = Modifier.fillMaxWidth())
+                PagerView(
+                    uiState = uiState,
+                    sendIntent = sendIntent,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                )
             }
         },
         floatingActionButton = {
@@ -100,9 +108,7 @@ private fun TopBar(
 ) {
     TopAppBar(
         title = {
-            TimeRoutineView()
-            // TODO: jhchoi 2025. 10. 4. 아래 비활성.
-            Text(text = uiState.title.asString())
+            TimeRoutineDefinitionView()
         },
         navigationIcon = {
             TigCircleText(text = uiState.dayOfWeekName.asString())
@@ -123,6 +129,7 @@ private fun TopBar(
 private fun PagerView(
     uiState: TimeRoutinePagerUiState,
     sendIntent: (TimeRoutinePagerUiIntent) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val pagerItems = uiState.pagerItems
 
@@ -130,15 +137,12 @@ private fun PagerView(
         pageList = pagerItems,
         initialPageIndex = uiState.initialPageIndex,
         onSelectPage = {
-            // TODO: jhchoi 2025. 10. 4. 현재 요일을 어딘가 공통 상태에서 가져와야 하는데..
-            /*
-            그게 가장 애매하네.
-             */
             val dayOfWeek = pagerItems.getOrNull(it)
             if (dayOfWeek != null) {
                 sendIntent(TimeRoutinePagerUiIntent.LoadRoutine(dayOfWeek))
             }
-        }
+        },
+        modifier = modifier,
     ) {
         val dayOfWeek = pagerItems[it]
         TimeSlotListPageScreen(

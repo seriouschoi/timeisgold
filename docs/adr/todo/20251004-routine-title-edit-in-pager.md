@@ -43,6 +43,114 @@ UI나 DB같은 기술적 세부사항이 아니라, 무엇을, 왜, 하는가를
 # 다시 원래 주제로 돌아와서,
 결국 상태로 만들게 될것 같다.
 
+루틴피쳐 상태를 정의하고,
+페이저 뷰모델에서 페이저가 불러와질때마다, 발행되는 상태를 핸들링하여, 현재 선택된 요일을 갱신한다.
+루틴 뷰를 하나 만들고, 거기서는 기존에 만든거랑 좀 비슷하게 돌아가긴 하겠다.
+
+CRUD로 하면..
+
+R:
+일단 선택된 요일로 루틴을 불러오고...
+
+D: 
+삭제버튼에 의한 삭제도 만들고..
+근데 이건 별개의 메뉴로 뺄꺼고...
+
+C:
+이것도 고민인데..
+일단 사용자 관점에선 C와 U가 구분이 안될것이다.
+루틴타이틀/추가요일/슬롯 추가시 C가 실행.
+또 많은 구조가 바뀌겠네...
+
+일단 저장은 입력될때마다 현재 TimeRoutineDef가 갱신되고, 일정 기간 이상 입력이 없는 상태면 그 상태를 감지하여,
+저장 동작 진행.
+
+# 선택된 요일을 scaffolds 상단에 넣으면 공간이 좁다.
+그러므로, 차라리 컨텐츠 영역에 넣자. 그리고 이건..또 처리를 옮겨야 하는데.. ㅋㅋㅋ
+
+TimeRoutineDefinitionView 에는 타이틀만 남기자.
+
+그렇다면..타임 슬롯 리스트에 이걸 추가하게 될것 같은데..
+슬롯 리스트 뷰모델에서 하는게 너무 많거든.
+슬롯 리스트 뷰모델에서 요일 선택까지 처리하는게 맞을까?
+차라리 둘을 따로 나눌까?
+
+슬롯리스트는 요일로 불러오고..
+요일 선택은 슬롯 리스트 위에 붙고..
+화면을 하나 더 만들어야겠네.
+루틴 디테일 뷰라고 하나 정의해야 하나..
+루틴 컴포지션 뷰라고 해야겠다.
+
+루틴 컴포지션 뷰
+- 요일 선택 뷰.
+- 슬롯 편집 뷰.
+
+요일 선택 뷰모델, 슬롯 편집 뷰 모델이 갈림.
+한 화면에 아래의 뷰모델이 돌아감.
+
+루틴 타이틀 뷰모델.
+요일 선택 뷰모델.
+슬롯 목록 뷰모델.
+
+flow를 사용해서 데이터에 접근하므로,
+동일한 상태를 볼것이고, flow구동 비용의 증가를 최소화 하기 위해, 핫스트림으로 구독해야지.
+(room의 리턴형 flow는 콜드 플로우일까?)
+그러면 별개의 hot flow를 하나 만들어서 그걸 바라보게 해야하나.
+그러면..뷰모델은 usecase로 데이터를 읽어오진 않고,
+hot flow가 데이터를 읽어오겠네?
+
+~~부모 뷰모델 같은 개념은 좀 끔찍한데, 결합이 마구잡이로 생기잖아.~~
+
+정리. 
+일단 room이 뭘주냐도 좋긴 한데..
+그냥 repository가 stateFlow를 리턴하게 하는게 더 명확하긴 하곘다.
+리모트구조일때도 쓸 수 있고.
+
+레포지토리에 이렇게 가고..
+```kotlin
+private val stateScope = CoroutineScope(Dispatchers.IO)
+
+val allRoutinesDayOfWeeks =
+    appDatabase.TimeRoutineJoinDayOfWeekViewDao().watchAllDayOfWeeks().map {
+        runSuspendCatching {
+            it
+        }.asDataResult()
+    }.stateIn(
+        scope = stateScope,
+        started = SharingStarted.Eagerly,
+        initialValue = DataResult.Failure(DataError.NotFound)
+    )
+```
+근데 이렇게 가면 scope누수도 해결해야하고, 
+SharingStarted.Eagerly 이게 뭔지 몰라서 찾아봐야 하네.
+
+scope를 주입하고, @ApplicationScope로 자동 주입시킬 수 있나본데..
+없는 어노테이션이라네..
+
+# SharingStarted.Eagerly, SharingStarted.WhileSubscribed? 
+
+```kotlin
+@Qualifier
+@Retention(AnnotationRetention.RUNTIME)
+annotation class ApplicationScope
+
+object CoroutineScopeModule {
+    @Provides
+    @Singleton
+    @ApplicationScope
+    fun provideApplicationScope(): CoroutineScope {
+        return CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    }
+}
+```
+
+# Qualifier, Retention이 뭐지?
+Qualifier: 의존성 주입할때, 같은 타입이 여러개 있을때, 구분자.
 
 
+# SupervisorJob?
 
+# TimeRopoPort/Adapter의 watch 요소를 state flow로 만드는 것도 좋을듯.
+
+
+# @InstallIn(SingletonComponent::class)?

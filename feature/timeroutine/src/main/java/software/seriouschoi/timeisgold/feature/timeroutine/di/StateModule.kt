@@ -1,10 +1,10 @@
 package software.seriouschoi.timeisgold.feature.timeroutine.di
 
-import dagger.Binds
 import dagger.Module
+import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import software.seriouschoi.timeisgold.feature.timeroutine.data.TimeRoutineSharedState
+import software.seriouschoi.timeisgold.feature.timeroutine.data.TimeRoutineFeatureState
 import javax.inject.Singleton
 
 /**
@@ -13,8 +13,10 @@ import javax.inject.Singleton
  */
 @Module
 @InstallIn(SingletonComponent::class)
-internal abstract class Modules {
-    @Binds
+internal class StateModule {
+    @Provides
     @Singleton()
-    abstract fun bindState(): TimeRoutineSharedState
+    fun provideState(): TimeRoutineFeatureState {
+        return TimeRoutineFeatureState()
+    }
 }

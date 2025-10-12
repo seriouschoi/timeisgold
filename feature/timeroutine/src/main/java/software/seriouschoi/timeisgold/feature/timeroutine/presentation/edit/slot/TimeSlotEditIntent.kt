@@ -1,4 +1,4 @@
-package software.seriouschoi.timeisgold.feature.timeroutine.presentation.edit
+package software.seriouschoi.timeisgold.feature.timeroutine.presentation.edit.slot
 
 import java.time.LocalTime
 

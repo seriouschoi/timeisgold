@@ -1,4 +1,4 @@
-package software.seriouschoi.timeisgold.feature.timeroutine.presentation.edit
+package software.seriouschoi.timeisgold.feature.timeroutine.presentation.edit.slot
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel

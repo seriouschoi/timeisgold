@@ -1,18 +1,24 @@
 package software.seriouschoi.timeisgold.data.repositories
 
 import androidx.room.withTransaction
+import dagger.hilt.android.scopes.ViewModelScoped
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.withContext
 import software.seriouschoi.timeisgold.core.common.util.runSuspendCatching
 import software.seriouschoi.timeisgold.data.database.AppDatabase
+import software.seriouschoi.timeisgold.data.di.ApplicationScope
 import software.seriouschoi.timeisgold.data.mapper.toTimeRoutineDayOfWeekEntity
 import software.seriouschoi.timeisgold.data.mapper.toTimeRoutineDayOfWeekSchema
 import software.seriouschoi.timeisgold.data.mapper.toTimeRoutineEntity
@@ -34,6 +40,7 @@ import javax.inject.Inject
 @OptIn(ExperimentalCoroutinesApi::class)
 internal class TimeRoutineRepositoryPortAdapter @Inject constructor(
     private val appDatabase: AppDatabase,
+    @ApplicationScope private val stateScope: CoroutineScope
 ) : TimeRoutineRepositoryPort {
 
     override suspend fun saveTimeRoutineComposition(composition: TimeRoutineComposition): DataResult<String> {
@@ -196,9 +203,17 @@ internal class TimeRoutineRepositoryPortAdapter @Inject constructor(
     }
 
 
-    override fun observeAllRoutinesDayOfWeeks(): Flow<List<DayOfWeek>> {
-        return appDatabase.TimeRoutineJoinDayOfWeekViewDao().observeAllDayOfWeeks()
-    }
+    override val allRoutinesDayOfWeeks: StateFlow<DataResult<List<DayOfWeek>>> =
+        appDatabase.TimeRoutineJoinDayOfWeekViewDao().watchAllDayOfWeeks().map {
+            runSuspendCatching {
+                it
+            }.asDataResult()
+        }.stateIn(
+            scope = stateScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = DataResult.Failure(DataError.NotFound)
+        )
+
 
     override suspend fun saveTimeRoutineDefinition(routine: TimeRoutineDefinition): DataResult<String> {
         return withContext(Dispatchers.IO) {

@@ -32,10 +32,10 @@ internal abstract class TimeRoutineJoinDayOfWeekViewDao {
         SELECT DISTINCT dayOfWeek FROM TimeRoutineJoinDayOfWeekView
     """
     )
-    abstract fun observeAllDayOfWeeks(): Flow<List<DayOfWeek>>
+    abstract fun watchAllDayOfWeeks(): Flow<List<DayOfWeek>>
 
 
-    suspend fun getAllDayOfWeeks(): List<DayOfWeek> = observeAllDayOfWeeks().first()
+    suspend fun getAllDayOfWeeks(): List<DayOfWeek> = watchAllDayOfWeeks().first()
 
     @Query(
         """

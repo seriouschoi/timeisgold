@@ -1,4 +1,4 @@
-package software.seriouschoi.timeisgold.feature.timeroutine.presentation.edit
+package software.seriouschoi.timeisgold.feature.timeroutine.presentation.edit.routine
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -33,7 +33,7 @@ import software.seriouschoi.timeisgold.core.common.ui.flowResultState
 import software.seriouschoi.timeisgold.core.common.ui.provider.UiTextResolver
 import software.seriouschoi.timeisgold.core.common.util.Envelope
 import software.seriouschoi.timeisgold.core.domain.mapper.onlyDomainResult
-import software.seriouschoi.timeisgold.core.domain.mapper.onlySuccess
+import software.seriouschoi.timeisgold.core.domain.mapper.onlyDomainSuccess
 import software.seriouschoi.timeisgold.core.domain.mapper.toUiText
 import software.seriouschoi.timeisgold.domain.data.DayOfWeekType
 import software.seriouschoi.timeisgold.domain.data.DomainError
@@ -97,7 +97,7 @@ internal class TimeRoutineEditViewModel @Inject constructor(
     }.asResultState().stateIn(viewModelScope, SharingStarted.Lazily, ResultState.Loading)
 
     private val initUsedDayOfWeeksWithoutMeFlow = combine(
-        initResultStateFlow.onlySuccess().mapNotNull { it: TimeRoutineDefinition? ->
+        initResultStateFlow.onlyDomainSuccess().mapNotNull { it: TimeRoutineDefinition? ->
             it?.dayOfWeeks?.map { it.dayOfWeek }
         },
         initUsedDayOfWeeksFlow.mapNotNull {

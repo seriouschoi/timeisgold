@@ -71,7 +71,7 @@ private fun ComponentsPreview() {
                     onValueChange = {},
                     modifier = Modifier.fillMaxWidth()
                 )
-                TigCheckButton(label = "TigCheckButton", checked = true, onCheckedChange = {})
+                TigCheckButton(label = "MON", checked = true, onCheckedChange = {})
                 TigLabelButton(
                     label = "TigLabelButton",
                     onClick = {},

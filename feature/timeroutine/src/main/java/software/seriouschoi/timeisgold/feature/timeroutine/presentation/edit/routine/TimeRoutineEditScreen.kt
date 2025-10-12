@@ -1,4 +1,4 @@
-package software.seriouschoi.timeisgold.feature.timeroutine.presentation.edit
+package software.seriouschoi.timeisgold.feature.timeroutine.presentation.edit.routine
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement

@@ -46,7 +46,7 @@ import java.time.LocalTime
 fun TimeSlotListPageScreen(
     dayOfWeek: DayOfWeek,
 ) {
-    val viewModel = hiltViewModel<TimeRoutinePageViewModel>(key = dayOfWeek.name)
+    val viewModel = hiltViewModel<TimeSlotListPageViewModel>(key = dayOfWeek.name)
     val uiState by viewModel.uiState.collectAsState()
     val uiEvent by viewModel.uiEvent.collectAsState(null)
 
@@ -110,8 +110,12 @@ private fun StateView(
         }
 
         is TimeRoutinePageUiState.Routine -> {
-            TimeSlotListView(currentState) {
-                sendIntent.invoke(it)
+            Column(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                TimeSlotListView(state = currentState, modifier = Modifier.fillMaxSize()) {
+                    sendIntent.invoke(it)
+                }
             }
         }
 

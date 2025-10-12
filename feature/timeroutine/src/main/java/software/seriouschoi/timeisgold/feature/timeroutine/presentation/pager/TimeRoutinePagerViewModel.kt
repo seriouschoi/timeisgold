@@ -1,6 +1,5 @@
 package software.seriouschoi.timeisgold.feature.timeroutine.presentation.pager
 
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -23,10 +22,11 @@ import software.seriouschoi.navigator.DestNavigatorPort
 import software.seriouschoi.timeisgold.core.common.ui.UiText
 import software.seriouschoi.timeisgold.core.common.ui.asResultState
 import software.seriouschoi.timeisgold.core.common.util.Envelope
-import software.seriouschoi.timeisgold.core.domain.mapper.onlySuccess
+import software.seriouschoi.timeisgold.core.domain.mapper.onlyDomainSuccess
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.WatchTimeRoutineDefinitionUseCase
-import software.seriouschoi.timeisgold.feature.timeroutine.presentation.edit.TimeRoutineEditScreenRoute
-import software.seriouschoi.timeisgold.feature.timeroutine.presentation.edit.TimeSlotEditScreenRoute
+import software.seriouschoi.timeisgold.feature.timeroutine.data.TimeRoutineFeatureState
+import software.seriouschoi.timeisgold.feature.timeroutine.presentation.edit.routine.TimeRoutineEditScreenRoute
+import software.seriouschoi.timeisgold.feature.timeroutine.presentation.edit.slot.TimeSlotEditScreenRoute
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.format.TextStyle
@@ -39,9 +39,9 @@ import javax.inject.Inject
  */
 @HiltViewModel
 internal class TimeRoutinePagerViewModel @Inject constructor(
-    private val saved: SavedStateHandle,
     private val navigator: DestNavigatorPort,
     private val watchTimeRoutineDefinitionUseCase: WatchTimeRoutineDefinitionUseCase,
+    private val state: TimeRoutineFeatureState
 ) : ViewModel() {
 
     private val initPagerFlow = flow {
@@ -73,7 +73,7 @@ internal class TimeRoutinePagerViewModel @Inject constructor(
     private val currentRoutineFlow =
         currentDayOfWeekFlow.mapNotNull { it }.flatMapLatest { dayOfWeek ->
             watchTimeRoutineDefinitionUseCase.invoke(dayOfWeek)
-        }.asResultState().onlySuccess().stateIn(
+        }.asResultState().onlyDomainSuccess().stateIn(
             scope = viewModelScope,
             started = SharingStarted.Lazily,
             initialValue = null
@@ -146,7 +146,12 @@ internal class TimeRoutinePagerViewModel @Inject constructor(
     }
 
     private fun selectDayOfWeek(dayOfWeek: DayOfWeek) {
-        // TODO: jhchoi 2025. 10. 6.
+        viewModelScope.launch {
+            val newState = state.data.value.copy(
+                dayOfWeek = dayOfWeek
+            )
+            state.data.emit(newState)
+        }
     }
 
     private fun moveToTimeSlotEdit() {

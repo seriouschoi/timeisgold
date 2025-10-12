@@ -1,7 +1,6 @@
 package software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list
 
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.rememberScrollState
@@ -30,6 +29,7 @@ import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslot
 @Composable
 internal fun TimeSlotListView(
     state: TimeRoutinePageUiState.Routine,
+    modifier: Modifier = Modifier,
     sendIntent: (TimeRoutinePageUiIntent) -> Unit,
 ) {
     val currentSlotList by rememberUpdatedState(state.slotItemList)
@@ -38,11 +38,9 @@ internal fun TimeSlotListView(
     val hourHeightPx = density.run { hourHeight.toPx() }
 
     Box(
-        modifier = Modifier.Companion
-            .fillMaxSize()
-            .verticalScroll(
-                rememberScrollState()
-            )
+        modifier = modifier.verticalScroll(
+            rememberScrollState()
+        )
     ) {
         TimeSliceView(
             hourHeight = hourHeight,

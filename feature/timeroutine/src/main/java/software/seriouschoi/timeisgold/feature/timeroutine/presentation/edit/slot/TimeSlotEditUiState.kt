@@ -1,4 +1,4 @@
-package software.seriouschoi.timeisgold.feature.timeroutine.presentation.edit
+package software.seriouschoi.timeisgold.feature.timeroutine.presentation.edit.slot
 
 import software.seriouschoi.timeisgold.core.common.ui.UiText
 import java.time.LocalTime

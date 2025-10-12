@@ -29,18 +29,18 @@ import software.seriouschoi.timeisgold.core.common.util.Envelope
 import software.seriouschoi.timeisgold.core.common.util.LocalTimeUtil
 import software.seriouschoi.timeisgold.core.common.util.asMinutes
 import software.seriouschoi.timeisgold.core.domain.mapper.onlyDomainResult
-import software.seriouschoi.timeisgold.core.domain.mapper.onlySuccess
+import software.seriouschoi.timeisgold.core.domain.mapper.onlyDomainSuccess
 import software.seriouschoi.timeisgold.core.domain.mapper.toUiText
 import software.seriouschoi.timeisgold.domain.data.DomainError
 import software.seriouschoi.timeisgold.domain.data.DomainResult
 import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineComposition
 import software.seriouschoi.timeisgold.domain.data.entities.TimeSlotEntity
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.WatchTimeRoutineCompositionUseCase
-import software.seriouschoi.timeisgold.domain.usecase.timeslot.valid.GetTimeSlotPolicyValidUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeslot.NormalizeForUiUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeslot.SetTimeSlotListUseCase
-import software.seriouschoi.timeisgold.feature.timeroutine.presentation.edit.TimeRoutineEditScreenRoute
-import software.seriouschoi.timeisgold.feature.timeroutine.presentation.edit.TimeSlotEditScreenRoute
+import software.seriouschoi.timeisgold.domain.usecase.timeslot.valid.GetTimeSlotPolicyValidUseCase
+import software.seriouschoi.timeisgold.feature.timeroutine.presentation.edit.routine.TimeRoutineEditScreenRoute
+import software.seriouschoi.timeisgold.feature.timeroutine.presentation.edit.slot.TimeSlotEditScreenRoute
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.TimeSlotItemUiState
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.midMinute
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.timeLog
@@ -56,7 +56,7 @@ import software.seriouschoi.timeisgold.core.common.ui.R as CommonR
  * jhchoi
  */
 @HiltViewModel
-internal class TimeRoutinePageViewModel @Inject constructor(
+internal class TimeSlotListPageViewModel @Inject constructor(
     private val navigator: DestNavigatorPort,
     private val watchTimeRoutineCompositionUseCase: WatchTimeRoutineCompositionUseCase,
     private val setTimeSlotsUseCase: SetTimeSlotListUseCase,
@@ -216,7 +216,7 @@ internal class TimeRoutinePageViewModel @Inject constructor(
         useSwap: Boolean
     ): List<TimeSlotItemUiState> {
         val policyResult = getTimeSlotPolicyValidUseCase.invoke(updateItem.asEntity())
-        if(policyResult is DomainResult.Success) {
+        if (policyResult !is DomainResult.Success) {
             return slotItemList
         }
 
@@ -355,7 +355,7 @@ internal class TimeRoutinePageViewModel @Inject constructor(
     private fun updateTimeSlotList() {
         flowResultState {
             val currentRoutine =
-                routineCompositionFlow.onlySuccess().first()
+                routineCompositionFlow.onlyDomainSuccess().first()
                     ?: return@flowResultState DomainResult.Failure(DomainError.NotFound.TimeRoutine)
 
             val routineState = uiState.first() as? TimeRoutinePageUiState.Routine
