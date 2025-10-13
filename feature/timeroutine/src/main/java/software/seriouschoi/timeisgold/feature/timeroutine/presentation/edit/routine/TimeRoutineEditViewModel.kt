@@ -119,7 +119,8 @@ internal class TimeRoutineEditViewModel @Inject constructor(
     val uiStateFlow: StateFlow<TimeRoutineEditUiState> = merge(
         initResultStateFlow.map { it: ResultState<DomainResult<TimeRoutineDefinition>> ->
             UiPreState.Init(it)
-        }, _uiIntentFlow.map {
+        },
+        _uiIntentFlow.map {
             UiPreState.Intent(it.payload)
         },
         initUsedDayOfWeeksWithoutMeFlow.map {
@@ -369,6 +370,7 @@ private fun TimeRoutineEditUiState.reduceFromIntent(
         }
 
         is TimeRoutineEditUiIntent.UpdateRoutineTitle -> {
+            Timber.d("update routine title : ${preState.intent.title}")
             this.copy(
                 routineTitle = preState.intent.title
             )

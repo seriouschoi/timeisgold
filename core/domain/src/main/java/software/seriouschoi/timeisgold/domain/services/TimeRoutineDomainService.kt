@@ -11,6 +11,7 @@ class TimeRoutineDomainService @Inject constructor(
 ) {
     suspend fun isValidForAdd(newRoutine: TimeRoutineDefinition): DomainResult<Unit> {
         val newRoutineTitle = newRoutine.timeRoutine.title
+        // TODO: jhchoi 2025. 10. 13. 이거 없어도 될듯..
         if (newRoutineTitle.length !in 1..15) {
             return DomainResult.Failure(DomainError.Validation.TitleLength)
         }

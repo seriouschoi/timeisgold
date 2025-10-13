@@ -30,7 +30,7 @@ import software.seriouschoi.timeisgold.core.common.ui.asString
 import software.seriouschoi.timeisgold.core.common.ui.components.InfiniteHorizontalPager
 import software.seriouschoi.timeisgold.core.common.ui.components.TigCircleText
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.dayofweeks.DayOfWeeksView
-import software.seriouschoi.timeisgold.feature.timeroutine.presentation.pager.routine.TimeRoutineDefinitionView
+import software.seriouschoi.timeisgold.feature.timeroutine.presentation.pager.routine.RoutineTitleView
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.TimeSlotListPageScreen
 
 /**
@@ -108,7 +108,7 @@ private fun TopBar(
 ) {
     TopAppBar(
         title = {
-            TimeRoutineDefinitionView()
+            RoutineTitleView()
         },
         navigationIcon = {
             TigCircleText(text = uiState.dayOfWeekName.asString())

@@ -17,7 +17,7 @@ class WatchAllRoutineDayOfWeeksUseCase @Inject constructor(
 ) {
 
     fun invoke(): Flow<DomainResult<List<DayOfWeek>>> {
-        return timeRoutineRepository.allRoutinesDayOfWeeks.map {
+        return timeRoutineRepository.watchAllRoutineDayOfWeeks().map {
             it.asDomainResult()
         }
     }

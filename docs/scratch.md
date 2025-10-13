@@ -124,10 +124,16 @@ TimeRoutineEntity와 TimeRoutineDayOfWeekEntity로만
 
 # Modifier에서 state란 이름으로 쓰는 패턴은 뭐지?
 
-# 각 SharindStarted의 동작??
+# 각 SharingStarted의 동작
+flow 발행의 수명주기를 명시적으로 표시.
+
 1. SharingStarted.Eagerly
+   1. flow 생성 즉시 발행(구독자 없이도 발행)
 2. SharingStarted.Lazily
+   1. 첫번째 구독자가 생기면 발행.
 3. SharingStarted.WhileSubscribed
+   1. 구독자가 있을때만 발행되고, 구독자가 사라지면 stopTimeoutMillis후 발행 중단.
+
 
 # someFlow.first() 와 someFlow.value의 차이는
 first()는 flow를 collect해서 가장 처음 emit된 값을 가져오고 즉시 종료한다.

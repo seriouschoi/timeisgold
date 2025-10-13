@@ -29,5 +29,6 @@ interface TimeRoutineRepositoryPort {
         incomingSlots: List<TimeSlotEntity>
     ): DataResult<Unit>
 
-    val allRoutinesDayOfWeeks: StateFlow<DataResult<List<DayOfWeek>>>
+    fun watchAllRoutineDayOfWeeks(): Flow<DataResult<List<DayOfWeek>>>
+    suspend fun setRoutineTitle(title: String, dayOfWeek: DayOfWeek): DataResult<Unit>
 }

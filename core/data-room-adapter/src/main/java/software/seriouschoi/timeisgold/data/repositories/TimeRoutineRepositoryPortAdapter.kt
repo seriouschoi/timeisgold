@@ -1,24 +1,18 @@
 package software.seriouschoi.timeisgold.data.repositories
 
 import androidx.room.withTransaction
-import dagger.hilt.android.scopes.ViewModelScoped
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.withContext
 import software.seriouschoi.timeisgold.core.common.util.runSuspendCatching
 import software.seriouschoi.timeisgold.data.database.AppDatabase
-import software.seriouschoi.timeisgold.data.di.ApplicationScope
 import software.seriouschoi.timeisgold.data.mapper.toTimeRoutineDayOfWeekEntity
 import software.seriouschoi.timeisgold.data.mapper.toTimeRoutineDayOfWeekSchema
 import software.seriouschoi.timeisgold.data.mapper.toTimeRoutineEntity
@@ -35,12 +29,12 @@ import software.seriouschoi.timeisgold.domain.data.entities.TimeSlotEntity
 import software.seriouschoi.timeisgold.domain.port.TimeRoutineRepositoryPort
 import timber.log.Timber
 import java.time.DayOfWeek
+import java.util.UUID
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
 internal class TimeRoutineRepositoryPortAdapter @Inject constructor(
     private val appDatabase: AppDatabase,
-    @ApplicationScope private val stateScope: CoroutineScope
 ) : TimeRoutineRepositoryPort {
 
     override suspend fun saveTimeRoutineComposition(composition: TimeRoutineComposition): DataResult<String> {
@@ -86,7 +80,7 @@ internal class TimeRoutineRepositoryPortAdapter @Inject constructor(
 
     private fun observeWeeks(routineUuid: String): Flow<List<TimeRoutineDayOfWeekEntity>> =
         appDatabase.TimeRoutineJoinDayOfWeekViewDao()
-            .getDayOfWeeksByTimeRoutine(routineUuid)
+            .watchDayOfWeeksByTimeRoutine(routineUuid)
             .distinctUntilChanged()
             .map { dayOfWeeks: List<DayOfWeek> ->
                 Timber.d("observeWeeks - routineUuid=$routineUuid, dayOfWeeks=$dayOfWeeks")
@@ -203,18 +197,48 @@ internal class TimeRoutineRepositoryPortAdapter @Inject constructor(
     }
 
 
-    override val allRoutinesDayOfWeeks: StateFlow<DataResult<List<DayOfWeek>>> =
-        appDatabase.TimeRoutineJoinDayOfWeekViewDao().watchAllDayOfWeeks().map {
+    override fun watchAllRoutineDayOfWeeks(): Flow<DataResult<List<DayOfWeek>>> {
+        return appDatabase.TimeRoutineJoinDayOfWeekViewDao().watchAllDayOfWeeks().map {
             runSuspendCatching {
                 it
             }.asDataResult()
-        }.stateIn(
-            scope = stateScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = DataResult.Failure(DataError.NotFound)
-        )
+        }
+    }
 
+    override suspend fun setRoutineTitle(
+        title: String,
+        dayOfWeek: DayOfWeek,
+    ): DataResult<Unit> = runSuspendCatching {
+        val routineDao = appDatabase.TimeRoutineDao()
+        val routineWithDayOfWeekDao = appDatabase.TimeRoutineJoinDayOfWeekViewDao()
+        val dayOfWeekDao = appDatabase.TimeRoutineDayOfWeekDao()
+        appDatabase.withTransaction {
+            val routineUuid = routineWithDayOfWeekDao.getLatestByDayOfWeek(dayOfWeek)?.routineUuid
+                ?: UUID.randomUUID().toString()
+            val routineEntity = TimeRoutineEntity(
+                uuid = routineUuid,
+                title = title,
+                createTime = System.currentTimeMillis()
+            )
+            val upsertResult = routineDao.upsert(
+                timeRoutine = routineEntity
+            )
 
+            val routine = routineWithDayOfWeekDao.getDayOfWeeksByTimeRoutine(routineUuid = routineUuid)
+            if (routine.isEmpty()) {
+                dayOfWeekDao.add(
+                    dayOfWeek.toTimeRoutineDayOfWeekEntity()
+                        .toTimeRoutineDayOfWeekSchema(
+                            timeRoutineId = upsertResult
+                        )
+                )
+            }
+
+            Timber.d("set routine title. upsertResult=$upsertResult")
+        }
+    }.asDataResult()
+
+    @Deprecated("이 단위로 저장할 일이 없어짐.")
     override suspend fun saveTimeRoutineDefinition(routine: TimeRoutineDefinition): DataResult<String> {
         return withContext(Dispatchers.IO) {
             runSuspendCatching {
