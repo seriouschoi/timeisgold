@@ -4,33 +4,33 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.mapNotNull
-import kotlinx.coroutines.flow.merge
-import kotlinx.coroutines.flow.scan
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import software.seriouschoi.navigator.DestNavigatorPort
-import software.seriouschoi.timeisgold.core.common.ui.UiText
 import software.seriouschoi.timeisgold.core.common.ui.asResultState
 import software.seriouschoi.timeisgold.core.common.util.Envelope
 import software.seriouschoi.timeisgold.core.domain.mapper.onlyDomainSuccess
+import software.seriouschoi.timeisgold.core.domain.mapper.onlySuccess
+import software.seriouschoi.timeisgold.domain.usecase.timeroutine.WatchAllRoutineDayOfWeeksUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.WatchTimeRoutineDefinitionUseCase
 import software.seriouschoi.timeisgold.feature.timeroutine.data.TimeRoutineFeatureState
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.edit.routine.TimeRoutineEditScreenRoute
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.edit.slot.TimeSlotEditScreenRoute
+import software.seriouschoi.timeisgold.feature.timeroutine.presentation.pager.stateholder.DayOfWeeksPagerStateHolder
+import software.seriouschoi.timeisgold.feature.timeroutine.presentation.pager.stateholder.DayOfWeeksPagerStateIntent
+import software.seriouschoi.timeisgold.feature.timeroutine.presentation.pager.stateholder.RoutineDayOfWeeksIntent
+import software.seriouschoi.timeisgold.feature.timeroutine.presentation.pager.stateholder.RoutineDayOfWeeksStateHolder
+import software.seriouschoi.timeisgold.feature.timeroutine.presentation.pager.stateholder.RoutineTitleIntent
+import software.seriouschoi.timeisgold.feature.timeroutine.presentation.pager.stateholder.RoutineTitleStateHolder
 import java.time.DayOfWeek
-import java.time.LocalDate
-import java.time.format.TextStyle
-import java.util.Locale
 import javax.inject.Inject
 
 /**
@@ -40,78 +40,38 @@ import javax.inject.Inject
 @HiltViewModel
 internal class TimeRoutinePagerViewModel @Inject constructor(
     private val navigator: DestNavigatorPort,
-    private val watchTimeRoutineDefinitionUseCase: WatchTimeRoutineDefinitionUseCase,
-    private val state: TimeRoutineFeatureState
+    private val state: TimeRoutineFeatureState,
+
+    private val routineTitleStateHolder: RoutineTitleStateHolder,
+    private val routineDayOfWeeksStateHolder: RoutineDayOfWeeksStateHolder,
+    private val dayOfWeeksPagerStateHolder: DayOfWeeksPagerStateHolder,
+
+    private val allDayOfWeeksUseCase: WatchAllRoutineDayOfWeeksUseCase,
+    private val watchTimeRoutineDefinitionUseCase: WatchTimeRoutineDefinitionUseCase
 ) : ViewModel() {
 
-    private val initPagerFlow = flow {
-        val pagerItems = DAY_OF_WEEKS
-        val today = DayOfWeek.from(LocalDate.now())
-        val initialIndex = pagerItems.indexOf(today)
-        emit(
-            UiPreState.Init(
-                pageItems = pagerItems,
-                initialPageIndex = initialIndex
-            )
-        )
-    }
-
-    private val intentState = MutableSharedFlow<Envelope<TimeRoutinePagerUiIntent>>()
-
-    @OptIn(FlowPreview::class)
-    private val currentDayOfWeekFlow = intentState.mapNotNull {
-        it.payload as? TimeRoutinePagerUiIntent.LoadRoutine
-    }.mapNotNull {
-        it.dayOfWeek
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.Lazily,
-        initialValue = null
-    ).debounce(200)
+    private val _intent = MutableSharedFlow<Envelope<TimeRoutinePagerUiIntent>>()
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    private val currentRoutineFlow =
-        currentDayOfWeekFlow.mapNotNull { it }.flatMapLatest { dayOfWeek ->
-            watchTimeRoutineDefinitionUseCase.invoke(dayOfWeek)
+    private val currentRoutine = state.data.map { it.dayOfWeek }
+        .flatMapLatest {
+            watchTimeRoutineDefinitionUseCase.invoke(it)
         }.asResultState().onlyDomainSuccess().stateIn(
             scope = viewModelScope,
             started = SharingStarted.Lazily,
             initialValue = null
         )
 
-    private val routineUiPreStateFlow = combine(
-        currentDayOfWeekFlow,
-        currentRoutineFlow
-    ) { dayOfWeek, routine ->
-        val routineTitle = routine?.timeRoutine?.title ?: ""
-        val dayOfWeekName = dayOfWeek?.getDisplayName(
-            TextStyle.SHORT, Locale.getDefault()
-        ) ?: ""
-        UiPreState.PagerState(
-            title = UiText.Raw(routineTitle),
-            dayOfWeekName = UiText.Raw(dayOfWeekName),
-            showAddTimeSlotButton = routine != null
+    val uiState = combine(
+        routineTitleStateHolder.state,
+        routineDayOfWeeksStateHolder.state,
+        dayOfWeeksPagerStateHolder.state
+    ) { title, routineDayOfWeeks, dayOfWeeks ->
+        TimeRoutinePagerUiState(
+            dayOfWeekState = dayOfWeeks,
+            titleState = title,
+            routineDayOfWeeks = routineDayOfWeeks
         )
-    }
-
-    val uiState: StateFlow<TimeRoutinePagerUiState> = merge(
-        initPagerFlow,
-        routineUiPreStateFlow
-    ).scan(TimeRoutinePagerUiState()) { acc, value ->
-        when (value) {
-            is UiPreState.Init -> acc.copy(
-                pagerItems = value.pageItems,
-                initialPageIndex = value.initialPageIndex
-            )
-
-            is UiPreState.PagerState -> {
-                acc.copy(
-                    title = value.title,
-                    dayOfWeekName = value.dayOfWeekName,
-                    showAddTimeSlotButton = value.showAddTimeSlotButton
-                )
-            }
-        }
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.Lazily,
@@ -120,10 +80,9 @@ internal class TimeRoutinePagerViewModel @Inject constructor(
 
     fun sendIntent(intent: TimeRoutinePagerUiIntent) {
         viewModelScope.launch {
-            intentState.emit(Envelope(intent))
+            this@TimeRoutinePagerViewModel._intent.emit(Envelope(intent))
         }
     }
-
 
     private fun handleIntentSideEffect(intent: TimeRoutinePagerUiIntent) {
         when (intent) {
@@ -156,19 +115,21 @@ internal class TimeRoutinePagerViewModel @Inject constructor(
 
     private fun moveToTimeSlotEdit() {
         viewModelScope.launch {
-            val routineDefinition = currentRoutineFlow.first() ?: return@launch
+            val routineDefinition = currentRoutine.first() ?: return@launch
             val routineUuid = routineDefinition.timeRoutine.uuid
 
-            navigator.navigate(TimeSlotEditScreenRoute(
-                timeRoutineUuid = routineUuid,
-                timeSlotUuid = null,
-            ))
+            navigator.navigate(
+                TimeSlotEditScreenRoute(
+                    timeRoutineUuid = routineUuid,
+                    timeSlotUuid = null,
+                )
+            )
         }
     }
 
     private fun moveToRoutineEdit() {
         viewModelScope.launch {
-            val currentDayOfWeek = currentDayOfWeekFlow.first() ?: return@launch
+            val currentDayOfWeek = state.data.first().dayOfWeek
 
             val route = TimeRoutineEditScreenRoute(
                 dayOfWeekOrdinal = currentDayOfWeek.ordinal
@@ -178,37 +139,54 @@ internal class TimeRoutinePagerViewModel @Inject constructor(
     }
 
     init {
-        viewModelScope.launch {
-            intentState.collect {
-                handleIntentSideEffect(it.payload)
+        watchIntent()
+        watchDayOfWeeksPager()
+
+        watchCurrentRoutine()
+        watchRoutineDayOfWeeks()
+    }
+
+    private fun watchDayOfWeeksPager() {
+        state.data.map {
+            DayOfWeeksPagerStateIntent.Select(it.dayOfWeek)
+        }.onEach {
+            dayOfWeeksPagerStateHolder.reduce(it)
+        }.launchIn(viewModelScope)
+    }
+
+    private fun watchRoutineDayOfWeeks() {
+        combine(allDayOfWeeksUseCase.invoke(), currentRoutine) { allDayOfWeeks, routine ->
+            val allRoutinesDayOfWeeks = allDayOfWeeks.onlySuccess() ?: emptyList()
+            val currentRoutineDayOfWeeks = routine?.dayOfWeeks?.map { it.dayOfWeek } ?: emptyList()
+
+            val enableDayOfWeeks = DayOfWeek.entries.filter { day ->
+                val usedByOtherRoutine = allRoutinesDayOfWeeks.contains(day)
+                val usedByCurrentRoutine = currentRoutineDayOfWeeks.contains(day)
+
+                // 현재 루틴에서 사용 중이거나, 다른 루틴에서 사용 중이 아닌 경우만 활성
+                !usedByOtherRoutine || usedByCurrentRoutine
             }
+            RoutineDayOfWeeksIntent.Update(
+                checked = currentRoutineDayOfWeeks,
+                enabled = enableDayOfWeeks
+            )
+        }.onEach {
+            routineDayOfWeeksStateHolder.reduce(it)
+        }.launchIn(viewModelScope)
+    }
+
+    private fun watchCurrentRoutine() {
+        currentRoutine.map {
+            val title = it?.timeRoutine?.title ?: ""
+            RoutineTitleIntent.Update(title)
+        }.onEach {
+            routineTitleStateHolder.update(it)
+        }.launchIn(viewModelScope)
+    }
+
+    private fun watchIntent() = viewModelScope.launch {
+        _intent.collect {
+            handleIntentSideEffect(it.payload)
         }
     }
-
-    companion object {
-        private val DAY_OF_WEEKS = listOf(
-            DayOfWeek.MONDAY,
-            DayOfWeek.TUESDAY,
-            DayOfWeek.WEDNESDAY,
-            DayOfWeek.THURSDAY,
-            DayOfWeek.FRIDAY,
-            DayOfWeek.SATURDAY,
-            DayOfWeek.SUNDAY
-        )
-    }
 }
-
-
-private sealed interface UiPreState {
-    data class Init(
-        val pageItems: List<DayOfWeek>,
-        val initialPageIndex: Int,
-    ) : UiPreState
-
-    data class PagerState(
-        val title: UiText = UiText.Raw(""),
-        val dayOfWeekName: UiText = UiText.Raw(""),
-        val showAddTimeSlotButton: Boolean = false
-    ) : UiPreState
-}
-

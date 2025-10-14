@@ -15,6 +15,7 @@ import software.seriouschoi.timeisgold.core.common.ui.components.TigCheckButton
  * jhchoi
  */
 @Composable
+@Deprecated("뷰모델은 스크린 단위로만 권장. 이벤트 처리가 필요한 상황이 반드시 오기 때문.")
 internal fun DayOfWeeksView(modifier: Modifier) {
     val viewModel = hiltViewModel<DayOfWeeksViewModel>()
     val uiState by viewModel.uiState.collectAsState()
@@ -37,7 +38,7 @@ private fun StateView(
                 onCheckedChange = {
                     sendIntent.invoke(
                         DayOfWeeksIntent.EditDayOfWeek(
-                            dayOfWeek = item.id,
+                            dayOfWeek = item.dayOfWeek,
                             checked = it
                         )
                     )

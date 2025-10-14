@@ -28,6 +28,13 @@ fun <T> ResultState<T>.onlyResultSuccess(): T? {
     }
 }
 
+fun <T> DomainResult<T>.onlySuccess(): T? {
+    return when (this) {
+        is DomainResult.Failure -> null
+        is DomainResult.Success -> this.value
+    }
+}
+
 fun <T> ResultState<DomainResult<T>>.onlyDomainSuccess(): T? {
     return when (this) {
         is ResultState.Success -> {

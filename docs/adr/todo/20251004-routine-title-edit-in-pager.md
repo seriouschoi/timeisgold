@@ -188,11 +188,65 @@ Qualifier: 의존성 주입할때, 같은 타입이 여러개 있을때, 구분�
 왜냐하면, 컴포넌트 요소들에 이벤트를 허용하면, 
 flow가 발행된 결과에 따라 이벤트가 폭주하게 되고, 화면이 다이얼로그로 넘칠 수 있기 때문이다.
 
-방법이 하나 있다.
-결국 부모 스크린과 결합을 만드는 것이다.
-모든 요일의 비활성이 감지되면, 부모 뷰에 콜백을 보낸다.
+~~방법이 하나 있다.~~
+~~결국 부모 스크린과 결합을 만드는 것이다.~~
+~~모든 요일의 비활성이 감지되면, 부모 뷰에 콜백을 보낸다.~~
 ~~...나쁘지 않을지도.. 뷰에 show dialog같은 콜백정도는 괜찮지 않나?~~
 
 잘못된 개발을 한거야 내가..
 뷰모델은 여전히 화면단위로 유지하는게 맞아.
 
+```kotlin
+@HiltViewModel
+class RoutineScreenViewModel @Inject constructor(
+    private val daySelectorStateHolder: DaySelectorStateHolder,
+    private val titleEditorStateHolder: TitleEditorStateHolder,
+    private val saveRoutineUseCase: SaveRoutineUseCase
+) : ViewModel() {
+
+    val uiState: StateFlow<RoutineScreenUiState> = combine(
+        daySelectorStateHolder.state,
+        titleEditorStateHolder.state
+    ) { dayState, titleState ->
+        RoutineScreenUiState(dayState, titleState)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(), RoutineScreenUiState())
+
+    fun onIntent(intent: RoutineScreenIntent) {
+        when (intent) {
+            is RoutineScreenIntent.SelectDay -> daySelectorStateHolder.select(intent.day)
+            is RoutineScreenIntent.EditTitle -> titleEditorStateHolder.update(intent.title)
+            RoutineScreenIntent.Save -> saveRoutine()
+        }
+    }
+
+    private fun saveRoutine() { /* ... */ }
+}
+
+class DaySelectorStateHolder @Inject constructor() {
+    private val _state = MutableStateFlow(DaySelectorUiState())
+    val state: StateFlow<DaySelectorUiState> = _state
+
+    fun select(day: DayOfWeek) {
+        _state.update { it.copy(selectedDay = day) }
+    }
+}
+```
+
+뷰모델의 여러 요소들을 여러 uiState로 나누고..
+stateHolder에 메소드를 전달..?
+음..각 상태의 reduce를 stateholder에서 처리하는 느낌이네..
+아 그러면서, combine으로 각 상태를 취합한 스크린 상태가 따로 있는거고..
+어..그러면 stateHolder는 뷰모델 바깥에 노출되진 않는거네?
+즉 컴포즈에서 이걸 볼일은 없는거고.
+일단 덩어리가 커지면서 reduce가 너무 더러웠는데...나쁘진 않을 듯.
+
+다만 stateHolder의 책임범위를 명확하게 가져가야 한다.
+예를 들면 도메인의 접근을 stateHolder에서 하게 되면,
+이제 UX의 흐름을 추적하기가 힘들어 질 것이고,
+stateHolder의 단독 테스트가 곤란해질것이다.
+
+이건 재사용이 아니라 책임의 분리라는 개념으로 생각해야 한다.
+음..근데 stateHolder.state를 combine에서 
+uiState를 만드는건 좋은데..
+intent에 의한 uiState의 변경은 어떻게 처리하지..
+아..intent에 의해 stateHolder.state가 변경되게 만들어야 하는구나. 

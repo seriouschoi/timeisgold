@@ -81,7 +81,7 @@ internal class DayOfWeeksViewModel @Inject constructor(
                 displayName = UiText.Raw(dayOfWeekName),
                 checked = checked || !enabled,
                 enabled = enabled,
-                id = dayOfWeek
+                dayOfWeek = dayOfWeek
             )
         }
         UiPreState.DayOfWeeks(dayOfWeeks = dayOfWeeks)
@@ -110,7 +110,7 @@ internal class DayOfWeeksViewModel @Inject constructor(
 
             is UiPreState.SelectDayOfWeek -> {
                 val dayOfWeekList = acc.dayOfWeekList.map {
-                    if (it.id == result.dayOfWeek) {
+                    if (it.dayOfWeek == result.dayOfWeek) {
                         it.copy(checked = result.checked)
                     } else {
                         it

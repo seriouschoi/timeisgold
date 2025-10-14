@@ -7,5 +7,5 @@ internal data class DayOfWeekItemUiState(
     val displayName: UiText,
     val enabled: Boolean,
     val checked: Boolean,
-    val id: DayOfWeek
+    val dayOfWeek: DayOfWeek
 )

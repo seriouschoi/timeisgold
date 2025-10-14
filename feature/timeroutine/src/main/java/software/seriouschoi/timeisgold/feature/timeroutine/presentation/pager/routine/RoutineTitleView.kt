@@ -17,13 +17,13 @@ import software.seriouschoi.timeisgold.core.common.ui.TigThemePreview
 import software.seriouschoi.timeisgold.core.common.ui.UiText
 import software.seriouschoi.timeisgold.core.common.ui.asString
 import software.seriouschoi.timeisgold.core.common.ui.components.TigSingleLineTextField
-import timber.log.Timber
 import software.seriouschoi.timeisgold.core.common.ui.R as CommonR
 
 /**
  * Created by jhchoi on 2025. 10. 4.
  * jhchoi
  */
+@Deprecated("뷰모델은 스크린 단위로만 권장. 이벤트 처리가 필요한 상황이 반드시 오기 때문.")
 @Composable
 internal fun RoutineTitleView() {
     val viewModel = hiltViewModel<RoutineTitleViewModel>()

@@ -1,13 +1,11 @@
 package software.seriouschoi.timeisgold.feature.timeroutine.presentation.pager
 
-import software.seriouschoi.timeisgold.core.common.ui.UiText
-import java.time.DayOfWeek
+import software.seriouschoi.timeisgold.feature.timeroutine.presentation.pager.stateholder.DayOfWeeksPagerState
+import software.seriouschoi.timeisgold.feature.timeroutine.presentation.pager.stateholder.RoutineDayOfWeeksState
+import software.seriouschoi.timeisgold.feature.timeroutine.presentation.pager.stateholder.RoutineTitleState
 
 internal data class TimeRoutinePagerUiState(
-    val pagerItems: List<DayOfWeek> = listOf(),
-    val initialPageIndex: Int = 0,
-
-    val title: UiText = UiText.Raw(""),
-    val dayOfWeekName: UiText = UiText.Raw(""),
-    val showAddTimeSlotButton: Boolean = false,
+    val dayOfWeekState: DayOfWeeksPagerState = DayOfWeeksPagerState(),
+    val titleState: RoutineTitleState = RoutineTitleState(),
+    val routineDayOfWeeks: RoutineDayOfWeeksState = RoutineDayOfWeeksState()
 )
