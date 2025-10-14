@@ -69,7 +69,7 @@ private fun TimeRoutinePagerRootView(
     Scaffold(
         contentWindowInsets = WindowInsets(),
         topBar = {
-            TopBar(uiState, sendIntent)
+            TopBar(uiState = uiState, sendIntent = sendIntent)
         },
         content = { innerPadding ->
             Column(
@@ -78,7 +78,8 @@ private fun TimeRoutinePagerRootView(
                     .padding(innerPadding)
             ) {
                 TimeRoutineDayOfWeekView(
-                    uiState.routineDayOfWeeks
+                    state = uiState.routineDayOfWeeks,
+                    sendIntent = sendIntent
                 )
                 PagerView(
                     uiState = uiState,
@@ -105,19 +106,22 @@ private fun TimeRoutinePagerRootView(
 }
 
 @Composable
-private fun TimeRoutineDayOfWeekView(state: RoutineDayOfWeeksState) {
+private fun TimeRoutineDayOfWeekView(
+    state: RoutineDayOfWeeksState,
+    sendIntent: (TimeRoutinePagerUiIntent) -> Unit = {}
+) {
     Row(modifier = Modifier.fillMaxWidth()) {
         state.dayOfWeeksList.forEach { item ->
             TigCheckButton(
                 label = item.displayName.asString(),
                 checked = item.checked,
                 onCheckedChange = {
-//                    sendIntent.invoke(
-//                        DayOfWeeksIntent.EditDayOfWeek(
-//                            dayOfWeek = item.id,
-//                            checked = it
-//                        )
-//                    )
+                    sendIntent.invoke(
+                        TimeRoutinePagerUiIntent.CheckDayOfWeek(
+                            dayOfWeek = item.dayOfWeek,
+                            checked = it
+                        )
+                    )
                 },
                 enabled = item.enabled
             )
@@ -137,7 +141,7 @@ private fun TopBar(
             TigSingleLineTextField(
                 value = titleState.title.asString(),
                 onValueChange = {
-                    // TODO: jhchoi 2025. 10. 14. send intent.
+                    sendIntent.invoke(TimeRoutinePagerUiIntent.UpdateRoutineTitle(it))
                 },
                 modifier = Modifier.fillMaxWidth(),
                 hint = stringResource(CommonR.string.text_routine_title)

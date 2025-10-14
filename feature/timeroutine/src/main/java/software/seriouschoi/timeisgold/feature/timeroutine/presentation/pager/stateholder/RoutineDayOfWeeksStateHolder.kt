@@ -6,7 +6,6 @@ import kotlinx.coroutines.flow.update
 import software.seriouschoi.timeisgold.core.common.ui.UiText
 import software.seriouschoi.timeisgold.core.common.util.asShortText
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.dayofweeks.DayOfWeekItemUiState
-import timber.log.Timber
 import java.time.DayOfWeek
 import javax.inject.Inject
 

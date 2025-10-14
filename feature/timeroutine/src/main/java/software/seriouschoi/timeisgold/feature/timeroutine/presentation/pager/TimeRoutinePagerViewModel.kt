@@ -4,13 +4,16 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -19,6 +22,7 @@ import software.seriouschoi.timeisgold.core.common.ui.asResultState
 import software.seriouschoi.timeisgold.core.common.util.Envelope
 import software.seriouschoi.timeisgold.core.domain.mapper.onlyDomainSuccess
 import software.seriouschoi.timeisgold.core.domain.mapper.onlySuccess
+import software.seriouschoi.timeisgold.domain.usecase.timeroutine.SetRoutineTitleUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.WatchAllRoutineDayOfWeeksUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.WatchTimeRoutineDefinitionUseCase
 import software.seriouschoi.timeisgold.feature.timeroutine.data.TimeRoutineFeatureState
@@ -47,7 +51,8 @@ internal class TimeRoutinePagerViewModel @Inject constructor(
     private val dayOfWeeksPagerStateHolder: DayOfWeeksPagerStateHolder,
 
     private val allDayOfWeeksUseCase: WatchAllRoutineDayOfWeeksUseCase,
-    private val watchTimeRoutineDefinitionUseCase: WatchTimeRoutineDefinitionUseCase
+    private val watchTimeRoutineDefinitionUseCase: WatchTimeRoutineDefinitionUseCase,
+    private val setRoutineTitleUseCase: SetRoutineTitleUseCase,
 ) : ViewModel() {
 
     private val _intent = MutableSharedFlow<Envelope<TimeRoutinePagerUiIntent>>()
@@ -98,8 +103,14 @@ internal class TimeRoutinePagerViewModel @Inject constructor(
                 selectDayOfWeek(intent.dayOfWeek)
             }
 
-            else -> {
-                //no work.
+            is TimeRoutinePagerUiIntent.CheckDayOfWeek -> {
+                // TODO: jhchoi 2025. 10. 14. update day of week. 
+            }
+
+            is TimeRoutinePagerUiIntent.UpdateRoutineTitle -> {
+                routineTitleStateHolder.update(
+                    RoutineTitleIntent.Update(intent.title)
+                )
             }
         }
     }
@@ -140,10 +151,29 @@ internal class TimeRoutinePagerViewModel @Inject constructor(
 
     init {
         watchIntent()
+        watchUpdateTitle()
+
         watchDayOfWeeksPager()
 
         watchCurrentRoutine()
         watchRoutineDayOfWeeks()
+
+    }
+
+    @OptIn(FlowPreview::class)
+    private fun watchUpdateTitle() {
+        val updateTitle = _intent.mapNotNull {
+            it.payload as? TimeRoutinePagerUiIntent.UpdateRoutineTitle
+        }.debounce(500)
+
+        combine(
+            updateTitle, state.data
+        ) { title, state ->
+            setRoutineTitleUseCase.invoke(
+                title = title.title,
+                dayOfWeek = state.dayOfWeek
+            )
+        }.launchIn(viewModelScope)
     }
 
     private fun watchDayOfWeeksPager() {
