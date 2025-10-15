@@ -34,7 +34,9 @@ import software.seriouschoi.timeisgold.core.common.ui.components.TigCircleText
 import software.seriouschoi.timeisgold.core.common.ui.components.TigSingleLineTextField
 import software.seriouschoi.timeisgold.core.common.util.asShortText
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.pager.stateholder.RoutineDayOfWeeksState
+import software.seriouschoi.timeisgold.feature.timeroutine.presentation.pager.stateholder.RoutineTitleState
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.TimeSlotListPageScreen
+import timber.log.Timber
 import software.seriouschoi.timeisgold.core.common.ui.R as CommonR
 
 /**
@@ -137,15 +139,8 @@ private fun TopBar(
 ) {
     TopAppBar(
         title = {
-            val titleState = uiState.titleState
-            TigSingleLineTextField(
-                value = titleState.title.asString(),
-                onValueChange = {
-                    sendIntent.invoke(TimeRoutinePagerUiIntent.UpdateRoutineTitle(it))
-                },
-                modifier = Modifier.fillMaxWidth(),
-                hint = stringResource(CommonR.string.text_routine_title)
-            )
+            TitleText(uiState.titleState, sendIntent)
+
         },
         navigationIcon = {
             TigCircleText(text = uiState.dayOfWeekState.currentDayOfWeek.asShortText())
@@ -159,6 +154,19 @@ private fun TopBar(
                 Icon(Icons.Default.Edit, contentDescription = null)
             }
         },
+    )
+}
+
+@Composable
+private fun TitleText(titleState: RoutineTitleState, sendIntent: (TimeRoutinePagerUiIntent) -> Unit) {
+    Timber.d("TitleText - titleState=$titleState")
+    TigSingleLineTextField(
+        value = titleState.title,
+        onValueChange = {
+            sendIntent.invoke(TimeRoutinePagerUiIntent.UpdateRoutineTitle(it))
+        },
+        modifier = Modifier.fillMaxWidth(),
+        hint = stringResource(CommonR.string.text_routine_title)
     )
 }
 

@@ -61,7 +61,7 @@ internal class TimeSlotListPageViewModel @Inject constructor(
     private val watchTimeRoutineCompositionUseCase: WatchTimeRoutineCompositionUseCase,
     private val setTimeSlotsUseCase: SetTimeSlotListUseCase,
     private val normalizeForUiUseCase: NormalizeForUiUseCase,
-    private val getTimeSlotPolicyValidUseCase: GetTimeSlotPolicyValidUseCase
+    private val getTimeSlotPolicyValidUseCase: GetTimeSlotPolicyValidUseCase,
 ) : ViewModel() {
 
     private val dayOfWeekFlow = MutableStateFlow<DayOfWeek?>(null)

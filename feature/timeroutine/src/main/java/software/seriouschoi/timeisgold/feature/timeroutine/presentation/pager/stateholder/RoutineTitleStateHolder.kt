@@ -3,7 +3,6 @@ package software.seriouschoi.timeisgold.feature.timeroutine.presentation.pager.s
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
-import software.seriouschoi.timeisgold.core.common.ui.UiText
 import javax.inject.Inject
 
 /**
@@ -14,11 +13,11 @@ internal class RoutineTitleStateHolder @Inject constructor() {
     private val _state = MutableStateFlow(RoutineTitleState())
     val state: StateFlow<RoutineTitleState> = _state
 
-    fun update(intent: RoutineTitleIntent) {
+    fun reduce(intent: RoutineTitleIntent) {
         when(intent) {
             is RoutineTitleIntent.Update -> {
                 _state.update {
-                    it.copy(title = UiText.Raw(intent.title))
+                    it.copy(title = intent.title)
                 }
             }
         }
@@ -26,7 +25,7 @@ internal class RoutineTitleStateHolder @Inject constructor() {
 }
 
 internal data class RoutineTitleState(
-    val title: UiText = UiText.Raw("")
+    val title: String = ""
 )
 
 internal sealed interface RoutineTitleIntent {
