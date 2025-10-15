@@ -224,7 +224,8 @@ internal class TimeRoutineRepositoryPortAdapter @Inject constructor(
                 timeRoutine = routineEntity
             )
 
-            val routine = routineWithDayOfWeekDao.getDayOfWeeksByTimeRoutine(routineUuid = routineUuid)
+            val routine =
+                routineWithDayOfWeekDao.getDayOfWeeksByTimeRoutine(routineUuid = routineUuid)
             if (routine.isEmpty()) {
                 dayOfWeekDao.add(
                     dayOfWeek.toTimeRoutineDayOfWeekEntity()
@@ -235,6 +236,32 @@ internal class TimeRoutineRepositoryPortAdapter @Inject constructor(
             }
 
             Timber.d("set routine title. upsertResult=$upsertResult")
+        }
+    }.asDataResult()
+
+    override suspend fun setDayOfWeeks(
+        dayOfWeeks: List<DayOfWeek>,
+        currentDayOfWeek: DayOfWeek
+    ): DataResult<Unit> = runSuspendCatching {
+        val routineJoinDayOfWeekDao = appDatabase.TimeRoutineJoinDayOfWeekViewDao()
+        appDatabase.withTransaction {
+            var routineEntity = routineJoinDayOfWeekDao.getLatestByDayOfWeek(currentDayOfWeek)
+                ?.toTimeRoutineEntity()
+
+            if(routineEntity == null) {
+                val newRoutine = TimeRoutineEntity.newEntity("")
+                appDatabase.TimeRoutineDao().upsert(newRoutine)
+                routineEntity = newRoutine
+            }
+
+            val dayOfWeekEntities = dayOfWeeks.map {
+                it.toTimeRoutineDayOfWeekEntity()
+            }.toSet()
+
+            updateDayOfWeekList(
+                routineDayOfWeekList = dayOfWeekEntities,
+                timeRoutineUuid = routineEntity.uuid
+            )
         }
     }.asDataResult()
 

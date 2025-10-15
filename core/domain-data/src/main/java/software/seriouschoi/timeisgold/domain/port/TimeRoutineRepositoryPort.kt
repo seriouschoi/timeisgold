@@ -1,7 +1,6 @@
 package software.seriouschoi.timeisgold.domain.port
 
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.StateFlow
 import software.seriouschoi.timeisgold.domain.data.DataResult
 import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineComposition
 import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineDefinition
@@ -31,4 +30,5 @@ interface TimeRoutineRepositoryPort {
 
     fun watchAllRoutineDayOfWeeks(): Flow<DataResult<List<DayOfWeek>>>
     suspend fun setRoutineTitle(title: String, dayOfWeek: DayOfWeek): DataResult<Unit>
+    suspend fun setDayOfWeeks(dayOfWeeks: List<DayOfWeek>, currentDayOfWeek: DayOfWeek): DataResult<Unit>
 }

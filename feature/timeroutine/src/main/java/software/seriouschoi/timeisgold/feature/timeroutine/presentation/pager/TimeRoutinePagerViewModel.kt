@@ -5,16 +5,13 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.distinctUntilChangedBy
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
@@ -25,7 +22,7 @@ import software.seriouschoi.navigator.DestNavigatorPort
 import software.seriouschoi.timeisgold.core.common.ui.asResultState
 import software.seriouschoi.timeisgold.core.common.util.Envelope
 import software.seriouschoi.timeisgold.core.domain.mapper.onlyDomainSuccess
-import software.seriouschoi.timeisgold.core.domain.mapper.onlySuccess
+import software.seriouschoi.timeisgold.domain.usecase.timeroutine.SetRoutineDayOfWeeksUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.SetRoutineTitleUseCase
 import software.seriouschoi.timeisgold.feature.timeroutine.data.TimeRoutineFeatureState
 import software.seriouschoi.timeisgold.feature.timeroutine.data.TimeRoutineFeatureStateIntent
@@ -55,6 +52,7 @@ internal class TimeRoutinePagerViewModel @Inject constructor(
     private val dayOfWeeksPagerStateHolder: DayOfWeeksPagerStateHolder,
 
     private val setRoutineTitleUseCase: SetRoutineTitleUseCase,
+    private val setRoutineDayOfWeeksUseCase: SetRoutineDayOfWeeksUseCase,
 ) : ViewModel() {
 
     private val _intent = MutableSharedFlow<Envelope<TimeRoutinePagerUiIntent>>()
@@ -104,7 +102,12 @@ internal class TimeRoutinePagerViewModel @Inject constructor(
             }
 
             is TimeRoutinePagerUiIntent.CheckDayOfWeek -> {
-                // TODO: jhchoi 2025. 10. 14. update day of week. 
+                routineDayOfWeeksStateHolder.reduce(
+                    RoutineDayOfWeeksIntent.Check(
+                        dayOfWeek = intent.dayOfWeek,
+                        checked = intent.checked
+                    )
+                )
             }
 
             is TimeRoutinePagerUiIntent.UpdateRoutineTitle -> {
@@ -151,7 +154,8 @@ internal class TimeRoutinePagerViewModel @Inject constructor(
 
     init {
         watchIntent()
-        watchUpdateTitle()
+        watchTitleInput()
+        watchDayOfWeekCheck()
 
         watchCurrentDayOfWeek()
 
@@ -160,16 +164,39 @@ internal class TimeRoutinePagerViewModel @Inject constructor(
 
     }
 
+    @OptIn(FlowPreview::class)
+    private fun watchDayOfWeekCheck() {
+        // TODO: jhchoi 2025. 10. 15. checkedDayOfWeeks 가 없을때, 이벤트 발행해야함.(confirm)
+        /*
+        아마 stateHolder에서 하는게 나을려나..
+        그리고 이게 가장 애매한 처리인데..
+         */
+        val checkedDayOfWeeks =
+            routineDayOfWeeksStateHolder.checkedDayOfWeeks.debounce(500).distinctUntilChanged()
+
+        val dayOfWeek = dayOfWeeksPagerStateHolder.currentDayOfWeek
+
+        combine(checkedDayOfWeeks, dayOfWeek) { checkedDayOfWeeks, dayOfWeek ->
+            checkedDayOfWeeks to dayOfWeek
+        }.distinctUntilChangedBy {
+            it.first
+        }.onEach {
+            Timber.d("watchDayOfWeekCheck - checkedDayOfWeeks=${it.first}, dayOfWeek=${it.second}")
+            setRoutineDayOfWeeksUseCase.invoke(
+                dayOfWeeks = it.first,
+                currentDayOfWeek = it.second
+            )
+        }.launchIn(viewModelScope)
+    }
+
     @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
-    private fun watchUpdateTitle() {
+    private fun watchTitleInput() {
 
         val inputTitle = _intent.mapNotNull {
             (it.payload as? TimeRoutinePagerUiIntent.UpdateRoutineTitle)?.title
-        }.debounce(500)
+        }.debounce(500).distinctUntilChanged()
 
-        val dayOfWeek = dayOfWeeksPagerStateHolder.state.mapNotNull {
-            it.currentDayOfWeek
-        }
+        val dayOfWeek = dayOfWeeksPagerStateHolder.currentDayOfWeek
 
         combine(
             inputTitle,

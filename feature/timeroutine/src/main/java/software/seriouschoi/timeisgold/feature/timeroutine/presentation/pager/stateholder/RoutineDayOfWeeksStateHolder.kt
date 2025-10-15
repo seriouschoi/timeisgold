@@ -2,6 +2,7 @@ package software.seriouschoi.timeisgold.feature.timeroutine.presentation.pager.s
 
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import software.seriouschoi.timeisgold.core.common.ui.UiText
 import software.seriouschoi.timeisgold.core.common.util.asShortText
@@ -16,6 +17,12 @@ import javax.inject.Inject
 internal class RoutineDayOfWeeksStateHolder @Inject constructor() {
     private val _state = MutableStateFlow(RoutineDayOfWeeksState())
     val state: StateFlow<RoutineDayOfWeeksState> = _state
+
+    val checkedDayOfWeeks = state.map {
+        it.dayOfWeeksList.filter {
+            it.checked && it.enabled
+        }.map { it.dayOfWeek }
+    }
 
     init {
         val dayOfWeekStateList = DAY_OF_WEEKS.map {
@@ -44,6 +51,19 @@ internal class RoutineDayOfWeeksStateHolder @Inject constructor() {
                     state.copy(dayOfWeeksList = newList)
                 }
             }
+
+            is RoutineDayOfWeeksIntent.Check -> {
+                _state.update { state: RoutineDayOfWeeksState ->
+                    val newList = state.dayOfWeeksList.map {
+                        if (it.dayOfWeek == intent.dayOfWeek) {
+                            it.copy(checked = intent.checked)
+                        } else {
+                            it
+                        }
+                    }
+                    state.copy(dayOfWeeksList = newList)
+                }
+            }
         }
     }
 
@@ -67,5 +87,10 @@ internal data class RoutineDayOfWeeksState(
 internal sealed interface RoutineDayOfWeeksIntent {
     data class Update(
         val checked: List<DayOfWeek>, val enabled: List<DayOfWeek>
+    ) : RoutineDayOfWeeksIntent
+
+    data class Check(
+        val dayOfWeek: DayOfWeek,
+        val checked: Boolean
     ) : RoutineDayOfWeeksIntent
 }
