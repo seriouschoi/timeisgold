@@ -5,10 +5,12 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
 
 @Composable
 fun InfiniteHorizontalPager(
     pageList: List<Any>,
+    modifier: Modifier = Modifier,
     initialPageIndex: Int = 0,
     onSelectPage: (Int) -> Unit = {},
     contentPage: @Composable (Int) -> Unit,
@@ -32,7 +34,8 @@ fun InfiniteHorizontalPager(
         onSelectPage(pagerState.currentPage % pageList.size)
     }
     HorizontalPager(
-        state = pagerState
+        state = pagerState,
+        modifier = modifier
     ) { page: Int ->
         val pageIndex = page % pageList.size
         contentPage(pageIndex)

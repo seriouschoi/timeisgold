@@ -19,23 +19,29 @@ internal abstract class TimeRoutineJoinDayOfWeekViewDao {
     )
     abstract fun watchLatestByDayOfWeek(dayOfWeek: DayOfWeek): Flow<TimeRoutineJoinDayOfWeekView?>
 
-    @Query(
-        """
-        SELECT DISTINCT dayOfWeek FROM TimeRoutineJoinDayOfWeekView
-        WHERE routineUuid = :aTimeRoutineUuid
-    """
-    )
-    abstract fun getDayOfWeeksByTimeRoutine(aTimeRoutineUuid: String): Flow<List<DayOfWeek>>
+    suspend fun getLatestByDayOfWeek(dayOfWeek: DayOfWeek): TimeRoutineJoinDayOfWeekView? =
+        watchLatestByDayOfWeek(dayOfWeek).first()
 
     @Query(
         """
         SELECT DISTINCT dayOfWeek FROM TimeRoutineJoinDayOfWeekView
+        WHERE routineUuid = :routineUuid
     """
     )
-    abstract fun observeAllDayOfWeeks(): Flow<List<DayOfWeek>>
+    abstract fun watchDayOfWeeksByTimeRoutine(routineUuid: String): Flow<List<DayOfWeek>>
+
+    suspend fun getDayOfWeeksByTimeRoutine(routineUuid: String): List<DayOfWeek> =
+        watchDayOfWeeksByTimeRoutine(routineUuid).first()
+
+    @Query(
+        """
+        SELECT DISTINCT dayOfWeek FROM TimeRoutineJoinDayOfWeekView
+    """
+    )
+    abstract fun watchAllDayOfWeeks(): Flow<List<DayOfWeek>>
 
 
-    suspend fun getAllDayOfWeeks(): List<DayOfWeek> = observeAllDayOfWeeks().first()
+    suspend fun getAllDayOfWeeks(): List<DayOfWeek> = watchAllDayOfWeeks().first()
 
     @Query(
         """

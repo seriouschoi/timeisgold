@@ -1,0 +1,228 @@
+# 루틴 타이틀/요일 선택을 별개의 페이지가 아닌, 페이저 상단으로 옮기기.
+
+저장버튼 따로 없음.
+페이저에 의해 변경될때마다, 갱신되야 함.
+
+페이저 상단에서 루틴 타이틀/요일 선택 뷰를 따로 만들게 되면,
+페이저에 의해 선택된 요일을 상단 뷰가 알아야 하는데..
+이걸..공통의 상태로 전달하는게 나을려나..?
+아니면 페이저 컴포저블 함수에 콜백을 전달해서..
+해당 콜백에 의해 상단 뷰가 갱신되는게 나을려나..?
+
+공통의 상태로 만들게 될 경우, 관리해야할 상태가 하나 늘어난다는 점이 우려이고..
+물론 이건 개발을 잘하면 해결 되는 문제이긴 하지.
+
+두번째 콜백은... 연쇄적으로 콜백을 전달하는 콜백 지옥이 될 수 있지.
+
+그럼 역시 전자. 상태로 가야 하는건가?
+
+그렇다면, 이건 피쳐에서만 사용할것 같은데..이걸 도메인으로 볼 이유는 없겠지?
+즉 피쳐의 상태라는 개념으로 피쳐모듈 안에 상태라는 패키지와 정의를 하면 되는거지.
+
+그렇다면 뷰모델은 유즈케이스랑 상태를 의존으로 주입 받는건가..?
+...차라리 이것도 도메인으로 보고, 현재 요일 쓰고, 읽기를 유즈케이스로 만들고,
+뷰모델에 유즈케이스로 주입하는게 나을려나?
+근데 이게 도메인인가? 도메인의 범위가 어디까지일까..?
+
+# 도메인?
+일단 도메인에 대해서 다시 정리좀 해보자.
+
+도메인의 본질은 비지니스 규칙이 존재하는 영역이다.
+즉 해당 소프트웨어가 해결하려는 문제의 세계를 정의하는 것을 도메인이라 하며,
+UI나 DB같은 기술적 세부사항이 아니라, 무엇을, 왜, 하는가를 초점에 둔 영역이다.
+
+간단한 기준을 정하자면, 다음과 같다.
+
+| 질문                                      | 도메인인가? |
+|-----------------------------------------|--------|
+| 이 로직이 화면UI나 플랫폼 없이도 의미가 있는가?            | 도메인    |
+| DB나 API가 바뀌어도 로직의 의미가 유지되는가?            | 도메인    |
+| 화면 전환, 애니메이션, 선택 상태에 관련되는가?             | UI 상태  |
+| 기술 스택이 달라져도(Flutter,iOS등) 로직이 그대로 필요한가? | 도메인    |
+
+# 다시 원래 주제로 돌아와서,
+결국 상태로 만들게 될것 같다.
+
+루틴피쳐 상태를 정의하고,
+페이저 뷰모델에서 페이저가 불러와질때마다, 발행되는 상태를 핸들링하여, 현재 선택된 요일을 갱신한다.
+루틴 뷰를 하나 만들고, 거기서는 기존에 만든거랑 좀 비슷하게 돌아가긴 하겠다.
+
+CRUD로 하면..
+
+R:
+일단 선택된 요일로 루틴을 불러오고...
+
+D: 
+삭제버튼에 의한 삭제도 만들고..
+근데 이건 별개의 메뉴로 뺄꺼고...
+
+C:
+이것도 고민인데..
+일단 사용자 관점에선 C와 U가 구분이 안될것이다.
+루틴타이틀/추가요일/슬롯 추가시 C가 실행.
+또 많은 구조가 바뀌겠네...
+
+일단 저장은 입력될때마다 현재 TimeRoutineDef가 갱신되고, 일정 기간 이상 입력이 없는 상태면 그 상태를 감지하여,
+저장 동작 진행.
+
+# 선택된 요일을 scaffolds 상단에 넣으면 공간이 좁다.
+그러므로, 차라리 컨텐츠 영역에 넣자. 그리고 이건..또 처리를 옮겨야 하는데.. ㅋㅋㅋ
+
+TimeRoutineDefinitionView 에는 타이틀만 남기자.
+
+그렇다면..타임 슬롯 리스트에 이걸 추가하게 될것 같은데..
+슬롯 리스트 뷰모델에서 하는게 너무 많거든.
+슬롯 리스트 뷰모델에서 요일 선택까지 처리하는게 맞을까?
+차라리 둘을 따로 나눌까?
+
+슬롯리스트는 요일로 불러오고..
+요일 선택은 슬롯 리스트 위에 붙고..
+뷰를 하나 더 만들어야겠네.
+루틴 디테일 뷰라고 하나 정의해야 하나..
+루틴 컴포지션 뷰라고 해야겠다.
+
+루틴 컴포지션 뷰
+- 요일 선택 뷰.
+- 슬롯 편집 뷰.
+
+요일 선택 뷰모델, 슬롯 편집 뷰 모델이 갈림.
+한 화면에 아래의 뷰모델이 돌아감.
+
+루틴 타이틀 뷰모델.
+요일 선택 뷰모델.
+슬롯 목록 뷰모델.
+
+flow를 사용해서 데이터에 접근하므로,
+동일한 상태를 볼것이고, flow구동 비용의 증가를 최소화 하기 위해, 핫스트림으로 구독해야지.
+(room의 리턴형 flow는 콜드 플로우일까?)
+그러면 별개의 hot flow를 하나 만들어서 그걸 바라보게 해야하나.
+그러면..뷰모델은 usecase로 데이터를 읽어오진 않고,
+hot flow가 데이터를 읽어오겠네?
+
+~~부모 뷰모델 같은 개념은 좀 끔찍한데, 결합이 마구잡이로 생기잖아.~~
+
+정리. 
+일단 room이 무슨 플로우를 리턴하냐도 확인하고 싶긴 한데, 그걸 떠나서,
+그냥 repository가 stateFlow를 리턴하게 하는게 더 명확하긴 하곘다.
+리모트구조일때도 쓸 수 있고.
+
+레포지토리에 이렇게 가고..
+```kotlin
+private val stateScope = CoroutineScope(Dispatchers.IO)
+
+val allRoutinesDayOfWeeks =
+    appDatabase.TimeRoutineJoinDayOfWeekViewDao().watchAllDayOfWeeks().map {
+        runSuspendCatching {
+            it
+        }.asDataResult()
+    }.stateIn(
+        scope = stateScope,
+        started = SharingStarted.Eagerly,
+        initialValue = DataResult.Failure(DataError.NotFound)
+    )
+
+//....
+
+@Qualifier
+@Retention(AnnotationRetention.RUNTIME)
+annotation class ApplicationScope
+
+object CoroutineScopeModule {
+    @Provides
+    @Singleton
+    @ApplicationScope
+    fun provideApplicationScope(): CoroutineScope {
+        return CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    }
+}
+```
+
+루틴 watch하는 곳들도 왠만한 곳은 저렇게 stateflow로 바꿀까?
+아니다..어차피 파라미터로 전달하는 곳은 stateflow로 정의하기도 애매하고,
+함수 호출 시점마다 hotflow가 계속 만들어 지는구나. 
+
+아..오히려 repo는 도메인을 거슬러서 올라가는 곳에 있으니..
+오히려 이렇게 있으면 유연성이 떨어지려나..?
+차라리 콜드플로우로 유지하는게 나을까?
+아니다.. 여긴 상태보관소가 아니지... 잘못 생각했네.
+
+화면의 기능이 복잡해지면서, 각 화면이 각자의 뷰모델을 들고 있다면,
+오류를 비롯한 여러 처리의 결과를 이벤트로 보여주지말고,
+화면내 상태로 넣는게 맞다.
+왜냐면, 화면마다 이벤트를 발행하게 되면서, 오류 다이얼로그 같이 처리하면 
+동시다발적으로 여러 뷰모델에서 이벤트가 나올수 있기 때문이다.
+
+
+# 요일 선택.
+모든 요일을 비활성 하는 형식으로 루틴을 지울 수도 있다.
+하지만 삭제는 민감한 작업이므로, 모든 요일이 비활성 되면,
+경고를 띄워야 한다.
+
+문제는 요일 선택은 화면의 일부 컴포넌트 요소이다.
+화면의 컴포넌트 요소에 이벤트 + 다이얼로그를 넣는 것을 지양하려고 했었는데,
+왜냐하면, 컴포넌트 요소들에 이벤트를 허용하면, 
+flow가 발행된 결과에 따라 이벤트가 폭주하게 되고, 화면이 다이얼로그로 넘칠 수 있기 때문이다.
+
+~~방법이 하나 있다.~~
+~~결국 부모 스크린과 결합을 만드는 것이다.~~
+~~모든 요일의 비활성이 감지되면, 부모 뷰에 콜백을 보낸다.~~
+~~...나쁘지 않을지도.. 뷰에 show dialog같은 콜백정도는 괜찮지 않나?~~
+
+잘못된 생각을 한것 같아.
+뷰모델은 여전히 화면단위로 유지하는게 맞다.
+
+아래와 같이 stateHolder라는 개념을 사용하자.
+```kotlin
+@HiltViewModel
+class RoutineScreenViewModel @Inject constructor(
+    private val daySelectorStateHolder: DaySelectorStateHolder,
+    private val titleEditorStateHolder: TitleEditorStateHolder,
+    private val saveRoutineUseCase: SaveRoutineUseCase
+) : ViewModel() {
+
+    val uiState: StateFlow<RoutineScreenUiState> = combine(
+        daySelectorStateHolder.state,
+        titleEditorStateHolder.state
+    ) { dayState, titleState ->
+        RoutineScreenUiState(dayState, titleState)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(), RoutineScreenUiState())
+
+    fun onIntent(intent: RoutineScreenIntent) {
+        when (intent) {
+            is RoutineScreenIntent.SelectDay -> daySelectorStateHolder.select(intent.day)
+            is RoutineScreenIntent.EditTitle -> titleEditorStateHolder.update(intent.title)
+            RoutineScreenIntent.Save -> saveRoutine()
+        }
+    }
+
+    private fun saveRoutine() { /* ... */ }
+}
+
+class DaySelectorStateHolder @Inject constructor() {
+    private val _state = MutableStateFlow(DaySelectorUiState())
+    val state: StateFlow<DaySelectorUiState> = _state
+
+    fun select(day: DayOfWeek) {
+        _state.update { it.copy(selectedDay = day) }
+    }
+}
+```
+
+뷰모델의 여러 요소들을 여러 uiState로 나누고..
+stateHolder에 인텐트를 발행.
+음..각 상태의 reduce를 stateholder에서 처리하는 느낌이네..
+아 그러면서, combine으로 각 상태를 취합한 스크린 상태(uiState)가 따로 있는거고..
+어..그러면 stateHolder는 뷰모델 바깥에 노출되진 않는거네?
+즉 컴포즈에서 이걸 볼일은 없는거고.
+일단 덩어리가 커지면서 reduce가 너무 더러웠는데...나쁘진 않을 듯.
+
+다만 stateHolder의 책임범위를 명확하게 가져가야 한다.
+예를 들면 도메인의 접근을 stateHolder에서 하게 되면,
+이제 UX의 흐름을 추적하기가 힘들어 질 것이고,
+stateHolder의 단독 테스트가 곤란해질것이다.
+
+이건 재사용이 아니라 책임의 분리라는 개념으로 생각해야 한다.
+음..근데 stateHolder.state를 combine에서 
+uiState를 만드는건 좋은데..
+intent에 의한 uiState의 변경은 어떻게 처리하지..
+아..intent에 의해 stateHolder.state가 변경되게 만들어야 하는구나. 

@@ -4,9 +4,9 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.navigation
 import kotlinx.serialization.Serializable
 import software.seriouschoi.navigator.NavigatorRoute
-import software.seriouschoi.timeisgold.feature.timeroutine.edit.TimeRoutineEditScreenRoute
-import software.seriouschoi.timeisgold.feature.timeroutine.pager.TimeRoutinePagerScreenRoute
-import software.seriouschoi.timeisgold.feature.timeroutine.timeslot.edit.TimeSlotEditScreenRoute
+import software.seriouschoi.timeisgold.feature.timeroutine.presentation.edit.routine.TimeRoutineEditScreenRoute
+import software.seriouschoi.timeisgold.feature.timeroutine.presentation.pager.TimeRoutinePagerScreenRoute
+import software.seriouschoi.timeisgold.feature.timeroutine.presentation.edit.slot.TimeSlotEditScreenRoute
 
 @Serializable
 data object TimeRoutineBarNavRoot : NavigatorRoute

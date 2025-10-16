@@ -20,9 +20,9 @@ class TimeSlotDomainService @Inject constructor(
         timeSlotData: TimeSlotEntity,
         routineUuid: String,
     ): DomainResult<Unit> {
-        val newSlotTitle = timeSlotData.title
-        if (newSlotTitle.length !in timeSlotPolicy.titleLengthRange) {
-            return DomainResult.Failure(DomainError.Validation.TitleLength)
+        val policyResult = isPolicyValid(timeSlotData)
+        if (policyResult is DomainResult.Failure) {
+            return policyResult
         }
 
         val allTimeSlotList = timeSlotRepository.watchTimeSlotList(routineUuid).first()
@@ -32,22 +32,32 @@ class TimeSlotDomainService @Inject constructor(
                 this.add(timeSlotData)
             }
 
-        return isValid(allTimeSlotList)
+        return isConflict(allTimeSlotList)
     }
 
-    suspend fun isValid(
+    fun isPolicyValid(entity: TimeSlotEntity): DomainResult<Unit> {
+        if (entity.title.length !in timeSlotPolicy.titleLengthRange) {
+            return DomainResult.Failure(DomainError.Validation.TitleLength)
+        }
+        if (abs(entity.endTime.asMinutes() - entity.startTime.asMinutes()) < 15) {
+            return DomainResult.Failure(DomainError.Conflict.Time)
+        }
+        return DomainResult.Success(Unit)
+    }
+
+    fun isConflict(
         timeSlotList: List<TimeSlotEntity>
     ): DomainResult<Unit> {
         val sorted = timeSlotList.sortedBy {
             it.endTime.asMinutes()
         }.sortedBy {
             it.startTime.asMinutes()
-        }
+        }.distinct()
 
         var current: TimeSlotEntity? = null
         for (next in sorted) {
 
-            val slotValid = next.isValid()
+            val slotValid = isPolicyValid(next)
             if (slotValid is DomainResult.Failure) {
                 return slotValid
             }
@@ -66,11 +76,4 @@ class TimeSlotDomainService @Inject constructor(
 
         return DomainResult.Success(Unit)
     }
-}
-
-private fun TimeSlotEntity.isValid(): DomainResult<Unit> {
-    if (abs(this.endTime.asMinutes() - this.startTime.asMinutes()) < 15) {
-        return DomainResult.Failure(DomainError.Conflict.Time)
-    }
-    return DomainResult.Success(Unit)
 }

@@ -18,7 +18,6 @@ interface TimeRoutineRepositoryPort {
 
     fun observeTimeRoutineByDayOfWeek(day: DayOfWeek): Flow<TimeRoutineEntity?>
     suspend fun deleteTimeRoutine(timeRoutineUuid: String): DataResult<Unit>
-    fun observeAllRoutinesDayOfWeeks(): Flow<List<DayOfWeek>>
 
     suspend fun saveTimeRoutineDefinition(routine: TimeRoutineDefinition): DataResult<String>
     fun observeTimeRoutineDefinitionByDayOfWeek(dayOfWeek: DayOfWeek): Flow<TimeRoutineDefinition?>
@@ -28,4 +27,8 @@ interface TimeRoutineRepositoryPort {
         routineUuid: String,
         incomingSlots: List<TimeSlotEntity>
     ): DataResult<Unit>
+
+    fun watchAllRoutineDayOfWeeks(): Flow<DataResult<List<DayOfWeek>>>
+    suspend fun setRoutineTitle(title: String, dayOfWeek: DayOfWeek): DataResult<Unit>
+    suspend fun setDayOfWeeks(dayOfWeeks: List<DayOfWeek>, currentDayOfWeek: DayOfWeek): DataResult<Unit>
 }

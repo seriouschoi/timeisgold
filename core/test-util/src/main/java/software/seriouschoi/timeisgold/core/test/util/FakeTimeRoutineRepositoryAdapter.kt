@@ -138,7 +138,7 @@ class FakeTimeRoutineRepositoryAdapter(
         TODO("Not yet implemented")
     }
 
-    override fun observeAllRoutinesDayOfWeeks(): Flow<List<DayOfWeek>> {
+    override fun watchAllRoutinesDayOfWeeks(): Flow<List<DayOfWeek>> {
         return flow {
             if (flags.readThrow) {
                 throw Exception()

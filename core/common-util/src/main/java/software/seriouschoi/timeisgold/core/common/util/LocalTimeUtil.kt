@@ -38,24 +38,13 @@ object LocalTimeUtil {
     fun create(
         minutesOfDay: Int, stepMinutes: Int = 1
     ): LocalTime {
-        val rounded = normalize(minutesOfDay, stepMinutes)
-
-        val minutesDelta = when {
-            rounded < 0 -> {
-                //-1시
-                DAY_MINUTES + rounded
-            }
-
-            else -> {
-                rounded
-            }
-        }
-        return LocalTime.of(0, 0).plusMinutes(minutesDelta.toLong())
+        val rounded = normalize(minutesOfDay, stepMinutes) % DAY_MINUTES
+        return LocalTime.of(0, 0).plusMinutes(rounded.toLong())
     }
     fun normalize(
         minutesOfDay: Int, stepMinutes: Int = 1
     ): Int {
-        val rounded = ((minutesOfDay.toFloat() / stepMinutes).roundToInt() * stepMinutes) % (24 * 60)
+        val rounded = ((minutesOfDay.toFloat() / stepMinutes).roundToInt() * stepMinutes)
         return rounded
     }
 
