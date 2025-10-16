@@ -105,10 +105,6 @@ private fun StateView(
     sendIntent: (TimeRoutinePageUiIntent) -> Unit
 ) {
     when (currentState) {
-        is TimeSlotListPageUiState.Loading -> {
-            Loading(currentState)
-        }
-
         is TimeSlotListPageUiState.Data -> {
             Column(
                 modifier = Modifier.fillMaxSize()
@@ -116,6 +112,9 @@ private fun StateView(
                 TimeSlotListView(state = currentState, modifier = Modifier.fillMaxSize()) {
                     sendIntent.invoke(it)
                 }
+            }
+            if (currentState.loadingMessage != null) {
+                Loading(currentState.loadingMessage)
             }
         }
 
@@ -222,12 +221,14 @@ private fun PreviewError() {
 
 
 @Composable
-private fun Loading(state: TimeSlotListPageUiState.Loading) {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(text = state.loadingMessage.asString())
+private fun Loading(loadingMessage: UiText?) {
+    if (loadingMessage != null) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(text = loadingMessage.asString())
+        }
     }
 }
 
@@ -235,9 +236,7 @@ private fun Loading(state: TimeSlotListPageUiState.Loading) {
 @Composable
 private fun PreviewLoading() {
     Loading(
-        TimeSlotListPageUiState.Loading(
-            UiText.Raw("불러오는 중...")
-        )
+        TimeSlotListPageUiState.Data().loadingState().loadingMessage
     )
 }
 

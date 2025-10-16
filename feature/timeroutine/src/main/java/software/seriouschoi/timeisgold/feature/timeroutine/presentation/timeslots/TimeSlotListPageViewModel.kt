@@ -104,13 +104,13 @@ internal class TimeSlotListPageViewModel @Inject constructor(
         },
         _timeSlotUpdatePreUiStateFlow
     ).scan(
-        TimeSlotListPageUiState.Loading.default()
+        TimeSlotListPageUiState.Data().loadingState()
     ) { acc: TimeSlotListPageUiState, value: UiPreState ->
         acc.reduce(value)
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.Eagerly,
-        initialValue = TimeSlotListPageUiState.Loading.default()
+        initialValue = TimeSlotListPageUiState.Data().loadingState()
     )
     private val _uiEvent: MutableSharedFlow<Envelope<TimeSlotListPageUiEvent>> = MutableSharedFlow()
     val uiEvent: SharedFlow<Envelope<TimeSlotListPageUiEvent>> = _uiEvent
@@ -450,7 +450,7 @@ private fun TimeSlotListPageUiState.reduce(value: UiPreState.Routine): TimeSlotL
                     CommonR.string.message_format_routine_create_confirm,
                     value.currentDayOfWeek.getDisplayName(TextStyle.FULL, Locale.getDefault())
                 ),
-                confirmButton = TimeRoutinePageButtonState(
+                confirmButton = TimeSlotListPageButtonState(
                     buttonLabel = UiText.Res.create(CommonR.string.text_confirm),
                     intent = TimeRoutinePageUiIntent.ModifyRoutine
                 )
@@ -459,7 +459,7 @@ private fun TimeSlotListPageUiState.reduce(value: UiPreState.Routine): TimeSlotL
 
         is DomainResult.Success -> {
             val dataState =
-                this as? TimeSlotListPageUiState.Data ?: TimeSlotListPageUiState.Data.default()
+                this as? TimeSlotListPageUiState.Data ?: TimeSlotListPageUiState.Data()
             val routineComposition = domainResult.value
             val routineUuid = routineComposition.timeRoutine.uuid
             dataState.copy(
@@ -471,7 +471,14 @@ private fun TimeSlotListPageUiState.reduce(value: UiPreState.Routine): TimeSlotL
         }
 
         null -> {
-            TimeSlotListPageUiState.Loading.default()
+            val dataState =
+                this as? TimeSlotListPageUiState.Data ?: TimeSlotListPageUiState.Data()
+            dataState.copy(
+                loadingMessage = UiText.MultipleResArgs.create(
+                    CommonR.string.message_format_loading,
+                    CommonR.string.text_routine
+                )
+            )
         }
     }
 }
