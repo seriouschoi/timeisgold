@@ -298,3 +298,11 @@ intent의 동작이 복잡해진다는 문제가 있다.
 intent의 동작을 할때마다 intent를 발행한 uiState의 식별자를 가지고, 도메인 식발자를 매칭하고 화면을 갱신하거나
 비지니스 로직을 실행해야 한다는 것이다.
 ...일단 uiState에 들고 있자. 그냥 식별자이기도 하니깐..
+
+# Qualifier, Retention이 뭐지?
+Qualifier: 의존성 주입할때, 같은 타입이 여러개 있을때, 구분자.
+
+
+# SupervisorJob?
+
+# @InstallIn(SingletonComponent::class)?

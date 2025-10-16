@@ -166,11 +166,6 @@ internal class TimeRoutinePagerViewModel @Inject constructor(
 
     @OptIn(FlowPreview::class)
     private fun watchDayOfWeekCheck() {
-        // TODO: jhchoi 2025. 10. 15. checkedDayOfWeeks 가 없을때, 이벤트 발행해야함.(confirm)
-        /*
-        아마 stateHolder에서 하는게 나을려나..
-        그리고 이게 가장 애매한 처리인데..
-         */
         val checkedDayOfWeeks =
             routineDayOfWeeksStateHolder.checkedDayOfWeeks.debounce(500).distinctUntilChanged()
 

@@ -45,6 +45,7 @@ import java.time.LocalTime
 import software.seriouschoi.timeisgold.core.common.ui.R as CommonR
 
 @Serializable
+@Deprecated("슬롯 편집은 슬롯 목록의 화면으로 진행.")
 internal data class TimeSlotEditScreenRoute(
     val timeRoutineUuid: String,
     val timeSlotUuid: String?,

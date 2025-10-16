@@ -77,7 +77,7 @@ TimeRoutineDefinitionView 에는 타이틀만 남기자.
 
 슬롯리스트는 요일로 불러오고..
 요일 선택은 슬롯 리스트 위에 붙고..
-화면을 하나 더 만들어야겠네.
+뷰를 하나 더 만들어야겠네.
 루틴 디테일 뷰라고 하나 정의해야 하나..
 루틴 컴포지션 뷰라고 해야겠다.
 
@@ -102,7 +102,7 @@ hot flow가 데이터를 읽어오겠네?
 ~~부모 뷰모델 같은 개념은 좀 끔찍한데, 결합이 마구잡이로 생기잖아.~~
 
 정리. 
-일단 room이 뭘주냐도 좋긴 한데..
+일단 room이 무슨 플로우를 리턴하냐도 확인하고 싶긴 한데, 그걸 떠나서,
 그냥 repository가 stateFlow를 리턴하게 하는게 더 명확하긴 하곘다.
 리모트구조일때도 쓸 수 있고.
 
@@ -120,15 +120,9 @@ val allRoutinesDayOfWeeks =
         started = SharingStarted.Eagerly,
         initialValue = DataResult.Failure(DataError.NotFound)
     )
-```
-근데 이렇게 가면 scope누수도 해결해야하고, 
-SharingStarted.Eagerly 이게 뭔지 몰라서 찾아봐야 하네.
 
-scope를 주입하고, @ApplicationScope로 자동 주입시킬 수 있나본데..
-없는 어노테이션이라네..
+//....
 
-
-```kotlin
 @Qualifier
 @Retention(AnnotationRetention.RUNTIME)
 annotation class ApplicationScope
@@ -143,25 +137,6 @@ object CoroutineScopeModule {
 }
 ```
 
-# Qualifier, Retention이 뭐지?
-Qualifier: 의존성 주입할때, 같은 타입이 여러개 있을때, 구분자.
-
-
-# SupervisorJob?
-
-# TimeRopoPort/Adapter의 watch 요소를 state flow로 만드는 것도 좋을듯.
-
-
-# @InstallIn(SingletonComponent::class)?
-
-테스트가 있으면 확실히 사이드이펙트도 미리 잡을 수 있고,
-테스트 가능한 구조를 염두하는 과정에서 잘못된 결합을 만드는 걸 경계하게 되지만,
-아키텍쳐를 공부하면서 만드는 입장에서
-도메인 계약의 변경이 잦아서,
-리팩토링에 많은 방해가 된다.
-역시 기능을 만들고 테스트를 붙이는게 맞는것 같아.
-함수하나 만들고 붙이는것 보다.
-
 루틴 watch하는 곳들도 왠만한 곳은 저렇게 stateflow로 바꿀까?
 아니다..어차피 파라미터로 전달하는 곳은 stateflow로 정의하기도 애매하고,
 함수 호출 시점마다 hotflow가 계속 만들어 지는구나. 
@@ -169,7 +144,7 @@ Qualifier: 의존성 주입할때, 같은 타입이 여러개 있을때, 구분�
 아..오히려 repo는 도메인을 거슬러서 올라가는 곳에 있으니..
 오히려 이렇게 있으면 유연성이 떨어지려나..?
 차라리 콜드플로우로 유지하는게 나을까?
-하긴 여긴 상태보관소가 아니지... 잘못 생각했네.
+아니다.. 여긴 상태보관소가 아니지... 잘못 생각했네.
 
 화면의 기능이 복잡해지면서, 각 화면이 각자의 뷰모델을 들고 있다면,
 오류를 비롯한 여러 처리의 결과를 이벤트로 보여주지말고,
@@ -193,9 +168,10 @@ flow가 발행된 결과에 따라 이벤트가 폭주하게 되고, 화면이 �
 ~~모든 요일의 비활성이 감지되면, 부모 뷰에 콜백을 보낸다.~~
 ~~...나쁘지 않을지도.. 뷰에 show dialog같은 콜백정도는 괜찮지 않나?~~
 
-잘못된 개발을 한거야 내가..
-뷰모델은 여전히 화면단위로 유지하는게 맞아.
+잘못된 생각을 한것 같아.
+뷰모델은 여전히 화면단위로 유지하는게 맞다.
 
+아래와 같이 stateHolder라는 개념을 사용하자.
 ```kotlin
 @HiltViewModel
 class RoutineScreenViewModel @Inject constructor(
@@ -233,9 +209,9 @@ class DaySelectorStateHolder @Inject constructor() {
 ```
 
 뷰모델의 여러 요소들을 여러 uiState로 나누고..
-stateHolder에 메소드를 전달..?
+stateHolder에 인텐트를 발행.
 음..각 상태의 reduce를 stateholder에서 처리하는 느낌이네..
-아 그러면서, combine으로 각 상태를 취합한 스크린 상태가 따로 있는거고..
+아 그러면서, combine으로 각 상태를 취합한 스크린 상태(uiState)가 따로 있는거고..
 어..그러면 stateHolder는 뷰모델 바깥에 노출되진 않는거네?
 즉 컴포즈에서 이걸 볼일은 없는거고.
 일단 덩어리가 커지면서 reduce가 너무 더러웠는데...나쁘진 않을 듯.

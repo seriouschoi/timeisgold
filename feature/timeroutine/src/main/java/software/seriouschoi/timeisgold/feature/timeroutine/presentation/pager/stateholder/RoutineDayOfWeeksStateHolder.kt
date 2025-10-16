@@ -6,7 +6,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import software.seriouschoi.timeisgold.core.common.ui.UiText
 import software.seriouschoi.timeisgold.core.common.util.asShortText
-import software.seriouschoi.timeisgold.feature.timeroutine.presentation.dayofweeks.DayOfWeekItemUiState
 import java.time.DayOfWeek
 import javax.inject.Inject
 
@@ -82,6 +81,13 @@ internal class RoutineDayOfWeeksStateHolder @Inject constructor() {
 
 internal data class RoutineDayOfWeeksState(
     val dayOfWeeksList: List<DayOfWeekItemUiState> = emptyList()
+)
+
+internal data class DayOfWeekItemUiState(
+    val displayName: UiText,
+    val enabled: Boolean,
+    val checked: Boolean,
+    val dayOfWeek: DayOfWeek
 )
 
 internal sealed interface RoutineDayOfWeeksIntent {
