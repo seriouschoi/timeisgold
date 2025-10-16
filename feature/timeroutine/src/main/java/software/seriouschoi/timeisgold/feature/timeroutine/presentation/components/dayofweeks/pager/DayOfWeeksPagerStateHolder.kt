@@ -1,11 +1,11 @@
-package software.seriouschoi.timeisgold.feature.timeroutine.presentation.pager.stateholder
+package software.seriouschoi.timeisgold.feature.timeroutine.presentation.components.dayofweeks.pager
 
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
-import software.seriouschoi.timeisgold.feature.timeroutine.presentation.pager.stateholder.DayOfWeeksPagerStateHolder.Companion.DAY_OF_WEEKS
-import software.seriouschoi.timeisgold.feature.timeroutine.presentation.pager.stateholder.DayOfWeeksPagerStateHolder.Companion.DEFAULT_DAY_OF_WEEK
+import software.seriouschoi.timeisgold.feature.timeroutine.presentation.components.dayofweeks.pager.DayOfWeeksPagerStateHolder.Companion.DAY_OF_WEEKS
+import software.seriouschoi.timeisgold.feature.timeroutine.presentation.components.dayofweeks.pager.DayOfWeeksPagerStateHolder.Companion.DEFAULT_DAY_OF_WEEK
 import java.time.DayOfWeek
 import java.time.LocalDate
 import javax.inject.Inject

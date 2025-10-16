@@ -30,8 +30,8 @@ import software.seriouschoi.timeisgold.feature.timeroutine.presentation.componen
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.components.dayofweeks.check.DayOfWeeksCheckStateHolder
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.edit.routine.TimeRoutineEditScreenRoute
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.edit.slot.TimeSlotEditScreenRoute
-import software.seriouschoi.timeisgold.feature.timeroutine.presentation.pager.stateholder.DayOfWeeksPagerStateHolder
-import software.seriouschoi.timeisgold.feature.timeroutine.presentation.pager.stateholder.DayOfWeeksPagerStateIntent
+import software.seriouschoi.timeisgold.feature.timeroutine.presentation.components.dayofweeks.pager.DayOfWeeksPagerStateHolder
+import software.seriouschoi.timeisgold.feature.timeroutine.presentation.components.dayofweeks.pager.DayOfWeeksPagerStateIntent
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.pager.stateholder.RoutineTitleIntent
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.pager.stateholder.RoutineTitleStateHolder
 import timber.log.Timber
@@ -98,7 +98,7 @@ internal class TimeRoutinePagerViewModel @Inject constructor(
             }
 
             is TimeRoutinePagerUiIntent.LoadRoutine -> {
-                selectDayOfWeek(intent.dayOfWeek)
+                dayOfWeeksPagerStateHolder.reduce(intent.stateIntent)
             }
 
             is TimeRoutinePagerUiIntent.CheckDayOfWeek -> {
@@ -113,14 +113,6 @@ internal class TimeRoutinePagerViewModel @Inject constructor(
                     RoutineTitleIntent.Update(intent.title)
                 )
             }
-        }
-    }
-
-    private fun selectDayOfWeek(dayOfWeek: DayOfWeek) {
-        viewModelScope.launch {
-            state.reduce(
-                TimeRoutineFeatureStateIntent.SelectDayOfWeek(dayOfWeek)
-            )
         }
     }
 
@@ -151,14 +143,24 @@ internal class TimeRoutinePagerViewModel @Inject constructor(
 
     init {
         watchIntent()
+
         watchTitleInput()
         watchDayOfWeekCheck()
+        watchDayOfWeekPager()
 
         watchCurrentDayOfWeek()
 
         watchCurrentRoutine()
         watchRoutineDayOfWeeks()
 
+    }
+
+    private fun watchDayOfWeekPager() {
+        dayOfWeeksPagerStateHolder.currentDayOfWeek.onEach {
+            state.reduce(
+                TimeRoutineFeatureStateIntent.SelectDayOfWeek(it)
+            )
+        }.launchIn(viewModelScope)
     }
 
     @OptIn(FlowPreview::class)

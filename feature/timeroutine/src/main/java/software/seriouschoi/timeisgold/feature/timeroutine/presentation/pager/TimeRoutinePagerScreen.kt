@@ -36,6 +36,7 @@ import software.seriouschoi.timeisgold.core.common.util.asShortText
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.components.dayofweeks.check.DayOfWeeksCheckIntent
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.components.dayofweeks.check.DayOfWeeksCheckState
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.components.dayofweeks.check.DayOfWeeksCheckView
+import software.seriouschoi.timeisgold.feature.timeroutine.presentation.components.dayofweeks.pager.DayOfWeekPagerView
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.pager.stateholder.RoutineTitleState
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.TimeSlotListPageScreen
 import timber.log.Timber
@@ -89,13 +90,14 @@ private fun TimeRoutinePagerRootView(
 
                     )
                 }
-                PagerView(
-                    uiState = uiState,
-                    sendIntent = sendIntent,
+                DayOfWeekPagerView(
+                    state = uiState.dayOfWeekState,
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(1f)
-                )
+                ) {
+                    sendIntent.invoke(TimeRoutinePagerUiIntent.LoadRoutine(it))
+                }
             }
         },
         floatingActionButton = {
@@ -152,32 +154,6 @@ private fun TitleText(titleState: RoutineTitleState, sendIntent: (TimeRoutinePag
     )
 }
 
-@Composable
-private fun PagerView(
-    uiState: TimeRoutinePagerUiState,
-    sendIntent: (TimeRoutinePagerUiIntent) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val pagerItems = uiState.dayOfWeekState.dayOfWeeks
-    val currentDayOfWeek = uiState.dayOfWeekState.currentDayOfWeek
-
-    InfiniteHorizontalPager(
-        pageList = pagerItems,
-        initialPageIndex = pagerItems.indexOfFirst { it == currentDayOfWeek },
-        onSelectPage = {
-            val dayOfWeek = pagerItems.getOrNull(it)
-            if (dayOfWeek != null) {
-                sendIntent(TimeRoutinePagerUiIntent.LoadRoutine(dayOfWeek))
-            }
-        },
-        modifier = modifier,
-    ) {
-        val dayOfWeek = pagerItems[it]
-        TimeSlotListPageScreen(
-            dayOfWeek = dayOfWeek
-        )
-    }
-}
 
 @TigThemePreview
 @Composable
