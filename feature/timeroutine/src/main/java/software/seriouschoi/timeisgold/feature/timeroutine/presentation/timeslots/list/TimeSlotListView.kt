@@ -28,7 +28,7 @@ import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslot
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun TimeSlotListView(
-    state: TimeSlotListPageUiState.Data,
+    state: TimeSlotListPageUiState,
     modifier: Modifier = Modifier,
     sendIntent: (TimeRoutinePageUiIntent) -> Unit,
 ) {

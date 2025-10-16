@@ -36,7 +36,7 @@ import software.seriouschoi.timeisgold.domain.data.DomainResult
 import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineComposition
 import software.seriouschoi.timeisgold.domain.data.entities.TimeSlotEntity
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.WatchTimeRoutineCompositionUseCase
-import software.seriouschoi.timeisgold.domain.usecase.timeslot.NormalizeForUiUseCase
+import software.seriouschoi.timeisgold.domain.usecase.timeslot.NormalizeMinutesForUiUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeslot.SetTimeSlotListUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeslot.valid.GetTimeSlotPolicyValidUseCase
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.edit.routine.TimeRoutineEditScreenRoute
@@ -60,7 +60,7 @@ internal class TimeSlotListPageViewModel @Inject constructor(
     private val navigator: DestNavigatorPort,
     private val watchTimeRoutineCompositionUseCase: WatchTimeRoutineCompositionUseCase,
     private val setTimeSlotsUseCase: SetTimeSlotListUseCase,
-    private val normalizeForUiUseCase: NormalizeForUiUseCase,
+    private val normalizeMinutesForUiUseCase: NormalizeMinutesForUiUseCase,
     private val getTimeSlotPolicyValidUseCase: GetTimeSlotPolicyValidUseCase,
 ) : ViewModel() {
 
@@ -97,36 +97,35 @@ internal class TimeSlotListPageViewModel @Inject constructor(
 
     private val _timeSlotUpdatePreUiStateFlow = MutableSharedFlow<UiPreState.UpdateSlotList>()
 
-    val uiState: StateFlow<TimeSlotListPageUiState.Data> = merge(
+    val uiState: StateFlow<TimeSlotListPageUiState> = merge(
         routinePreUiStateFlow.mapNotNull { it },
-        _intent.mapNotNull {
-            UiPreState.Intent(it.payload)
-        },
         _timeSlotUpdatePreUiStateFlow
     ).scan(
-        TimeSlotListPageUiState.Data().loadingState()
-    ) { acc: TimeSlotListPageUiState.Data, value: UiPreState ->
+        TimeSlotListPageUiState().loadingState()
+    ) { acc: TimeSlotListPageUiState, value: UiPreState ->
         acc.reduce(value)
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.Eagerly,
-        initialValue = TimeSlotListPageUiState.Data().loadingState()
+        initialValue = TimeSlotListPageUiState().loadingState()
     )
     private val _uiEvent: MutableSharedFlow<Envelope<TimeSlotListPageUiEvent>> = MutableSharedFlow()
     val uiEvent: SharedFlow<Envelope<TimeSlotListPageUiEvent>> = _uiEvent
 
     init {
-        viewModelScope.launch {
-            _intent.collect {
-                handleIntentSideEffect(it.payload)
-            }
-        }
+        watchIntent()
     }
 
     fun load(dayOfWeek: DayOfWeek) {
         viewModelScope.launch {
             dayOfWeekFlow.emit(dayOfWeek)
         }
+    }
+
+    private fun watchIntent() {
+        _intent.onEach {
+            handleIntentSideEffect(it.payload)
+        }.launchIn(viewModelScope)
     }
 
 
@@ -162,15 +161,15 @@ internal class TimeSlotListPageViewModel @Inject constructor(
     private suspend fun handleUpdateTimeSlot(
         intent: TimeRoutinePageUiIntent.UpdateTimeSlotUi,
     ) {
-        val dataState = uiState.value as? TimeSlotListPageUiState.Data ?: return
+        val dataState = uiState.value ?: return
 
         val currentSlotItemList = dataState.slotItemList
         val intentItems = currentSlotItemList.find { it.slotUuid == intent.uuid }?.let {
             val startMins = it.startMinutesOfDay
             val endMins = it.endMinutesOfDay
 
-            val newStartMin = normalizeForUiUseCase.invoke(startMins + dragMinsAcc)
-            val newEndMin = normalizeForUiUseCase.invoke(endMins + dragMinsAcc)
+            val newStartMin = normalizeMinutesForUiUseCase.invoke(startMins + dragMinsAcc)
+            val newEndMin = normalizeMinutesForUiUseCase.invoke(endMins + dragMinsAcc)
             if (startMins == newStartMin) {
                 dragMinsAcc += intent.minuteFactor
             } else {
@@ -358,10 +357,7 @@ internal class TimeSlotListPageViewModel @Inject constructor(
                 routineCompositionFlow.onlyDomainSuccess().first()
                     ?: return@flowResultState DomainResult.Failure(DomainError.NotFound.TimeRoutine)
 
-            val dataState = uiState.first() as? TimeSlotListPageUiState.Data
-                ?: return@flowResultState DomainResult.Failure(
-                    DomainError.NotFound.TimeSlot
-                )
+            val dataState = uiState.first()
 
             val updateSlots = dataState.slotItemList.map {
                 it.asEntity()
@@ -416,12 +412,8 @@ private fun TimeSlotItemUiState.asEntity() = TimeSlotEntity(
     // TODO: jhchoi 2025. 10. 8. createTime을 여기서 주는것도 문제인데..
 )
 
-private fun TimeSlotListPageUiState.Data.reduce(value: UiPreState): TimeSlotListPageUiState.Data {
+private fun TimeSlotListPageUiState.reduce(value: UiPreState): TimeSlotListPageUiState {
     return when (value) {
-        is UiPreState.Intent -> {
-            this.reduceFromIntent(value)
-        }
-
         is UiPreState.Routine -> {
             this.reduceFromRoutine(value)
         }
@@ -432,13 +424,8 @@ private fun TimeSlotListPageUiState.Data.reduce(value: UiPreState): TimeSlotList
     }
 }
 
-private fun TimeSlotListPageUiState.Data.reduceFromIntent(
-    value: UiPreState.Intent,
-): TimeSlotListPageUiState.Data = when (value.intent) {
-    else -> this
-}
 
-private fun TimeSlotListPageUiState.Data.reduceFromRoutine(value: UiPreState.Routine): TimeSlotListPageUiState.Data {
+private fun TimeSlotListPageUiState.reduceFromRoutine(value: UiPreState.Routine): TimeSlotListPageUiState {
     val domainResult = value.routineDomainResult
     return when (domainResult) {
         is DomainResult.Failure -> {
@@ -526,10 +513,6 @@ private sealed interface UiPreState {
     data class Routine(
         val currentDayOfWeek: DayOfWeek,
         val routineDomainResult: DomainResult<TimeRoutineComposition>?,
-    ) : UiPreState
-
-    data class Intent(
-        val intent: TimeRoutinePageUiIntent,
     ) : UiPreState
 
     data class UpdateSlotList(

@@ -106,24 +106,20 @@ private fun StateView(
     currentState: TimeSlotListPageUiState,
     sendIntent: (TimeRoutinePageUiIntent) -> Unit
 ) {
-    when (currentState) {
-        is TimeSlotListPageUiState.Data -> {
-            Column(
-                modifier = Modifier.fillMaxSize()
-            ) {
-                TimeSlotListView(state = currentState, modifier = Modifier.fillMaxSize()) {
-                    sendIntent.invoke(it)
-                }
-            }
-            if (currentState.loadingMessage != null) {
-                Loading(currentState.loadingMessage)
-            }
+    Column(
+        modifier = Modifier.fillMaxSize()
+    ) {
+        TimeSlotListView(state = currentState, modifier = Modifier.fillMaxSize()) {
+            sendIntent.invoke(it)
+        }
+    }
+    if (currentState.loadingMessage != null) {
+        Loading(currentState.loadingMessage)
+    }
 
-            if (currentState.errorState != null) {
-                Error(currentState.errorState) {
-                    sendIntent.invoke(it)
-                }
-            }
+    if (currentState.errorState != null) {
+        Error(currentState.errorState) {
+            sendIntent.invoke(it)
         }
     }
 }
@@ -166,7 +162,7 @@ private fun PreviewRoutine() {
         val startTime = LocalTime.of(1, 30)
         val endTime = LocalTime.of(4, 20)
         TimeSlotListView(
-            TimeSlotListPageUiState.Data(
+            TimeSlotListPageUiState(
                 slotItemList = listOf(
                     TimeSlotItemUiState(
                         slotUuid = "temp_uuid",
@@ -240,7 +236,7 @@ private fun Loading(loadingMessage: UiText?) {
 @Composable
 private fun PreviewLoading() {
     Loading(
-        TimeSlotListPageUiState.Data().loadingState().loadingMessage
+        TimeSlotListPageUiState().loadingState().loadingMessage
     )
 }
 

@@ -8,7 +8,7 @@ import javax.inject.Inject
  * Created by jhchoi on 2025. 10. 2.
  * jhchoi
  */
-class NormalizeForUiUseCase @Inject constructor(
+class NormalizeMinutesForUiUseCase @Inject constructor(
     private val timeSlotPolicy: TimeSlotPolicy
 ) {
     fun invoke(minutesOfDay: Int) : Int{
