@@ -33,7 +33,9 @@ import software.seriouschoi.timeisgold.core.common.ui.components.TigCheckButton
 import software.seriouschoi.timeisgold.core.common.ui.components.TigCircleText
 import software.seriouschoi.timeisgold.core.common.ui.components.TigSingleLineTextField
 import software.seriouschoi.timeisgold.core.common.util.asShortText
-import software.seriouschoi.timeisgold.feature.timeroutine.presentation.pager.stateholder.RoutineDayOfWeeksState
+import software.seriouschoi.timeisgold.feature.timeroutine.presentation.components.dayofweeks.check.DayOfWeeksCheckIntent
+import software.seriouschoi.timeisgold.feature.timeroutine.presentation.components.dayofweeks.check.DayOfWeeksCheckState
+import software.seriouschoi.timeisgold.feature.timeroutine.presentation.components.dayofweeks.check.DayOfWeeksCheckView
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.pager.stateholder.RoutineTitleState
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.TimeSlotListPageScreen
 import timber.log.Timber
@@ -79,10 +81,14 @@ private fun TimeRoutinePagerRootView(
                     .fillMaxSize()
                     .padding(innerPadding)
             ) {
-                TimeRoutineDayOfWeekView(
+                DayOfWeeksCheckView(
                     state = uiState.routineDayOfWeeks,
-                    sendIntent = sendIntent
-                )
+                ) {
+                    sendIntent.invoke(
+                        TimeRoutinePagerUiIntent.CheckDayOfWeek(it)
+
+                    )
+                }
                 PagerView(
                     uiState = uiState,
                     sendIntent = sendIntent,
@@ -105,30 +111,6 @@ private fun TimeRoutinePagerRootView(
             }
         }
     )
-}
-
-@Composable
-private fun TimeRoutineDayOfWeekView(
-    state: RoutineDayOfWeeksState,
-    sendIntent: (TimeRoutinePagerUiIntent) -> Unit = {}
-) {
-    Row(modifier = Modifier.fillMaxWidth()) {
-        state.dayOfWeeksList.forEach { item ->
-            TigCheckButton(
-                label = item.displayName.asString(),
-                checked = item.checked,
-                onCheckedChange = {
-                    sendIntent.invoke(
-                        TimeRoutinePagerUiIntent.CheckDayOfWeek(
-                            dayOfWeek = item.dayOfWeek,
-                            checked = it
-                        )
-                    )
-                },
-                enabled = item.enabled
-            )
-        }
-    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

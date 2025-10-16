@@ -26,12 +26,12 @@ import software.seriouschoi.timeisgold.domain.usecase.timeroutine.SetRoutineDayO
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.SetRoutineTitleUseCase
 import software.seriouschoi.timeisgold.feature.timeroutine.data.TimeRoutineFeatureState
 import software.seriouschoi.timeisgold.feature.timeroutine.data.TimeRoutineFeatureStateIntent
+import software.seriouschoi.timeisgold.feature.timeroutine.presentation.components.dayofweeks.check.DayOfWeeksCheckIntent
+import software.seriouschoi.timeisgold.feature.timeroutine.presentation.components.dayofweeks.check.DayOfWeeksCheckStateHolder
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.edit.routine.TimeRoutineEditScreenRoute
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.edit.slot.TimeSlotEditScreenRoute
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.pager.stateholder.DayOfWeeksPagerStateHolder
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.pager.stateholder.DayOfWeeksPagerStateIntent
-import software.seriouschoi.timeisgold.feature.timeroutine.presentation.pager.stateholder.RoutineDayOfWeeksIntent
-import software.seriouschoi.timeisgold.feature.timeroutine.presentation.pager.stateholder.RoutineDayOfWeeksStateHolder
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.pager.stateholder.RoutineTitleIntent
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.pager.stateholder.RoutineTitleStateHolder
 import timber.log.Timber
@@ -48,7 +48,7 @@ internal class TimeRoutinePagerViewModel @Inject constructor(
     private val state: TimeRoutineFeatureState,
 
     private val routineTitleStateHolder: RoutineTitleStateHolder,
-    private val routineDayOfWeeksStateHolder: RoutineDayOfWeeksStateHolder,
+    private val routineDayOfWeeksStateHolder: DayOfWeeksCheckStateHolder,
     private val dayOfWeeksPagerStateHolder: DayOfWeeksPagerStateHolder,
 
     private val setRoutineTitleUseCase: SetRoutineTitleUseCase,
@@ -103,10 +103,7 @@ internal class TimeRoutinePagerViewModel @Inject constructor(
 
             is TimeRoutinePagerUiIntent.CheckDayOfWeek -> {
                 routineDayOfWeeksStateHolder.reduce(
-                    RoutineDayOfWeeksIntent.Check(
-                        dayOfWeek = intent.dayOfWeek,
-                        checked = intent.checked
-                    )
+                    intent.dayOfWeekCheckIntent
                 )
             }
 
@@ -223,7 +220,7 @@ internal class TimeRoutinePagerViewModel @Inject constructor(
         combine(state.selectableDayOfWeeks, currentRoutine) { enableDayOfWeeks, routine ->
             val currentRoutineDayOfWeeks = routine?.dayOfWeeks?.map { it.dayOfWeek } ?: emptyList()
             Timber.d("watchRoutineDayOfWeeks - enableDayOfWeeks=$enableDayOfWeeks, currentRoutineDayOfWeeks=$currentRoutineDayOfWeeks")
-            RoutineDayOfWeeksIntent.Update(
+            DayOfWeeksCheckIntent.Update(
                 checked = currentRoutineDayOfWeeks,
                 enabled = enableDayOfWeeks
             )

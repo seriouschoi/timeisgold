@@ -1,4 +1,4 @@
-package software.seriouschoi.timeisgold.feature.timeroutine.presentation.pager.stateholder
+package software.seriouschoi.timeisgold.feature.timeroutine.presentation.components.dayofweeks.check
 
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -13,9 +13,9 @@ import javax.inject.Inject
  * Created by jhchoi on 2025. 10. 14.
  * jhchoi
  */
-internal class RoutineDayOfWeeksStateHolder @Inject constructor() {
-    private val _state = MutableStateFlow(RoutineDayOfWeeksState())
-    val state: StateFlow<RoutineDayOfWeeksState> = _state
+internal class DayOfWeeksCheckStateHolder @Inject constructor() {
+    private val _state = MutableStateFlow(DayOfWeeksCheckState())
+    val state: StateFlow<DayOfWeeksCheckState> = _state
 
     val checkedDayOfWeeks = state.map {
         it.dayOfWeeksList.filter {
@@ -38,10 +38,10 @@ internal class RoutineDayOfWeeksStateHolder @Inject constructor() {
         }
     }
 
-    fun reduce(intent: RoutineDayOfWeeksIntent) {
+    fun reduce(intent: DayOfWeeksCheckIntent) {
         when (intent) {
-            is RoutineDayOfWeeksIntent.Update -> {
-                _state.update { state: RoutineDayOfWeeksState ->
+            is DayOfWeeksCheckIntent.Update -> {
+                _state.update { state: DayOfWeeksCheckState ->
                     val newList = state.dayOfWeeksList.map {
                         val checked = intent.checked.contains(it.dayOfWeek)
                         val enabled = intent.enabled.contains(it.dayOfWeek)
@@ -51,8 +51,8 @@ internal class RoutineDayOfWeeksStateHolder @Inject constructor() {
                 }
             }
 
-            is RoutineDayOfWeeksIntent.Check -> {
-                _state.update { state: RoutineDayOfWeeksState ->
+            is DayOfWeeksCheckIntent.Check -> {
+                _state.update { state: DayOfWeeksCheckState ->
                     val newList = state.dayOfWeeksList.map {
                         if (it.dayOfWeek == intent.dayOfWeek) {
                             it.copy(checked = intent.checked)
@@ -79,7 +79,7 @@ internal class RoutineDayOfWeeksStateHolder @Inject constructor() {
     }
 }
 
-internal data class RoutineDayOfWeeksState(
+internal data class DayOfWeeksCheckState(
     val dayOfWeeksList: List<DayOfWeekItemUiState> = emptyList()
 )
 
@@ -90,13 +90,13 @@ internal data class DayOfWeekItemUiState(
     val dayOfWeek: DayOfWeek
 )
 
-internal sealed interface RoutineDayOfWeeksIntent {
+internal sealed interface DayOfWeeksCheckIntent {
     data class Update(
         val checked: List<DayOfWeek>, val enabled: List<DayOfWeek>
-    ) : RoutineDayOfWeeksIntent
+    ) : DayOfWeeksCheckIntent
 
     data class Check(
         val dayOfWeek: DayOfWeek,
         val checked: Boolean
-    ) : RoutineDayOfWeeksIntent
+    ) : DayOfWeeksCheckIntent
 }
