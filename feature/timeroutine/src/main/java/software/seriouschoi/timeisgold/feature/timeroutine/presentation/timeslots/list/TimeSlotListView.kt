@@ -21,14 +21,14 @@ import software.seriouschoi.timeisgold.core.common.ui.components.DragTarget
 import software.seriouschoi.timeisgold.core.common.ui.components.multipleGesture
 import software.seriouschoi.timeisgold.core.common.ui.times.TimePixelUtil
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.TimeRoutinePageUiIntent
-import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.TimeRoutinePageUiState
+import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.TimeSlotListPageUiState
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.TimeSliceView
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.TimeSlotUpdateTimeType
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun TimeSlotListView(
-    state: TimeRoutinePageUiState.Routine,
+    state: TimeSlotListPageUiState.Data,
     modifier: Modifier = Modifier,
     sendIntent: (TimeRoutinePageUiIntent) -> Unit,
 ) {

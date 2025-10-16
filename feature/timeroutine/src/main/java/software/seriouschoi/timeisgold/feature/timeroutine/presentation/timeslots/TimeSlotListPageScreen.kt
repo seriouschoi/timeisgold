@@ -101,15 +101,15 @@ private fun EventView(
 
 @Composable
 private fun StateView(
-    currentState: TimeRoutinePageUiState,
+    currentState: TimeSlotListPageUiState,
     sendIntent: (TimeRoutinePageUiIntent) -> Unit
 ) {
     when (currentState) {
-        is TimeRoutinePageUiState.Loading -> {
+        is TimeSlotListPageUiState.Loading -> {
             Loading(currentState)
         }
 
-        is TimeRoutinePageUiState.Routine -> {
+        is TimeSlotListPageUiState.Data -> {
             Column(
                 modifier = Modifier.fillMaxSize()
             ) {
@@ -119,7 +119,7 @@ private fun StateView(
             }
         }
 
-        is TimeRoutinePageUiState.Error -> {
+        is TimeSlotListPageUiState.Error -> {
             Error(currentState) {
                 sendIntent.invoke(it)
             }
@@ -165,9 +165,7 @@ private fun PreviewRoutine() {
         val startTime = LocalTime.of(1, 30)
         val endTime = LocalTime.of(4, 20)
         TimeSlotListView(
-            TimeRoutinePageUiState.Routine(
-                title = "루틴 1",
-                dayOfWeekName = "월",
+            TimeSlotListPageUiState.Data(
                 slotItemList = listOf(
                     TimeSlotItemUiState(
                         slotUuid = "temp_uuid",
@@ -178,9 +176,6 @@ private fun PreviewRoutine() {
                         isSelected = false,
                     )
                 ),
-                dayOfWeeks = listOf(
-                    DayOfWeek.MONDAY,
-                )
             ),
         ) {
 
@@ -190,7 +185,7 @@ private fun PreviewRoutine() {
 
 @Composable
 private fun Error(
-    currentState: TimeRoutinePageUiState.Error,
+    currentState: TimeSlotListPageUiState.Error,
     sendIntent: (TimeRoutinePageUiIntent) -> Unit,
 ) {
     val confirmButtonState by remember {
@@ -217,7 +212,7 @@ private fun Error(
 @Preview
 private fun PreviewError() {
     Error(
-        TimeRoutinePageUiState.Error(
+        TimeSlotListPageUiState.Error(
             errorMessage = UiText.Raw("알 수 없는 오류.")
         )
     ) {
@@ -227,7 +222,7 @@ private fun PreviewError() {
 
 
 @Composable
-private fun Loading(state: TimeRoutinePageUiState.Loading) {
+private fun Loading(state: TimeSlotListPageUiState.Loading) {
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
@@ -240,7 +235,7 @@ private fun Loading(state: TimeRoutinePageUiState.Loading) {
 @Composable
 private fun PreviewLoading() {
     Loading(
-        TimeRoutinePageUiState.Loading(
+        TimeSlotListPageUiState.Loading(
             UiText.Raw("불러오는 중...")
         )
     )

@@ -97,20 +97,20 @@ internal class TimeSlotListPageViewModel @Inject constructor(
 
     private val _timeSlotUpdatePreUiStateFlow = MutableSharedFlow<UiPreState.UpdateSlotList>()
 
-    val uiState: StateFlow<TimeRoutinePageUiState> = merge(
+    val uiState: StateFlow<TimeSlotListPageUiState> = merge(
         routinePreUiStateFlow.mapNotNull { it },
         _intent.mapNotNull {
             UiPreState.Intent(it.payload)
         },
         _timeSlotUpdatePreUiStateFlow
     ).scan(
-        TimeRoutinePageUiState.Loading.default()
-    ) { acc: TimeRoutinePageUiState, value: UiPreState ->
+        TimeSlotListPageUiState.Loading.default()
+    ) { acc: TimeSlotListPageUiState, value: UiPreState ->
         acc.reduce(value)
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.Eagerly,
-        initialValue = TimeRoutinePageUiState.Loading.default()
+        initialValue = TimeSlotListPageUiState.Loading.default()
     )
     private val _uiEvent: MutableSharedFlow<Envelope<TimeSlotListPageUiEvent>> = MutableSharedFlow()
     val uiEvent: SharedFlow<Envelope<TimeSlotListPageUiEvent>> = _uiEvent
@@ -162,9 +162,9 @@ internal class TimeSlotListPageViewModel @Inject constructor(
     private suspend fun handleUpdateTimeSlot(
         intent: TimeRoutinePageUiIntent.UpdateTimeSlotUi,
     ) {
-        val routineState = uiState.value as? TimeRoutinePageUiState.Routine ?: return
+        val dataState = uiState.value as? TimeSlotListPageUiState.Data ?: return
 
-        val currentSlotItemList = routineState.slotItemList
+        val currentSlotItemList = dataState.slotItemList
         val intentItems = currentSlotItemList.find { it.slotUuid == intent.uuid }?.let {
             val startMins = it.startMinutesOfDay
             val endMins = it.endMinutesOfDay
@@ -358,12 +358,12 @@ internal class TimeSlotListPageViewModel @Inject constructor(
                 routineCompositionFlow.onlyDomainSuccess().first()
                     ?: return@flowResultState DomainResult.Failure(DomainError.NotFound.TimeRoutine)
 
-            val routineState = uiState.first() as? TimeRoutinePageUiState.Routine
+            val dataState = uiState.first() as? TimeSlotListPageUiState.Data
                 ?: return@flowResultState DomainResult.Failure(
                     DomainError.NotFound.TimeSlot
                 )
 
-            val updateSlots = routineState.slotItemList.map {
+            val updateSlots = dataState.slotItemList.map {
                 it.asEntity()
             }
 
@@ -416,7 +416,7 @@ private fun TimeSlotItemUiState.asEntity() = TimeSlotEntity(
     // TODO: jhchoi 2025. 10. 8. createTime을 여기서 주는것도 문제인데..
 )
 
-private fun TimeRoutinePageUiState.reduce(value: UiPreState): TimeRoutinePageUiState {
+private fun TimeSlotListPageUiState.reduce(value: UiPreState): TimeSlotListPageUiState {
     return when (value) {
         is UiPreState.Intent -> {
             this.reduce(value)
@@ -427,7 +427,7 @@ private fun TimeRoutinePageUiState.reduce(value: UiPreState): TimeRoutinePageUiS
         }
 
         is UiPreState.UpdateSlotList -> {
-            if (this is TimeRoutinePageUiState.Routine)
+            if (this is TimeSlotListPageUiState.Data)
                 this.copy(slotItemList = value.timeSlotList)
             else
                 this
@@ -435,17 +435,17 @@ private fun TimeRoutinePageUiState.reduce(value: UiPreState): TimeRoutinePageUiS
     }
 }
 
-private fun TimeRoutinePageUiState.reduce(
+private fun TimeSlotListPageUiState.reduce(
     value: UiPreState.Intent,
-): TimeRoutinePageUiState = when (value.intent) {
+): TimeSlotListPageUiState = when (value.intent) {
     else -> this
 }
 
-private fun TimeRoutinePageUiState.reduce(value: UiPreState.Routine): TimeRoutinePageUiState {
+private fun TimeSlotListPageUiState.reduce(value: UiPreState.Routine): TimeSlotListPageUiState {
     val domainResult = value.routineDomainResult
     return when (domainResult) {
         is DomainResult.Failure -> {
-            TimeRoutinePageUiState.Error(
+            TimeSlotListPageUiState.Error(
                 errorMessage = UiText.Res.create(
                     CommonR.string.message_format_routine_create_confirm,
                     value.currentDayOfWeek.getDisplayName(TextStyle.FULL, Locale.getDefault())
@@ -458,28 +458,20 @@ private fun TimeRoutinePageUiState.reduce(value: UiPreState.Routine): TimeRoutin
         }
 
         is DomainResult.Success -> {
-            val routineState =
-                this as? TimeRoutinePageUiState.Routine ?: TimeRoutinePageUiState.Routine.default()
+            val dataState =
+                this as? TimeSlotListPageUiState.Data ?: TimeSlotListPageUiState.Data.default()
             val routineComposition = domainResult.value
             val routineUuid = routineComposition.timeRoutine.uuid
-            routineState.copy(
-                title = routineComposition.timeRoutine.title,
+            dataState.copy(
                 slotItemList = routineComposition.timeSlots.flatMap { slotEntity: TimeSlotEntity ->
                     val slotItem = slotEntity.toSlotItem(routineUuid)
                     slotItem.splitOverMidnight()
                 },
-                dayOfWeeks = routineComposition.dayOfWeeks.map {
-                    it.dayOfWeek
-                }.sorted(),
-                dayOfWeekName = value.currentDayOfWeek.getDisplayName(
-                    TextStyle.SHORT,
-                    Locale.getDefault()
-                )
             )
         }
 
         null -> {
-            TimeRoutinePageUiState.Loading.default()
+            TimeSlotListPageUiState.Loading.default()
         }
     }
 }

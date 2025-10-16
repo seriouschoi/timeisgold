@@ -2,22 +2,15 @@ package software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslo
 
 import software.seriouschoi.timeisgold.core.common.ui.UiText
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.TimeSlotItemUiState
-import java.time.DayOfWeek
 import software.seriouschoi.timeisgold.core.common.ui.R as CommonR
 
-internal sealed interface TimeRoutinePageUiState {
-    data class Routine(
-        val title: String = "",
-        val dayOfWeekName: String,
-        val dayOfWeeks: List<DayOfWeek> = listOf(),
+internal sealed interface TimeSlotListPageUiState {
+    data class Data(
         val slotItemList: List<TimeSlotItemUiState> = emptyList(),
-    ) : TimeRoutinePageUiState {
+    ) : TimeSlotListPageUiState {
         companion object {
-            fun default(): Routine {
-                return Routine(
-                    title = "",
-                    dayOfWeekName = "",
-                    dayOfWeeks = emptyList()
+            fun default(): Data {
+                return Data(
                 )
             }
         }
@@ -25,7 +18,7 @@ internal sealed interface TimeRoutinePageUiState {
 
     data class Loading(
         val loadingMessage: UiText,
-    ) : TimeRoutinePageUiState {
+    ) : TimeSlotListPageUiState {
         companion object {
             fun default(): Loading {
                 return Loading(
@@ -41,7 +34,7 @@ internal sealed interface TimeRoutinePageUiState {
     data class Error(
         val errorMessage: UiText,
         val confirmButton: TimeRoutinePageButtonState? = null
-    ) : TimeRoutinePageUiState
+    ) : TimeSlotListPageUiState
 }
 
 internal data class TimeRoutinePageButtonState(
