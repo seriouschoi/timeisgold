@@ -7,18 +7,14 @@ import software.seriouschoi.timeisgold.core.common.ui.R as CommonR
 internal sealed interface TimeSlotListPageUiState {
     data class Data(
         val slotItemList: List<TimeSlotItemUiState> = emptyList(),
-        val loadingMessage: UiText? = null
-    ) : TimeSlotListPageUiState
-
-    data class Error(
-        val errorMessage: UiText,
-        val confirmButton: TimeSlotListPageButtonState? = null
+        val loadingMessage: UiText? = null,
+        val errorState: TimeSlotListPageErrorState? = null
     ) : TimeSlotListPageUiState
 }
 
-internal data class TimeSlotListPageButtonState(
-    val buttonLabel: UiText,
-    val intent: TimeRoutinePageUiIntent,
+internal data class TimeSlotListPageErrorState(
+    val errorMessage: UiText,
+    val confirmIntent: TimeRoutinePageUiIntent? = null
 )
 
 internal fun TimeSlotListPageUiState.Data.loadingState() : TimeSlotListPageUiState.Data{
