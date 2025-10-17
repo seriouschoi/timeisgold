@@ -211,8 +211,7 @@ private fun Error(
 private fun PreviewError() {
     Error(
         TimeSlotListPageErrorState(
-            UiText.Res.create(CommonR.string.message_format_routine_create_confirm, "월요일"),
-            TimeRoutinePageUiIntent.CreateRoutine
+            UiText.Res.create(CommonR.string.message_format_routine_create_confirm, "월요일")
         )
     ) {
 

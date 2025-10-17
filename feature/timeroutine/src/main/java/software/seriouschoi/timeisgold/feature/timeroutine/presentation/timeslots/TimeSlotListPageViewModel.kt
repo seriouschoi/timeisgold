@@ -39,15 +39,12 @@ import software.seriouschoi.timeisgold.domain.usecase.timeroutine.WatchTimeRouti
 import software.seriouschoi.timeisgold.domain.usecase.timeslot.NormalizeMinutesForUiUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeslot.SetTimeSlotListUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeslot.valid.GetTimeSlotPolicyValidUseCase
-import software.seriouschoi.timeisgold.feature.timeroutine.presentation.edit.routine.TimeRoutineEditScreenRoute
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.edit.slot.TimeSlotEditScreenRoute
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.TimeSlotItemUiState
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.midMinute
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.timeLog
 import timber.log.Timber
 import java.time.DayOfWeek
-import java.time.format.TextStyle
-import java.util.Locale
 import javax.inject.Inject
 import software.seriouschoi.timeisgold.core.common.ui.R as CommonR
 
@@ -83,7 +80,6 @@ internal class TimeSlotListPageViewModel @Inject constructor(
         routineCompositionFlow.onlyDomainResult().mapNotNull { it }
     ) { dayOfWeek, routineComposition ->
         UiPreState.Routine(
-            currentDayOfWeek = dayOfWeek,
             routineDomainResult = routineComposition
         )
     }.stateIn(
@@ -131,14 +127,6 @@ internal class TimeSlotListPageViewModel @Inject constructor(
 
     private suspend fun handleIntentSideEffect(intent: TimeRoutinePageUiIntent) {
         when (intent) {
-            is TimeRoutinePageUiIntent.ModifyRoutine,
-            is TimeRoutinePageUiIntent.CreateRoutine,
-                -> {
-                val dayOfWeekOrdinal = dayOfWeekFlow.value?.ordinal
-                if (dayOfWeekOrdinal != null)
-                    navigator.navigate(TimeRoutineEditScreenRoute(dayOfWeekOrdinal))
-            }
-
             is TimeRoutinePageUiIntent.ShowSlotEdit -> {
                 val route = TimeSlotEditScreenRoute(
                     timeSlotUuid = intent.slotId,
@@ -432,29 +420,23 @@ private fun TimeSlotListPageUiState.reduceFromRoutine(value: UiPreState.Routine)
             val newState = this.copy(
                 loadingMessage = null,
             )
-            val errorState = when (domainResult.error) {
+            when (domainResult.error) {
                 is DomainError.NotFound -> {
-                    TimeSlotListPageErrorState(
-                        errorMessage = UiText.Res.create(
-                            CommonR.string.message_format_routine_create_confirm,
-                            value.currentDayOfWeek.getDisplayName(
-                                TextStyle.FULL,
-                                Locale.getDefault()
-                            )
-                        ),
-                        confirmIntent = TimeRoutinePageUiIntent.ModifyRoutine
+                    //빈 슬롯 리턴.
+                    newState.copy(
+                        errorState = null,
+                        slotItemList = emptyList()
                     )
                 }
-
                 else -> {
-                    TimeSlotListPageErrorState(
+                    val errorState = TimeSlotListPageErrorState(
                         errorMessage = domainResult.error.toUiText(),
+                    )
+                    newState.copy(
+                        errorState = errorState
                     )
                 }
             }
-            newState.copy(
-                errorState = errorState
-            )
         }
 
         is DomainResult.Success -> {
@@ -511,7 +493,6 @@ private fun TimeSlotItemUiState.splitOverMidnight(): List<TimeSlotItemUiState> {
 
 private sealed interface UiPreState {
     data class Routine(
-        val currentDayOfWeek: DayOfWeek,
         val routineDomainResult: DomainResult<TimeRoutineComposition>?,
     ) : UiPreState
 
