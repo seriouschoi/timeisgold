@@ -44,12 +44,12 @@ internal fun TimeSlotListView(
     ) {
         TimeSliceView(
             hourHeight = hourHeight,
-            modifier = Modifier.Companion.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth()
         )
 
         val slotBoundsMap = remember { mutableStateMapOf<Int, Rect>() }
 
-        val gesture1 = Modifier.Companion.multipleGesture(
+        val gesture1 = Modifier.multipleGesture(
             key = Unit,
             slotBoundsMap = { slotBoundsMap },
             onSelected = { index, target ->
@@ -85,18 +85,18 @@ internal fun TimeSlotListView(
         )
 
         Box(
-            modifier = Modifier.Companion
+            modifier = Modifier
                 .fillMaxWidth()
                 .height(hourHeight * 24)
                 .then(gesture1)
         ) {
             state.slotItemList.forEachIndexed { index, slot ->
-                val globalPositioned = Modifier.Companion.onGloballyPositioned {
+                val globalPositioned = Modifier.onGloballyPositioned {
                     val bounds = it.boundsInParent()
                     slotBoundsMap[index] = bounds
                 }
                 TimeSlotItemCardView(
-                    modifier = Modifier.Companion.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth(),
                     item = slot,
                     globalPositioned = globalPositioned,
                     hourHeight = hourHeight
