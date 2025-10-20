@@ -10,7 +10,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.launchIn
@@ -71,22 +70,20 @@ internal class TimeSlotListPageViewModel @Inject constructor(
             Timber.d("received routine composition.")
         }.asResultState().stateIn(
             scope = viewModelScope,
-            started = SharingStarted.Eagerly,
+            started = SharingStarted.Lazily,
             initialValue = ResultState.Loading
         )
 
-    private val routinePreUiStateFlow = combine(
-        dayOfWeekFlow.mapNotNull { it },
-        routineCompositionFlow.onlyDomainResult().mapNotNull { it }
-    ) { dayOfWeek, routineComposition ->
-        UiPreState.Routine(
-            routineDomainResult = routineComposition
+    private val routinePreUiStateFlow =
+        routineCompositionFlow.onlyDomainResult().mapNotNull { routineComposition ->
+            UiPreState.Routine(
+                routineDomainResult = routineComposition
+            )
+        }.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.Lazily,
+            initialValue = null
         )
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.Eagerly,
-        initialValue = null
-    )
 
 
     private val _intent = MutableSharedFlow<Envelope<TimeRoutinePageUiIntent>>()
@@ -428,6 +425,7 @@ private fun TimeSlotListPageUiState.reduceFromRoutine(value: UiPreState.Routine)
                         slotItemList = emptyList()
                     )
                 }
+
                 else -> {
                     val errorState = TimeSlotListPageErrorState(
                         errorMessage = domainResult.error.toUiText(),
