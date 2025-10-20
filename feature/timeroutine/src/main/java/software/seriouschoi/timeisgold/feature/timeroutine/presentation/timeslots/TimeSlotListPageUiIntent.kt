@@ -10,8 +10,6 @@ internal sealed interface TimeRoutinePageUiIntent {
 
     data object UpdateTimeSlotList : TimeRoutinePageUiIntent
 
-    object CreateRoutine : TimeRoutinePageUiIntent
-    object ModifyRoutine : TimeRoutinePageUiIntent
 }
 
 internal enum class TimeSlotUpdateTimeType {

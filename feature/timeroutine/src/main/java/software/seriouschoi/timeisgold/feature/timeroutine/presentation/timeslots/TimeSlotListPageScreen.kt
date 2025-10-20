@@ -1,5 +1,6 @@
 package software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,11 +19,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -37,6 +38,7 @@ import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslot
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.TimeSlotListView
 import java.time.DayOfWeek
 import java.time.LocalTime
+import software.seriouschoi.timeisgold.core.common.ui.R as CommonR
 
 /**
  * Created by jhchoi on 2025. 8. 26.
@@ -101,28 +103,23 @@ private fun EventView(
 
 @Composable
 private fun StateView(
-    currentState: TimeRoutinePageUiState,
+    currentState: TimeSlotListPageUiState,
     sendIntent: (TimeRoutinePageUiIntent) -> Unit
 ) {
-    when (currentState) {
-        is TimeRoutinePageUiState.Loading -> {
-            Loading(currentState)
+    Column(
+        modifier = Modifier.fillMaxSize()
+    ) {
+        TimeSlotListView(state = currentState, modifier = Modifier.fillMaxSize()) {
+            sendIntent.invoke(it)
         }
+    }
+    if (currentState.loadingMessage != null) {
+        Loading(currentState.loadingMessage)
+    }
 
-        is TimeRoutinePageUiState.Routine -> {
-            Column(
-                modifier = Modifier.fillMaxSize()
-            ) {
-                TimeSlotListView(state = currentState, modifier = Modifier.fillMaxSize()) {
-                    sendIntent.invoke(it)
-                }
-            }
-        }
-
-        is TimeRoutinePageUiState.Error -> {
-            Error(currentState) {
-                sendIntent.invoke(it)
-            }
+    if (currentState.errorState != null) {
+        Error(currentState.errorState) {
+            sendIntent.invoke(it)
         }
     }
 }
@@ -165,9 +162,7 @@ private fun PreviewRoutine() {
         val startTime = LocalTime.of(1, 30)
         val endTime = LocalTime.of(4, 20)
         TimeSlotListView(
-            TimeRoutinePageUiState.Routine(
-                title = "루틴 1",
-                dayOfWeekName = "월",
+            TimeSlotListPageUiState(
                 slotItemList = listOf(
                     TimeSlotItemUiState(
                         slotUuid = "temp_uuid",
@@ -178,9 +173,6 @@ private fun PreviewRoutine() {
                         isSelected = false,
                     )
                 ),
-                dayOfWeeks = listOf(
-                    DayOfWeek.MONDAY,
-                )
             ),
         ) {
 
@@ -190,24 +182,25 @@ private fun PreviewRoutine() {
 
 @Composable
 private fun Error(
-    currentState: TimeRoutinePageUiState.Error,
+    errorState: TimeSlotListPageErrorState,
     sendIntent: (TimeRoutinePageUiIntent) -> Unit,
 ) {
-    val confirmButtonState by remember {
-        mutableStateOf(currentState.confirmButton)
-    }
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                MaterialTheme.colorScheme.surfaceContainer
+            ),
         verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Text(text = currentState.errorMessage.asString())
-        val buttonState = confirmButtonState
-        if (buttonState != null) {
+        Text(text = errorState.errorMessage.asString())
+        val errorConfirmIntent = errorState.confirmIntent
+        if (errorConfirmIntent != null) {
             TigLabelButton(
-                buttonState.buttonLabel.asString()
+                stringResource(CommonR.string.text_confirm)
             ) {
-                sendIntent(buttonState.intent)
+                sendIntent(errorConfirmIntent)
             }
         }
     }
@@ -217,8 +210,8 @@ private fun Error(
 @Preview
 private fun PreviewError() {
     Error(
-        TimeRoutinePageUiState.Error(
-            errorMessage = UiText.Raw("알 수 없는 오류.")
+        TimeSlotListPageErrorState(
+            UiText.Res.create(CommonR.string.message_format_routine_create_confirm, "월요일")
         )
     ) {
 
@@ -227,12 +220,14 @@ private fun PreviewError() {
 
 
 @Composable
-private fun Loading(state: TimeRoutinePageUiState.Loading) {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(text = state.loadingMessage.asString())
+private fun Loading(loadingMessage: UiText?) {
+    if (loadingMessage != null) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(text = loadingMessage.asString())
+        }
     }
 }
 
@@ -240,9 +235,7 @@ private fun Loading(state: TimeRoutinePageUiState.Loading) {
 @Composable
 private fun PreviewLoading() {
     Loading(
-        TimeRoutinePageUiState.Loading(
-            UiText.Raw("불러오는 중...")
-        )
+        TimeSlotListPageUiState().loadingState().loadingMessage
     )
 }
 

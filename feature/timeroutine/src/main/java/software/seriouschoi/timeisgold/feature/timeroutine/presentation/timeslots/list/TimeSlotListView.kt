@@ -21,14 +21,14 @@ import software.seriouschoi.timeisgold.core.common.ui.components.DragTarget
 import software.seriouschoi.timeisgold.core.common.ui.components.multipleGesture
 import software.seriouschoi.timeisgold.core.common.ui.times.TimePixelUtil
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.TimeRoutinePageUiIntent
-import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.TimeRoutinePageUiState
+import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.TimeSlotListPageUiState
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.TimeSliceView
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.TimeSlotUpdateTimeType
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun TimeSlotListView(
-    state: TimeRoutinePageUiState.Routine,
+    state: TimeSlotListPageUiState,
     modifier: Modifier = Modifier,
     sendIntent: (TimeRoutinePageUiIntent) -> Unit,
 ) {
@@ -44,12 +44,12 @@ internal fun TimeSlotListView(
     ) {
         TimeSliceView(
             hourHeight = hourHeight,
-            modifier = Modifier.Companion.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth()
         )
 
         val slotBoundsMap = remember { mutableStateMapOf<Int, Rect>() }
 
-        val gesture1 = Modifier.Companion.multipleGesture(
+        val gesture1 = Modifier.multipleGesture(
             key = Unit,
             slotBoundsMap = { slotBoundsMap },
             onSelected = { index, target ->
@@ -85,18 +85,18 @@ internal fun TimeSlotListView(
         )
 
         Box(
-            modifier = Modifier.Companion
+            modifier = Modifier
                 .fillMaxWidth()
                 .height(hourHeight * 24)
                 .then(gesture1)
         ) {
             state.slotItemList.forEachIndexed { index, slot ->
-                val globalPositioned = Modifier.Companion.onGloballyPositioned {
+                val globalPositioned = Modifier.onGloballyPositioned {
                     val bounds = it.boundsInParent()
                     slotBoundsMap[index] = bounds
                 }
                 TimeSlotItemCardView(
-                    modifier = Modifier.Companion.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth(),
                     item = slot,
                     globalPositioned = globalPositioned,
                     hourHeight = hourHeight
