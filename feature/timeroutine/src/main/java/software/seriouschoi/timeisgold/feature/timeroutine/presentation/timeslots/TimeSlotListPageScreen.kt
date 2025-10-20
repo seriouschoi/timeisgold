@@ -104,7 +104,7 @@ private fun EventView(
 @Composable
 private fun StateView(
     currentState: TimeSlotListPageUiState,
-    sendIntent: (TimeRoutinePageUiIntent) -> Unit
+    sendIntent: (TimeSlotListPageUiIntent) -> Unit
 ) {
     Column(
         modifier = Modifier.fillMaxSize()
@@ -183,7 +183,7 @@ private fun PreviewRoutine() {
 @Composable
 private fun Error(
     errorState: TimeSlotListPageErrorState,
-    sendIntent: (TimeRoutinePageUiIntent) -> Unit,
+    sendIntent: (TimeSlotListPageUiIntent) -> Unit,
 ) {
     Column(
         modifier = Modifier

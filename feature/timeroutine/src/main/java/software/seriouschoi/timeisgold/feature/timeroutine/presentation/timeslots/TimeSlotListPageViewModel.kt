@@ -83,7 +83,7 @@ internal class TimeSlotListPageViewModel @Inject constructor(
         )
 
 
-    private val _intent = MutableSharedFlow<Envelope<TimeRoutinePageUiIntent>>()
+    private val _intent = MutableSharedFlow<Envelope<TimeSlotListPageUiIntent>>()
 
     private val _timeSlotUpdatePreUiStateFlow = MutableSharedFlow<UiPreState.UpdateSlotList>()
 
@@ -119,9 +119,14 @@ internal class TimeSlotListPageViewModel @Inject constructor(
     }
 
 
-    private suspend fun handleIntentSideEffect(intent: TimeRoutinePageUiIntent) {
+    private suspend fun handleIntentSideEffect(intent: TimeSlotListPageUiIntent) {
         when (intent) {
-            is TimeRoutinePageUiIntent.ShowSlotEdit -> {
+            is TimeSlotListPageUiIntent.ShowSlotEdit -> {
+                // TODO: event 발행하기.
+                /*
+                이벤트보다는.. 상태로 가자.
+                그게 맞다..
+                 */
                 val route = TimeSlotEditScreenRoute(
                     timeSlotUuid = intent.slotId,
                     timeRoutineUuid = intent.routineId
@@ -129,11 +134,11 @@ internal class TimeSlotListPageViewModel @Inject constructor(
                 navigator.navigate(route)
             }
 
-            is TimeRoutinePageUiIntent.UpdateTimeSlotList -> {
+            is TimeSlotListPageUiIntent.UpdateTimeSlotList -> {
                 updateTimeSlotList()
             }
 
-            is TimeRoutinePageUiIntent.UpdateTimeSlotUi -> {
+            is TimeSlotListPageUiIntent.UpdateTimeSlotUi -> {
                 handleUpdateTimeSlot(intent)
             }
         }
@@ -141,7 +146,7 @@ internal class TimeSlotListPageViewModel @Inject constructor(
 
     private var dragMinsAcc = 0
     private suspend fun handleUpdateTimeSlot(
-        intent: TimeRoutinePageUiIntent.UpdateTimeSlotUi,
+        intent: TimeSlotListPageUiIntent.UpdateTimeSlotUi,
     ) {
         val (newList, nextAcc) = timeSlotCalculator.adjustSlotList(
             intent = intent,
@@ -199,7 +204,7 @@ internal class TimeSlotListPageViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
-    fun sendIntent(createRoutine: TimeRoutinePageUiIntent) {
+    fun sendIntent(createRoutine: TimeSlotListPageUiIntent) {
         viewModelScope.launch {
             _intent.emit(Envelope(createRoutine))
         }

@@ -20,7 +20,7 @@ import androidx.compose.ui.unit.dp
 import software.seriouschoi.timeisgold.core.common.ui.components.DragTarget
 import software.seriouschoi.timeisgold.core.common.ui.components.multipleGesture
 import software.seriouschoi.timeisgold.core.common.ui.times.TimePixelUtil
-import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.TimeRoutinePageUiIntent
+import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.TimeSlotListPageUiIntent
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.TimeSlotListPageUiState
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.TimeSliceView
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.TimeSlotUpdateTimeType
@@ -30,7 +30,7 @@ import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslot
 internal fun TimeSlotListView(
     state: TimeSlotListPageUiState,
     modifier: Modifier = Modifier,
-    sendIntent: (TimeRoutinePageUiIntent) -> Unit,
+    sendIntent: (TimeSlotListPageUiIntent) -> Unit,
 ) {
     val currentSlotList by rememberUpdatedState(state.slotItemList)
     val hourHeight = 60.dp
@@ -63,7 +63,7 @@ internal fun TimeSlotListView(
                     DragTarget.Top -> TimeSlotUpdateTimeType.START
                     DragTarget.Bottom -> TimeSlotUpdateTimeType.END
                 }
-                val intent = TimeRoutinePageUiIntent.UpdateTimeSlotUi(
+                val intent = TimeSlotListPageUiIntent.UpdateTimeSlotUi(
                     uuid = selectedItemUuid,
                     minuteFactor = minutesFactor.toInt(),
                     updateTimeType = updateTime
@@ -71,12 +71,12 @@ internal fun TimeSlotListView(
                 sendIntent.invoke(intent)
             },
             onDrop = { index, target ->
-                val intent = TimeRoutinePageUiIntent.UpdateTimeSlotList
+                val intent = TimeSlotListPageUiIntent.UpdateTimeSlotList
                 sendIntent.invoke(intent)
             },
             onTap = onTab@{ index, target ->
                 val selectedItem = currentSlotList.getOrNull(index) ?: return@onTab
-                val intent = TimeRoutinePageUiIntent.ShowSlotEdit(
+                val intent = TimeSlotListPageUiIntent.ShowSlotEdit(
                     slotId = selectedItem.slotUuid,
                     routineId = selectedItem.routineUuid
                 )

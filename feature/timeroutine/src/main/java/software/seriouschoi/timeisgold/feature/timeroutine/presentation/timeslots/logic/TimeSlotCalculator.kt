@@ -5,7 +5,7 @@ import software.seriouschoi.timeisgold.core.common.util.asMinutes
 import software.seriouschoi.timeisgold.domain.data.DomainResult
 import software.seriouschoi.timeisgold.domain.usecase.timeslot.NormalizeMinutesForUiUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeslot.valid.GetTimeSlotPolicyValidUseCase
-import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.TimeRoutinePageUiIntent
+import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.TimeSlotListPageUiIntent
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.TimeSlotUpdateTimeType
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.TimeSlotItemUiState
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.asEntity
@@ -24,7 +24,7 @@ internal class TimeSlotCalculator @Inject constructor(
     private val getPolicyValidUseCase: GetTimeSlotPolicyValidUseCase,
 ) {
     fun adjustSlotList(
-        intent: TimeRoutinePageUiIntent.UpdateTimeSlotUi,
+        intent: TimeSlotListPageUiIntent.UpdateTimeSlotUi,
         currentList: List<TimeSlotItemUiState>,
         dragAcc: Int
     ): Pair<List<TimeSlotItemUiState>, Int> {

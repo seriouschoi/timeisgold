@@ -12,7 +12,7 @@ internal data class TimeSlotListPageUiState(
 
 internal data class TimeSlotListPageErrorState(
     val errorMessage: UiText,
-    val confirmIntent: TimeRoutinePageUiIntent? = null
+    val confirmIntent: TimeSlotListPageUiIntent? = null
 )
 
 internal fun TimeSlotListPageUiState.loadingState() : TimeSlotListPageUiState{
