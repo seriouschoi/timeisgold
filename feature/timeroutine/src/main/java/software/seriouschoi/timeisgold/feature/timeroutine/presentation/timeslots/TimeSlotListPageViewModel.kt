@@ -36,6 +36,7 @@ import software.seriouschoi.timeisgold.domain.data.entities.TimeSlotEntity
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.WatchTimeRoutineCompositionUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeslot.SetTimeSlotListUseCase
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.edit.slot.TimeSlotEditScreenRoute
+import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.TimeSlotListStateHolder
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.item.TimeSlotItemUiState
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.item.asEntity
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.item.splitOverMidnight
@@ -54,7 +55,8 @@ internal class TimeSlotListPageViewModel @Inject constructor(
     private val navigator: DestNavigatorPort,
     private val watchTimeRoutineCompositionUseCase: WatchTimeRoutineCompositionUseCase,
     private val setTimeSlotsUseCase: SetTimeSlotListUseCase,
-    private val timeSlotCalculator: TimeSlotCalculator
+    private val timeSlotCalculator: TimeSlotCalculator,
+    private val timeSlotListStateHolder: TimeSlotListStateHolder,
 ) : ViewModel() {
 
     private val dayOfWeekFlow = MutableStateFlow<DayOfWeek?>(null)
@@ -87,6 +89,7 @@ internal class TimeSlotListPageViewModel @Inject constructor(
 
     private val _timeSlotUpdatePreUiStateFlow = MutableSharedFlow<UiPreState.UpdateSlotList>()
 
+    @Deprecated("state holder를 조합하여 다시 만들어야 함.")
     val uiState: StateFlow<TimeSlotListPageUiState> = merge(
         routinePreUiStateFlow.mapNotNull { it },
         _timeSlotUpdatePreUiStateFlow
@@ -104,6 +107,11 @@ internal class TimeSlotListPageViewModel @Inject constructor(
 
     init {
         watchIntent()
+        watchRoutineComposition()
+    }
+
+    private fun watchRoutineComposition() {
+        TODO("Not yet implemented")
     }
 
     fun load(dayOfWeek: DayOfWeek) {
@@ -165,8 +173,7 @@ internal class TimeSlotListPageViewModel @Inject constructor(
                 routineCompositionFlow.onlyDomainSuccess().first()
                     ?: return@flowResultState DomainResult.Failure(DomainError.NotFound.TimeRoutine)
 
-            val dataState = uiState.first()
-
+            val dataState = timeSlotListStateHolder.state.first()
             val updateSlots = dataState.slotItemList.map {
                 it.asEntity()
             }
@@ -211,6 +218,7 @@ internal class TimeSlotListPageViewModel @Inject constructor(
     }
 }
 
+@Deprecated("state holder를 조합하여 다시 만들어야 함.")
 private fun TimeSlotListPageUiState.reduce(value: UiPreState): TimeSlotListPageUiState {
     return when (value) {
         is UiPreState.Routine -> {

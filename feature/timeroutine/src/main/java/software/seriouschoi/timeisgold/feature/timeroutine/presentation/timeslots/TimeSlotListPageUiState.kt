@@ -1,20 +1,9 @@
 package software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots
 
-import software.seriouschoi.timeisgold.core.common.ui.UiText
-import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.item.TimeSlotItemUiState
-import software.seriouschoi.timeisgold.core.common.ui.R as CommonR
+import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.TimeSlotListState
+import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.slot.TimeSlotEditState
 
 internal data class TimeSlotListPageUiState(
-    val slotItemList: List<TimeSlotItemUiState> = emptyList(),
-    val loadingMessage: UiText? = null,
-    val errorMessage: UiText? = null
+    val slotListState: TimeSlotListState = TimeSlotListState(),
+    val editState: TimeSlotEditState? = null,
 )
-
-internal fun TimeSlotListPageUiState.loadingState() : TimeSlotListPageUiState{
-    return this.copy(
-        loadingMessage = UiText.MultipleResArgs.create(
-            CommonR.string.message_format_loading,
-            CommonR.string.text_routine
-        )
-    )
-}
