@@ -213,129 +213,6 @@ internal class TimeSlotListPageViewModel @Inject constructor(
         }
     }
 
-    private fun List<TimeSlotItemUiState>.getOverlapItem(
-        updateItem: TimeSlotItemUiState,
-    ): TimeSlotItemUiState? = find {
-        if (updateItem.slotUuid == it.slotUuid) return@find false
-        else {
-            LocalTimeUtil.overlab(
-                updateItem.startMinutesOfDay % LocalTimeUtil.DAY_MINUTES until updateItem.endMinutesOfDay % LocalTimeUtil.DAY_MINUTES,
-                it.startMinutesOfDay % LocalTimeUtil.DAY_MINUTES until it.endMinutesOfDay % LocalTimeUtil.DAY_MINUTES
-            )
-        }
-    }
-
-
-    private fun List<TimeSlotItemUiState>.update(
-        updateItem: TimeSlotItemUiState,
-    ): List<TimeSlotItemUiState> {
-        val overlapItem = this.getOverlapItem(updateItem)
-
-        if (overlapItem == null) {
-            //중복 없음. 업데이트.
-            return this.map {
-                if (it.slotUuid == updateItem.slotUuid) updateItem
-                else it
-            }
-        }
-
-        val updateOriginItem = this.find { it.slotUuid == updateItem.slotUuid } ?: return this
-
-        //update와 updateOirigin의 중앙값을 비교하여, 진행 방향 확인.
-        val adjustedItem = when {
-            updateItem.midMinute() < updateOriginItem.midMinute() -> {
-                //아래에서 위로.
-                // overlap의 아래쪽 끝에 닿지 않도록, overlap 바로 뒤로 이동
-                updateItem.copy(
-                    startMinutesOfDay = overlapItem.endMinutesOfDay,
-                )
-            }
-
-            // update가 overlap 위쪽(즉 더 이른 시간대)에 위치
-            updateItem.midMinute() > updateOriginItem.midMinute() -> {
-                // overlap의 위쪽 끝에 닿지 않도록, overlap 바로 위로 이동
-                updateItem.copy(
-                    endMinutesOfDay = overlapItem.startMinutesOfDay
-                )
-            }
-
-            // 완전히 겹침 (update가 overlap을 완전히 덮음)
-            else -> {
-                //오류이므로, 그냥 update무시.
-                null
-            }
-        } ?: return this
-
-
-        return this.map {
-            if (it.slotUuid == adjustedItem.slotUuid) adjustedItem
-            else it
-        }
-    }
-
-    private fun List<TimeSlotItemUiState>.swapSlotList(
-        updateItem: TimeSlotItemUiState,
-    ): List<TimeSlotItemUiState> {
-
-        val overlapItem = this.getOverlapItem(updateItem)
-        if (overlapItem == null) {
-            return this.update(updateItem)
-        }
-
-        val updateSourceTime: TimeSlotItemUiState = this.find {
-            updateItem.slotUuid == it.slotUuid
-        } ?: return this
-        val updateItemMinutes = updateItem.run { this.endMinutesOfDay - this.startMinutesOfDay }
-
-        val overlapItemMinutes =
-            overlapItem.run { this.endMinutesOfDay - this.startMinutesOfDay }
-
-        val newUpdateItem: TimeSlotItemUiState
-        val newOverlapItem: TimeSlotItemUiState
-        when {
-            updateSourceTime.midMinute() > updateItem.midMinute() -> {
-                //down to up.
-                Timber.d("down to up.")
-                newUpdateItem = updateSourceTime.copy(
-                    startMinutesOfDay = overlapItem.startMinutesOfDay,
-                    endMinutesOfDay = overlapItem.startMinutesOfDay + updateItemMinutes
-                )
-                newOverlapItem = overlapItem.copy(
-                    startMinutesOfDay = updateSourceTime.endMinutesOfDay - overlapItemMinutes,
-                    endMinutesOfDay = updateSourceTime.endMinutesOfDay,
-                )
-            }
-
-            updateSourceTime.midMinute() < updateItem.midMinute() -> {
-                //up to down
-                Timber.d("up to down.")
-                newUpdateItem = updateSourceTime.copy(
-                    startMinutesOfDay = overlapItem.endMinutesOfDay - updateItemMinutes,
-                    endMinutesOfDay = overlapItem.endMinutesOfDay
-                )
-                newOverlapItem = overlapItem.copy(
-                    startMinutesOfDay = updateSourceTime.startMinutesOfDay,
-                    endMinutesOfDay = updateSourceTime.startMinutesOfDay + overlapItemMinutes,
-                )
-            }
-
-            else -> {
-                newUpdateItem = updateSourceTime
-                newOverlapItem = overlapItem
-            }
-        }
-
-        Timber.d("timeslot order changed. newUpdateItem=${newUpdateItem.timeLog()}, newOverlapItem=${newOverlapItem.timeLog()}")
-
-        return this.map {
-            when (it.slotUuid) {
-                newOverlapItem.slotUuid -> newOverlapItem
-                newUpdateItem.slotUuid -> newUpdateItem
-                else -> it
-            }
-        }
-    }
-
     private fun updateTimeSlotList() {
         flowResultState {
             val currentRoutine =
@@ -508,4 +385,126 @@ private fun TimeSlotEntity.toSlotItem(routineUuid: String): TimeSlotItemUiState 
         endMinutesOfDay = this.endTime.asMinutes(),
         isSelected = false,
     )
+}
+
+private fun List<TimeSlotItemUiState>.swapSlotList(
+    updateItem: TimeSlotItemUiState,
+): List<TimeSlotItemUiState> {
+
+    val overlapItem = this.getOverlapItem(updateItem)
+    if (overlapItem == null) {
+        return this.update(updateItem)
+    }
+
+    val updateSourceTime: TimeSlotItemUiState = this.find {
+        updateItem.slotUuid == it.slotUuid
+    } ?: return this
+    val updateItemMinutes = updateItem.run { this.endMinutesOfDay - this.startMinutesOfDay }
+
+    val overlapItemMinutes =
+        overlapItem.run { this.endMinutesOfDay - this.startMinutesOfDay }
+
+    val newUpdateItem: TimeSlotItemUiState
+    val newOverlapItem: TimeSlotItemUiState
+    when {
+        updateSourceTime.midMinute() > updateItem.midMinute() -> {
+            //down to up.
+            Timber.d("down to up.")
+            newUpdateItem = updateSourceTime.copy(
+                startMinutesOfDay = overlapItem.startMinutesOfDay,
+                endMinutesOfDay = overlapItem.startMinutesOfDay + updateItemMinutes
+            )
+            newOverlapItem = overlapItem.copy(
+                startMinutesOfDay = updateSourceTime.endMinutesOfDay - overlapItemMinutes,
+                endMinutesOfDay = updateSourceTime.endMinutesOfDay,
+            )
+        }
+
+        updateSourceTime.midMinute() < updateItem.midMinute() -> {
+            //up to down
+            Timber.d("up to down.")
+            newUpdateItem = updateSourceTime.copy(
+                startMinutesOfDay = overlapItem.endMinutesOfDay - updateItemMinutes,
+                endMinutesOfDay = overlapItem.endMinutesOfDay
+            )
+            newOverlapItem = overlapItem.copy(
+                startMinutesOfDay = updateSourceTime.startMinutesOfDay,
+                endMinutesOfDay = updateSourceTime.startMinutesOfDay + overlapItemMinutes,
+            )
+        }
+
+        else -> {
+            newUpdateItem = updateSourceTime
+            newOverlapItem = overlapItem
+        }
+    }
+
+    Timber.d("timeslot order changed. newUpdateItem=${newUpdateItem.timeLog()}, newOverlapItem=${newOverlapItem.timeLog()}")
+
+    return this.map {
+        when (it.slotUuid) {
+            newOverlapItem.slotUuid -> newOverlapItem
+            newUpdateItem.slotUuid -> newUpdateItem
+            else -> it
+        }
+    }
+}
+
+private fun List<TimeSlotItemUiState>.getOverlapItem(
+    updateItem: TimeSlotItemUiState,
+): TimeSlotItemUiState? = find {
+    if (updateItem.slotUuid == it.slotUuid) return@find false
+    else {
+        LocalTimeUtil.overlab(
+            updateItem.startMinutesOfDay % LocalTimeUtil.DAY_MINUTES until updateItem.endMinutesOfDay % LocalTimeUtil.DAY_MINUTES,
+            it.startMinutesOfDay % LocalTimeUtil.DAY_MINUTES until it.endMinutesOfDay % LocalTimeUtil.DAY_MINUTES
+        )
+    }
+}
+
+private fun List<TimeSlotItemUiState>.update(
+    updateItem: TimeSlotItemUiState,
+): List<TimeSlotItemUiState> {
+    val overlapItem = this.getOverlapItem(updateItem)
+
+    if (overlapItem == null) {
+        //중복 없음. 업데이트.
+        return this.map {
+            if (it.slotUuid == updateItem.slotUuid) updateItem
+            else it
+        }
+    }
+
+    val updateOriginItem = this.find { it.slotUuid == updateItem.slotUuid } ?: return this
+
+    //update와 updateOirigin의 중앙값을 비교하여, 진행 방향 확인.
+    val adjustedItem = when {
+        updateItem.midMinute() < updateOriginItem.midMinute() -> {
+            //아래에서 위로.
+            // overlap의 아래쪽 끝에 닿지 않도록, overlap 바로 뒤로 이동
+            updateItem.copy(
+                startMinutesOfDay = overlapItem.endMinutesOfDay,
+            )
+        }
+
+        // update가 overlap 위쪽(즉 더 이른 시간대)에 위치
+        updateItem.midMinute() > updateOriginItem.midMinute() -> {
+            // overlap의 위쪽 끝에 닿지 않도록, overlap 바로 위로 이동
+            updateItem.copy(
+                endMinutesOfDay = overlapItem.startMinutesOfDay
+            )
+        }
+
+        // 완전히 겹침 (update가 overlap을 완전히 덮음)
+        else -> {
+            //오류이므로, 그냥 update무시.
+            null
+        }
+    } ?: return this
+
+
+    return this.map {
+        if (it.slotUuid == adjustedItem.slotUuid) adjustedItem
+        else it
+    }
 }
