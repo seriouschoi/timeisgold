@@ -23,7 +23,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -31,7 +30,6 @@ import software.seriouschoi.timeisgold.core.common.ui.TigTheme
 import software.seriouschoi.timeisgold.core.common.ui.TigThemePreview
 import software.seriouschoi.timeisgold.core.common.ui.UiText
 import software.seriouschoi.timeisgold.core.common.ui.asString
-import software.seriouschoi.timeisgold.core.common.ui.components.TigLabelButton
 import software.seriouschoi.timeisgold.core.common.util.Envelope
 import software.seriouschoi.timeisgold.core.common.util.asMinutes
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.TimeSlotItemUiState
@@ -83,7 +81,7 @@ fun TimeSlotListPageScreen(
 @Composable
 private fun EventView(
     event: Envelope<TimeSlotListPageUiEvent>?,
-    snackBar: SnackbarHostState
+    snackBar: SnackbarHostState,
 ) {
     val context = LocalContext.current
     LaunchedEffect(event) {
@@ -104,7 +102,7 @@ private fun EventView(
 @Composable
 private fun StateView(
     currentState: TimeSlotListPageUiState,
-    sendIntent: (TimeSlotListPageUiIntent) -> Unit
+    sendIntent: (TimeSlotListPageUiIntent) -> Unit,
 ) {
     Column(
         modifier = Modifier.fillMaxSize()
@@ -117,10 +115,8 @@ private fun StateView(
         Loading(currentState.loadingMessage)
     }
 
-    if (currentState.errorState != null) {
-        Error(currentState.errorState) {
-            sendIntent.invoke(it)
-        }
+    if (currentState.errorMessage != null) {
+        Error(currentState.errorMessage)
     }
 }
 
@@ -182,8 +178,7 @@ private fun PreviewRoutine() {
 
 @Composable
 private fun Error(
-    errorState: TimeSlotListPageErrorState,
-    sendIntent: (TimeSlotListPageUiIntent) -> Unit,
+    errorMessage: UiText,
 ) {
     Column(
         modifier = Modifier
@@ -194,15 +189,7 @@ private fun Error(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Text(text = errorState.errorMessage.asString())
-        val errorConfirmIntent = errorState.confirmIntent
-        if (errorConfirmIntent != null) {
-            TigLabelButton(
-                stringResource(CommonR.string.text_confirm)
-            ) {
-                sendIntent(errorConfirmIntent)
-            }
-        }
+        Text(text = errorMessage.asString())
     }
 }
 
@@ -210,12 +197,8 @@ private fun Error(
 @Preview
 private fun PreviewError() {
     Error(
-        TimeSlotListPageErrorState(
-            UiText.Res.create(CommonR.string.message_format_routine_create_confirm, "월요일")
-        )
-    ) {
-
-    }
+        UiText.Res.create(CommonR.string.message_format_routine_create_confirm, "월요일")
+    )
 }
 
 

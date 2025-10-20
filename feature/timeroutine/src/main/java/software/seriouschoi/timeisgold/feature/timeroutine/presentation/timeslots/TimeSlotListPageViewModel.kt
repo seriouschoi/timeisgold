@@ -122,7 +122,7 @@ internal class TimeSlotListPageViewModel @Inject constructor(
     private suspend fun handleIntentSideEffect(intent: TimeSlotListPageUiIntent) {
         when (intent) {
             is TimeSlotListPageUiIntent.ShowSlotEdit -> {
-                // TODO: event 발행하기.
+                // TODO: slot edit 상태 구현.
                 /*
                 이벤트보다는.. 상태로 가자.
                 그게 맞다..
@@ -235,17 +235,14 @@ private fun TimeSlotListPageUiState.reduceFromRoutine(value: UiPreState.Routine)
                 is DomainError.NotFound -> {
                     //빈 슬롯 리턴.
                     newState.copy(
-                        errorState = null,
+                        errorMessage = null,
                         slotItemList = emptyList()
                     )
                 }
 
                 else -> {
-                    val errorState = TimeSlotListPageErrorState(
-                        errorMessage = domainResult.error.toUiText(),
-                    )
                     newState.copy(
-                        errorState = errorState
+                        errorMessage = domainResult.error.toUiText(),
                     )
                 }
             }
@@ -254,7 +251,7 @@ private fun TimeSlotListPageUiState.reduceFromRoutine(value: UiPreState.Routine)
         is DomainResult.Success -> {
             val newState = this.copy(
                 loadingMessage = null,
-                errorState = null
+                errorMessage = null
             )
             val routineComposition = domainResult.value
             val routineUuid = routineComposition.timeRoutine.uuid
