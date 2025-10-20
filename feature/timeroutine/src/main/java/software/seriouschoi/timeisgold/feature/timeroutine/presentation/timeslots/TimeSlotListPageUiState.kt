@@ -1,7 +1,7 @@
 package software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots
 
 import software.seriouschoi.timeisgold.core.common.ui.UiText
-import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.TimeSlotItemUiState
+import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.item.TimeSlotItemUiState
 import software.seriouschoi.timeisgold.core.common.ui.R as CommonR
 
 internal data class TimeSlotListPageUiState(

@@ -24,15 +24,17 @@ import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslot
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.TimeSlotListPageUiState
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.TimeSliceView
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.TimeSlotUpdateTimeType
+import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.item.TimeSlotItemCardView
+import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.item.TimeSlotItemUiState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun TimeSlotListView(
-    state: TimeSlotListPageUiState,
+    slotItemList: List<TimeSlotItemUiState>,
     modifier: Modifier = Modifier,
     sendIntent: (TimeSlotListPageUiIntent) -> Unit,
 ) {
-    val currentSlotList by rememberUpdatedState(state.slotItemList)
+    val currentSlotList: List<TimeSlotItemUiState> by rememberUpdatedState(slotItemList)
     val hourHeight = 60.dp
     val density = LocalDensity.current
     val hourHeightPx = density.run { hourHeight.toPx() }
@@ -90,7 +92,7 @@ internal fun TimeSlotListView(
                 .height(hourHeight * 24)
                 .then(gesture1)
         ) {
-            state.slotItemList.forEachIndexed { index, slot ->
+            slotItemList.forEachIndexed { index, slot ->
                 val globalPositioned = Modifier.onGloballyPositioned {
                     val bounds = it.boundsInParent()
                     slotBoundsMap[index] = bounds

@@ -36,9 +36,9 @@ import software.seriouschoi.timeisgold.domain.data.entities.TimeSlotEntity
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.WatchTimeRoutineCompositionUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeslot.SetTimeSlotListUseCase
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.edit.slot.TimeSlotEditScreenRoute
-import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.TimeSlotItemUiState
-import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.asEntity
-import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.splitOverMidnight
+import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.item.TimeSlotItemUiState
+import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.item.asEntity
+import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.item.splitOverMidnight
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.logic.TimeSlotCalculator
 import timber.log.Timber
 import java.time.DayOfWeek

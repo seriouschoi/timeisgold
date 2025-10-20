@@ -7,11 +7,11 @@ import software.seriouschoi.timeisgold.domain.usecase.timeslot.NormalizeMinutesF
 import software.seriouschoi.timeisgold.domain.usecase.timeslot.valid.GetTimeSlotPolicyValidUseCase
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.TimeSlotListPageUiIntent
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.TimeSlotUpdateTimeType
-import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.TimeSlotItemUiState
-import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.asEntity
-import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.midMinute
-import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.splitOverMidnight
-import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.timeLog
+import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.item.TimeSlotItemUiState
+import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.item.asEntity
+import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.item.midMinute
+import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.item.splitOverMidnight
+import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.item.timeLog
 import timber.log.Timber
 import javax.inject.Inject
 

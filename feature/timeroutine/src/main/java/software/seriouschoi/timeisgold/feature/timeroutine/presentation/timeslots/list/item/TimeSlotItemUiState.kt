@@ -1,4 +1,4 @@
-package software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list
+package software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.item
 
 import software.seriouschoi.timeisgold.core.common.util.LocalTimeUtil
 import software.seriouschoi.timeisgold.core.common.util.asFormattedString

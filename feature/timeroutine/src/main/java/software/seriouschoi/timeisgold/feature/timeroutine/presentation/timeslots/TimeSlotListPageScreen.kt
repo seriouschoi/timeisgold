@@ -32,8 +32,8 @@ import software.seriouschoi.timeisgold.core.common.ui.UiText
 import software.seriouschoi.timeisgold.core.common.ui.asString
 import software.seriouschoi.timeisgold.core.common.util.Envelope
 import software.seriouschoi.timeisgold.core.common.util.asMinutes
-import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.TimeSlotItemUiState
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.TimeSlotListView
+import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.item.TimeSlotItemUiState
 import java.time.DayOfWeek
 import java.time.LocalTime
 import software.seriouschoi.timeisgold.core.common.ui.R as CommonR
@@ -107,7 +107,10 @@ private fun StateView(
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
-        TimeSlotListView(state = currentState, modifier = Modifier.fillMaxSize()) {
+        TimeSlotListView(
+            slotItemList = currentState.slotItemList,
+            modifier = Modifier.fillMaxSize()
+        ) {
             sendIntent.invoke(it)
         }
     }
@@ -153,21 +156,19 @@ fun TimeSliceView(hourHeight: Dp, modifier: Modifier) {
 
 @TigThemePreview
 @Composable
-private fun PreviewRoutine() {
+private fun PreviewSlotList() {
     TigTheme {
         val startTime = LocalTime.of(1, 30)
         val endTime = LocalTime.of(4, 20)
         TimeSlotListView(
-            TimeSlotListPageUiState(
-                slotItemList = listOf(
-                    TimeSlotItemUiState(
-                        slotUuid = "temp_uuid",
-                        routineUuid = "temp_routine_uuid",
-                        title = "Some Slot Title",
-                        startMinutesOfDay = startTime.asMinutes(),
-                        endMinutesOfDay = endTime.asMinutes(),
-                        isSelected = false,
-                    )
+            slotItemList = listOf(
+                TimeSlotItemUiState(
+                    slotUuid = "temp_uuid",
+                    routineUuid = "temp_routine_uuid",
+                    title = "Some Slot Title",
+                    startMinutesOfDay = startTime.asMinutes(),
+                    endMinutesOfDay = endTime.asMinutes(),
+                    isSelected = false,
                 ),
             ),
         ) {
