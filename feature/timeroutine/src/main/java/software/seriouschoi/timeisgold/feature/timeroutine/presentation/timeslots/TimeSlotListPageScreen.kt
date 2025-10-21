@@ -32,8 +32,10 @@ import software.seriouschoi.timeisgold.core.common.ui.UiText
 import software.seriouschoi.timeisgold.core.common.ui.asString
 import software.seriouschoi.timeisgold.core.common.util.Envelope
 import software.seriouschoi.timeisgold.core.common.util.asMinutes
+import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.TimeSlotListState
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.TimeSlotListView
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.item.TimeSlotItemUiState
+import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.loadingState
 import java.time.DayOfWeek
 import java.time.LocalTime
 import software.seriouschoi.timeisgold.core.common.ui.R as CommonR
@@ -64,7 +66,7 @@ fun TimeSlotListPageScreen(
                     .fillMaxSize()
                     .padding(innerPadding)
             ) {
-                StateView(uiState) {
+                StateView(uiState.slotListState) {
                     viewModel.sendIntent(it)
                 }
                 EventView(uiEvent, snackBarHostState)
@@ -101,7 +103,7 @@ private fun EventView(
 
 @Composable
 private fun StateView(
-    currentState: TimeSlotListPageUiState,
+    currentState: TimeSlotListState,
     sendIntent: (TimeSlotListPageUiIntent) -> Unit,
 ) {
     Column(
@@ -219,7 +221,7 @@ private fun Loading(loadingMessage: UiText?) {
 @Composable
 private fun PreviewLoading() {
     Loading(
-        TimeSlotListPageUiState().loadingState().loadingMessage
+        TimeSlotListState().loadingState().loadingMessage
     )
 }
 
