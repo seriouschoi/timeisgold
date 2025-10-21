@@ -48,6 +48,7 @@ import software.seriouschoi.timeisgold.core.common.ui.R as CommonR
 fun TimeSlotListPageScreen(
     dayOfWeek: DayOfWeek,
 ) {
+    // TODO: jhchoi 2025. 10. 21.  
     val viewModel = hiltViewModel<TimeSlotListPageViewModel>(key = dayOfWeek.name)
     val uiState by viewModel.uiState.collectAsState()
     val uiEvent by viewModel.uiEvent.collectAsState(null)

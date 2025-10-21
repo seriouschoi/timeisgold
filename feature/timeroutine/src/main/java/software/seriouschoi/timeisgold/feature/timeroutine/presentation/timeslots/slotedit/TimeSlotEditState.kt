@@ -3,8 +3,8 @@ package software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslo
 import java.time.LocalTime
 
 internal data class TimeSlotEditState(
-    val slotUuid: String,
-    val title: String,
-    val startTime: LocalTime,
-    val endTime: LocalTime,
+    val slotUuid: String? = null,
+    val title: String = "",
+    val startTime: LocalTime? = null,
+    val endTime: LocalTime? = null,
 )

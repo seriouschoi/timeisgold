@@ -2,6 +2,7 @@ package software.seriouschoi.timeisgold.core.common.ui.components
 
 import android.widget.NumberPicker
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
 
 /**
@@ -12,9 +13,11 @@ import androidx.compose.ui.viewinterop.AndroidView
 fun TigNumberPickerView(
     value: Int,
     range: IntRange,
+    modifier: Modifier = Modifier,
     onValueChange: (Int) -> Unit
 ) {
     AndroidView(
+        modifier = modifier,
         factory = { context ->
             NumberPicker(context).apply {
                 minValue = range.first

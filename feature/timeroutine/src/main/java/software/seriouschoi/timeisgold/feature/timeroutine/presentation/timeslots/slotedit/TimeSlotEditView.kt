@@ -2,11 +2,14 @@ package software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslo
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import software.seriouschoi.timeisgold.core.common.ui.TigTheme
 import software.seriouschoi.timeisgold.core.common.ui.components.TigNumberPickerView
 import software.seriouschoi.timeisgold.core.common.ui.components.TigSingleLineTextField
@@ -35,33 +38,43 @@ internal fun TimeSlotEditView(
         )
 
         Row(
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth().height(80.dp)
         ) {
+            Spacer(
+                modifier = Modifier.weight(1f)
+            )
             TigNumberPickerView(
-                value = state.startTime.hour,
+                value = state.startTime?.hour ?: 0,
                 range = 0..23,
             ) {
 
             }
             TigNumberPickerView(
-                value = state.startTime.minute,
+                value = state.startTime?.minute ?: 0,
                 range = 0..59,
             ) {
 
             }
 
+            Spacer(
+                modifier = Modifier.weight(1f)
+            )
+
             TigNumberPickerView(
-                value = state.endTime.hour,
+                value = state.endTime?.hour ?: 0,
                 range = 0..23,
             ) {
 
             }
             TigNumberPickerView(
-                value = state.endTime.minute,
+                value = state.endTime?.minute ?: 0,
                 range = 0..59,
             ) {
 
             }
+            Spacer(
+                modifier = Modifier.weight(1f)
+            )
         }
     }
 }

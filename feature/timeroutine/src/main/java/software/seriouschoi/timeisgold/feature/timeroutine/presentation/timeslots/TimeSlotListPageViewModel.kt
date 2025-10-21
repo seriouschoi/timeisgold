@@ -35,7 +35,6 @@ import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineCompos
 import software.seriouschoi.timeisgold.domain.data.entities.TimeSlotEntity
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.WatchTimeRoutineCompositionUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeslot.SetTimeSlotListUseCase
-import software.seriouschoi.timeisgold.feature.timeroutine.presentation.edit.slot.TimeSlotEditScreenRoute
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.TimeSlotListStateHolder
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.TimeSlotListStateIntent
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.item.TimeSlotItemUiState
@@ -43,6 +42,7 @@ import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslot
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.item.splitOverMidnight
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.logic.TimeSlotCalculator
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.slotedit.TimeSlotEditStateHolder
+import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.slotedit.TimeSlotEditStateIntent
 import timber.log.Timber
 import java.time.DayOfWeek
 import javax.inject.Inject
@@ -136,9 +136,11 @@ internal class TimeSlotListPageViewModel @Inject constructor(
                         }
                     }
                 }
+
                 is ResultState.Error -> TimeSlotListStateIntent.Error(
                     UiText.Res(CommonR.string.message_error_tech_unknown)
                 )
+
                 ResultState.Loading -> TimeSlotListStateIntent.Loading
             }
         }.onEach {
@@ -156,16 +158,21 @@ internal class TimeSlotListPageViewModel @Inject constructor(
     private suspend fun handleIntentSideEffect(intent: TimeSlotListPageUiIntent) {
         when (intent) {
             is TimeSlotListPageUiIntent.ShowSlotEdit -> {
-                // TODO: slot edit 상태 구현.
-                /*
-                이벤트보다는.. 상태로 가자.
-                그게 맞다..
-                 */
-                val route = TimeSlotEditScreenRoute(
-                    timeSlotUuid = intent.slotId,
-                    timeRoutineUuid = intent.routineId
+                val slotList = routineCompositionFlow.map {
+                    it.onlyDomainSuccess()
+                }.first()?.timeSlots
+                val selectedSlot = slotList?.find {
+                    it.uuid == intent.slotId
+                }
+
+                timeSlotEditStateHolder.sendIntent(
+                    TimeSlotEditStateIntent.Update(
+                        slotId = intent.slotId,
+                        slotTitle = selectedSlot?.title,
+                        startTime = selectedSlot?.startTime,
+                        endTime = selectedSlot?.endTime,
+                    )
                 )
-                navigator.navigate(route)
             }
 
             is TimeSlotListPageUiIntent.UpdateTimeSlotList -> {
