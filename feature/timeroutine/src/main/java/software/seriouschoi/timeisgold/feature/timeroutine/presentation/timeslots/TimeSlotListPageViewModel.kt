@@ -176,6 +176,10 @@ internal class TimeSlotListPageViewModel @Inject constructor(
             is TimeSlotListPageUiIntent.UpdateTimeSlotUi -> {
                 handleUpdateTimeSlot(intent)
             }
+
+            TimeSlotListPageUiIntent.Cancel -> {
+                timeSlotEditStateHolder.sendIntent(TimeSlotEditStateIntent.Clear)
+            }
         }
     }
 

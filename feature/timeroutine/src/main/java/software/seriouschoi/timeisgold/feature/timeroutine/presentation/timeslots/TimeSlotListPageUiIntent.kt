@@ -18,6 +18,8 @@ internal sealed interface TimeSlotListPageUiIntent {
 
     data object UpdateTimeSlotList : TimeSlotListPageUiIntent
 
+    data object Cancel : TimeSlotListPageUiIntent
+
 }
 
 internal enum class TimeSlotUpdateTimeType {

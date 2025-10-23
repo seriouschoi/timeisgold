@@ -1,5 +1,6 @@
 package software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -56,6 +57,10 @@ fun TimeSlotListPageScreen(
 
     LaunchedEffect(dayOfWeek) {
         viewModel.load(dayOfWeek)
+    }
+
+    BackHandler {
+        viewModel.sendIntent(TimeSlotListPageUiIntent.Cancel)
     }
 
     val snackBarHostState = remember { SnackbarHostState() }

@@ -30,6 +30,10 @@ internal class TimeSlotEditStateHolder @Inject constructor() {
                     )
                 }
             }
+
+            TimeSlotEditStateIntent.Clear -> {
+                _state.update { null }
+            }
         }
     }
 }
@@ -41,4 +45,13 @@ internal sealed interface TimeSlotEditStateIntent {
         val startTime: LocalTime? = null,
         val endTime: LocalTime? = null,
     ) : TimeSlotEditStateIntent
+
+    object Clear: TimeSlotEditStateIntent
 }
+
+internal data class TimeSlotEditState(
+    val slotUuid: String? = null,
+    val title: String = "",
+    val startTime: LocalTime? = null,
+    val endTime: LocalTime? = null,
+)
