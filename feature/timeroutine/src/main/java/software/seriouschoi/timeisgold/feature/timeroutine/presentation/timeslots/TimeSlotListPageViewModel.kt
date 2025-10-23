@@ -158,19 +158,13 @@ internal class TimeSlotListPageViewModel @Inject constructor(
     private suspend fun handleIntentSideEffect(intent: TimeSlotListPageUiIntent) {
         when (intent) {
             is TimeSlotListPageUiIntent.ShowSlotEdit -> {
-                val slotList = routineCompositionFlow.map {
-                    it.onlyDomainSuccess()
-                }.first()?.timeSlots
-                val selectedSlot = slotList?.find {
-                    it.uuid == intent.slotId
-                }
-
+                Timber.d("show slot edit. intent=${intent}")
                 timeSlotEditStateHolder.sendIntent(
                     TimeSlotEditStateIntent.Update(
                         slotId = intent.slotId,
-                        slotTitle = selectedSlot?.title,
-                        startTime = selectedSlot?.startTime,
-                        endTime = selectedSlot?.endTime,
+                        slotTitle = intent.title,
+                        startTime = intent.startTime,
+                        endTime = intent.endTime,
                     )
                 )
             }

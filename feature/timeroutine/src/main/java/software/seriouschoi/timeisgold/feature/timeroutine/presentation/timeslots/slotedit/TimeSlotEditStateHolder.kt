@@ -25,8 +25,8 @@ internal class TimeSlotEditStateHolder @Inject constructor() {
                     newState.copy(
                         slotUuid = intent.slotId,
                         title = intent.slotTitle ?: "",
-                        startTime = it?.startTime,
-                        endTime = it?.endTime,
+                        startTime = intent.startTime,
+                        endTime = intent.endTime,
                     )
                 }
             }

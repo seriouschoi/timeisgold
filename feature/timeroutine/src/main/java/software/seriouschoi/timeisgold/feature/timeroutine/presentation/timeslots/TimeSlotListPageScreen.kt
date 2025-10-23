@@ -4,12 +4,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -24,7 +23,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import software.seriouschoi.timeisgold.core.common.ui.TigTheme
 import software.seriouschoi.timeisgold.core.common.ui.TigThemePreview
@@ -36,6 +35,8 @@ import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslot
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.TimeSlotListView
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.item.TimeSlotItemUiState
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.loadingState
+import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.slotedit.TimeSlotEditState
+import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.slotedit.TimeSlotEditView
 import java.time.DayOfWeek
 import java.time.LocalTime
 import software.seriouschoi.timeisgold.core.common.ui.R as CommonR
@@ -48,9 +49,9 @@ import software.seriouschoi.timeisgold.core.common.ui.R as CommonR
 fun TimeSlotListPageScreen(
     dayOfWeek: DayOfWeek,
 ) {
-    // TODO: jhchoi 2025. 10. 21.  
     val viewModel = hiltViewModel<TimeSlotListPageViewModel>(key = dayOfWeek.name)
     val uiState by viewModel.uiState.collectAsState()
+
     val uiEvent by viewModel.uiEvent.collectAsState(null)
 
     LaunchedEffect(dayOfWeek) {
@@ -59,6 +60,19 @@ fun TimeSlotListPageScreen(
 
     val snackBarHostState = remember { SnackbarHostState() }
 
+    StateView(uiState, snackBarHostState) {
+        viewModel.sendIntent(it)
+    }
+    EventView(uiEvent, snackBarHostState)
+}
+
+@Composable
+private fun StateView(
+    uiState: TimeSlotListPageUiState,
+    snackBarHostState: SnackbarHostState,
+    sendIntent: (TimeSlotListPageUiIntent) -> Unit
+) {
+    val editSlotState = uiState.editState
     Scaffold(
         snackbarHost = { SnackbarHost(snackBarHostState) },
         content = { innerPadding ->
@@ -67,18 +81,24 @@ fun TimeSlotListPageScreen(
                     .fillMaxSize()
                     .padding(innerPadding)
             ) {
-                StateView(uiState.slotListState) {
-                    viewModel.sendIntent(it)
+                ListStateView(uiState.slotListState) {
+                    sendIntent.invoke(it)
                 }
-                EventView(uiEvent, snackBarHostState)
             }
         },
         bottomBar = {
-
+            if (editSlotState != null) {
+                Card {
+                    TimeSlotEditView(
+                        state = editSlotState,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp)
+                    )
+                }
+            }
         }
     )
-
-
 }
 
 @Composable
@@ -103,7 +123,7 @@ private fun EventView(
 }
 
 @Composable
-private fun StateView(
+private fun ListStateView(
     currentState: TimeSlotListState,
     sendIntent: (TimeSlotListPageUiIntent) -> Unit,
 ) {
@@ -127,35 +147,38 @@ private fun StateView(
 }
 
 @Composable
-fun TimeSliceView(hourHeight: Dp, modifier: Modifier) {
-    Column(
-        modifier = modifier.height(hourHeight * 24)
-    ) {
-        repeat(24) { hour ->
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(hourHeight)
-            ) {
-                HorizontalDivider()
+@TigThemePreview
+private fun PreviewStateView() {
+    val startTime = LocalTime.of(1, 30)
+    val endTime = LocalTime.of(4, 20)
 
-                Row(
-                    modifier = Modifier
-                        .fillMaxSize()
-                ) {
-                    Text(
-                        text = "$hour:00",
-                        modifier = Modifier.fillMaxWidth(),
-                        style = MaterialTheme.typography.labelSmall
-                    )
-                }
+    val sampleSlotList = listOf(
+        TimeSlotItemUiState(
+            slotUuid = "temp_uuid",
+            routineUuid = "temp_routine_uuid",
+            title = "Some Slot Title",
+            startMinutesOfDay = startTime.asMinutes(),
+            endMinutesOfDay = endTime.asMinutes(),
+            isSelected = false,
+        ),
+    )
+    TigTheme {
+        StateView(
+            uiState = TimeSlotListPageUiState(
+                slotListState = TimeSlotListState(
+                    sampleSlotList
+                ),
+                editState = TimeSlotEditState(
+                    startTime = startTime,
+                    endTime = endTime
+                ),
+            ),
+            snackBarHostState = remember { SnackbarHostState() }
+        ) {
 
-                HorizontalDivider()
-            }
         }
     }
 }
-
 
 @TigThemePreview
 @Composable

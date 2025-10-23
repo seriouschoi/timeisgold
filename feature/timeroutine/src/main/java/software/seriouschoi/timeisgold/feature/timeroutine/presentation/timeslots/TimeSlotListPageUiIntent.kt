@@ -1,7 +1,15 @@
 package software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots
 
+import java.time.LocalTime
+
 internal sealed interface TimeSlotListPageUiIntent {
-    data class ShowSlotEdit(val slotId: String, val routineId: String) : TimeSlotListPageUiIntent
+    data class ShowSlotEdit(
+        val slotId: String? = null,
+        val title: String? = null,
+        val startTime: LocalTime? = null,
+        val endTime: LocalTime? = null,
+    ) : TimeSlotListPageUiIntent
+
     data class UpdateTimeSlotUi(
         val uuid: String,
         val minuteFactor: Int,
