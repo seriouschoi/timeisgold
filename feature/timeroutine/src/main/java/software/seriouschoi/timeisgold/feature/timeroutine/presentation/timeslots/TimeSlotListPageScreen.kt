@@ -99,7 +99,11 @@ private fun StateView(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(200.dp)
-                    )
+                    ) {
+                        sendIntent.invoke( 
+                            TimeSlotListPageUiIntent.UpdateTimeSlotEdit(it)
+                        )
+                    }
                 }
             }
         }

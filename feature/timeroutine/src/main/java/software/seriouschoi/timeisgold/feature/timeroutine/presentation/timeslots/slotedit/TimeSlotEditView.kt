@@ -23,7 +23,7 @@ import software.seriouschoi.timeisgold.core.common.ui.R as CommonR
 internal fun TimeSlotEditView(
     modifier: Modifier = Modifier,
     state: TimeSlotEditState,
-    sendIntent: (TimeSlotEditStateIntent) -> Unit = {}
+    sendIntent: (TimeSlotEditStateIntent) -> Unit = {},
 ) {
     Timber.d("state=$state")
     Column(
@@ -32,12 +32,9 @@ internal fun TimeSlotEditView(
         TigSingleLineTextField(
             value = state.title,
             onValueChange = {
-                // TODO: 수정 인텐트 발행.
-//                sendIntent.invoke(
-//                    TimeSlotEditStateIntent.Update(
-//                        slotTitle = it
-//                    )
-//                )
+                sendIntent.invoke(
+                    TimeSlotEditStateIntent.UpdateTitle(title = it)
+                )
             },
             modifier = Modifier.fillMaxWidth(),
             hint = stringResource(

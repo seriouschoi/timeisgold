@@ -19,7 +19,14 @@ internal class TimeSlotEditStateHolder @Inject constructor() {
     
     fun sendIntent(intent: TimeSlotEditStateIntent) {
         when (intent) {
-            is TimeSlotEditStateIntent.Update -> {
+            is TimeSlotEditStateIntent.UpdateTitle -> {
+                _state.update {
+                    it?.copy(
+                        title = intent.title
+                    )
+                }
+            }
+            is TimeSlotEditStateIntent.Init -> {
                 _state.update { it: TimeSlotEditState? ->
                     val newState = it ?: TimeSlotEditState()
                     newState.copy(
@@ -34,12 +41,17 @@ internal class TimeSlotEditStateHolder @Inject constructor() {
             TimeSlotEditStateIntent.Clear -> {
                 _state.update { null }
             }
+
         }
     }
 }
 
 internal sealed interface TimeSlotEditStateIntent {
-    data class Update(
+    data class UpdateTitle(
+        val title: String
+    ) : TimeSlotEditStateIntent
+
+    data class Init(
         val slotId: String? = null,
         val slotTitle: String? = null,
         val startTime: LocalTime? = null,
