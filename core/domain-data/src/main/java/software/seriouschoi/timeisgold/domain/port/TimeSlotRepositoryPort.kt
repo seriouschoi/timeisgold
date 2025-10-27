@@ -1,8 +1,12 @@
 package software.seriouschoi.timeisgold.domain.port
 
 import kotlinx.coroutines.flow.Flow
+import software.seriouschoi.timeisgold.core.common.util.MetaEnvelope
+import software.seriouschoi.timeisgold.core.common.util.MetaInfo
 import software.seriouschoi.timeisgold.domain.data.DataResult
 import software.seriouschoi.timeisgold.domain.data.entities.TimeSlotEntity
+import software.seriouschoi.timeisgold.domain.data.vo.TimeSlotVO
+import java.time.DayOfWeek
 
 interface TimeSlotRepositoryPort {
 
@@ -15,5 +19,10 @@ interface TimeSlotRepositoryPort {
         timeSlotData: TimeSlotEntity,
         timeRoutineUuid: String
     ): DataResult<String>
+
+    suspend fun setTimeSlot(
+        timeSlotEnvelope: MetaEnvelope<TimeSlotVO>,
+        dayOfWeek: DayOfWeek
+    ): DataResult<MetaInfo>
 
 }

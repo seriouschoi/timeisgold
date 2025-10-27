@@ -26,6 +26,6 @@ internal data class TimeSlotSchema(
     val endTime: LocalTime,
     val title: String,
     val uuid: String,
-    val createTime: Long,
+    val createTime: Long, //TODO: 이거 OffsetDateTime 으로 바꾸기..
     val timeRoutineId: Long
 )

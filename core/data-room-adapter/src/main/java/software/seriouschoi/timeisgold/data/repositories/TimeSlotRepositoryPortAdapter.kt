@@ -4,14 +4,19 @@ import androidx.room.withTransaction
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
+import software.seriouschoi.timeisgold.core.common.util.MetaEnvelope
+import software.seriouschoi.timeisgold.core.common.util.MetaInfo
 import software.seriouschoi.timeisgold.core.common.util.runSuspendCatching
 import software.seriouschoi.timeisgold.data.database.AppDatabase
+import software.seriouschoi.timeisgold.data.database.schema.TimeSlotSchema
 import software.seriouschoi.timeisgold.data.mapper.toTimeSlotEntity
 import software.seriouschoi.timeisgold.data.mapper.toTimeSlotSchema
 import software.seriouschoi.timeisgold.data.util.asDataResult
 import software.seriouschoi.timeisgold.domain.data.DataResult
 import software.seriouschoi.timeisgold.domain.data.entities.TimeSlotEntity
+import software.seriouschoi.timeisgold.domain.data.vo.TimeSlotVO
 import software.seriouschoi.timeisgold.domain.port.TimeSlotRepositoryPort
+import java.time.DayOfWeek
 import javax.inject.Inject
 
 internal class TimeSlotRepositoryPortAdapter @Inject constructor(
@@ -58,6 +63,38 @@ internal class TimeSlotRepositoryPortAdapter @Inject constructor(
             database.TimeSlotDao().upsert(slotSchema)
 
             slotSchema.uuid
+        }
+    }.asDataResult()
+
+    override suspend fun setTimeSlot(
+        timeSlotEnvelope: MetaEnvelope<TimeSlotVO>,
+        dayOfWeek: DayOfWeek
+    ): DataResult<MetaInfo> = runSuspendCatching {
+        val routineDayOfWeekDao = database.TimeRoutineJoinDayOfWeekViewDao()
+        val timeSlotDao = database.TimeSlotDao()
+        database.withTransaction {
+            // TODO: jhchoi 2025. 10. 27. routine 생성.
+            val routineId = routineDayOfWeekDao.getLatestByDayOfWeek(dayOfWeek)?.routineId
+                ?: throw IllegalStateException("routine is null")
+
+            val timeSlot = timeSlotEnvelope.payload
+            val slotMeta = timeSlotEnvelope.metaInfo ?: MetaInfo.createNew()
+            val slotId = timeSlotDao.get(slotMeta.uuid)?.id
+
+            val timeSlotSchema = TimeSlotSchema(
+                id = slotId,
+                startTime = timeSlot.startTime,
+                endTime = timeSlot.endTime,
+                title = timeSlot.title,
+                uuid = slotMeta.uuid,
+                createTime = slotMeta.createTime.toEpochSecond(),
+                timeRoutineId = routineId
+            )
+            timeSlotDao.upsert(
+                timeSlotSchema
+            )
+
+            slotMeta
         }
     }.asDataResult()
 

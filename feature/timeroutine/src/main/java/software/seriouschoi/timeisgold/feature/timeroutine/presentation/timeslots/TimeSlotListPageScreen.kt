@@ -100,7 +100,7 @@ private fun StateView(
                             .fillMaxWidth()
                             .height(200.dp)
                     ) {
-                        sendIntent.invoke( 
+                        sendIntent.invoke(
                             TimeSlotListPageUiIntent.UpdateTimeSlotEdit(it)
                         )
                     }
@@ -179,7 +179,8 @@ private fun PreviewStateView() {
                 ),
                 editState = TimeSlotEditState(
                     startTime = startTime,
-                    endTime = endTime
+                    endTime = endTime,
+                    title = "test"
                 ),
             ),
             snackBarHostState = remember { SnackbarHostState() }

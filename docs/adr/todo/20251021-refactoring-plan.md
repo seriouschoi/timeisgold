@@ -65,3 +65,20 @@ DB 스키마 정의할때, 더 적합한 용어이므로, 영속성이 되는 �
   ⇄ DTO (NetworkModel)
 ```
 Aggregate Root??
+
+
+# [ ] LocalDateTime -> OffsetDateTime
+createTime처럼 로그 목적의 시간은 OffsetDateTime으로 저장한다.
+이유: LocalDateTime은 현재 위치의 시간을 저장하므로, 
+위치정보없이 저장된 시간만으로는 정확한 시간을 특정할 수 없다.
+
+OffsetDateTime은 UTC기준이므로 이게 더 적절.
+
+# n개의 요소를 combine하는데 그중에 한 요소가 변경될때만 flow를 발행하고 싶으면..
+```kotlin
+combine(checkedDayOfWeeks, dayOfWeek) { checkedDayOfWeeks, dayOfWeek ->
+    checkedDayOfWeeks to dayOfWeek
+}.distinctUntilChangedBy {
+    it.first
+}
+```

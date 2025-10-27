@@ -32,9 +32,7 @@ import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslot
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.TimeSlotUpdateTimeType
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.item.TimeSlotItemCardView
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.item.TimeSlotItemUiState
-import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.slotedit.TimeSlotEditStateIntent
 import timber.log.Timber
-import java.time.LocalTime
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -82,10 +80,8 @@ internal fun TimeSlotListView(
             },
             onTapBound = onTab@{ index, target ->
                 val selectedItem = currentSlotList.getOrNull(index) ?: return@onTab
-                val intent = TimeSlotListPageUiIntent.UpdateTimeSlotEdit(
-                    TimeSlotEditStateIntent.Init(
-                        slotId = selectedItem.slotUuid,
-                    )
+                val intent = TimeSlotListPageUiIntent.SelectTimeSlot(
+                    slot = selectedItem
                 )
                 sendIntent.invoke(intent)
             },
@@ -144,11 +140,8 @@ internal fun TimeSliceView(
                         .fillMaxSize()
                         .clickable(true) {
                             Timber.d("click time click. hour=$hour")
-                            val intent = TimeSlotListPageUiIntent.UpdateTimeSlotEdit(
-                                slotEditState = TimeSlotEditStateIntent.Init(
-                                    startTime = LocalTime.of(hour, 0),
-                                    endTime = LocalTime.of(hour, 0),
-                                )
+                            val intent = TimeSlotListPageUiIntent.SelectTimeSlice(
+                                hourOfDay = hour
                             )
                             sendIntent.invoke(intent)
                         }

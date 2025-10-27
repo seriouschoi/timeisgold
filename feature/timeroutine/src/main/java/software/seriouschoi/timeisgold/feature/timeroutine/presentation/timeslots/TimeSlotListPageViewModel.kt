@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.launchIn
@@ -27,6 +28,9 @@ import software.seriouschoi.timeisgold.core.common.ui.UiText
 import software.seriouschoi.timeisgold.core.common.ui.asResultState
 import software.seriouschoi.timeisgold.core.common.ui.flowResultState
 import software.seriouschoi.timeisgold.core.common.util.Envelope
+import software.seriouschoi.timeisgold.core.common.util.LocalTimeUtil
+import software.seriouschoi.timeisgold.core.common.util.MetaEnvelope
+import software.seriouschoi.timeisgold.core.common.util.MetaInfo
 import software.seriouschoi.timeisgold.core.common.util.asMinutes
 import software.seriouschoi.timeisgold.core.domain.mapper.onlyDomainResult
 import software.seriouschoi.timeisgold.core.domain.mapper.onlyDomainSuccess
@@ -35,9 +39,10 @@ import software.seriouschoi.timeisgold.domain.data.DomainError
 import software.seriouschoi.timeisgold.domain.data.DomainResult
 import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineComposition
 import software.seriouschoi.timeisgold.domain.data.entities.TimeSlotEntity
+import software.seriouschoi.timeisgold.domain.data.vo.TimeSlotVO
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.WatchTimeRoutineCompositionUseCase
+import software.seriouschoi.timeisgold.domain.usecase.timeslot.SetDayOfWeekTimeSlotUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeslot.SetTimeSlotListUseCase
-import software.seriouschoi.timeisgold.domain.usecase.timeslot.SetTimeSlotUseCase
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.TimeSlotListStateHolder
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.TimeSlotListStateIntent
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.item.TimeSlotItemUiState
@@ -46,9 +51,12 @@ import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslot
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.logic.TimeSlotCalculator
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.slotedit.TimeSlotEditState
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.slotedit.TimeSlotEditStateHolder
-import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.slotedit.TimeSlotEditStateIntent
+import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.slotedit.TimeSlotEditStateIntent.Init
+import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.slotedit.TimeSlotEditStateIntent.Update
 import timber.log.Timber
 import java.time.DayOfWeek
+import java.time.LocalTime
+import java.time.OffsetDateTime
 import javax.inject.Inject
 import software.seriouschoi.timeisgold.core.common.ui.R as CommonR
 
@@ -62,7 +70,7 @@ internal class TimeSlotListPageViewModel @Inject constructor(
 
     private val watchTimeRoutineCompositionUseCase: WatchTimeRoutineCompositionUseCase,
     private val setTimeSlotsUseCase: SetTimeSlotListUseCase,
-    private val setTimeSlotUseCase: SetTimeSlotUseCase,
+    private val setDayOfWeekTimeSlotUseCase: SetDayOfWeekTimeSlotUseCase,
 
     private val timeSlotListStateHolder: TimeSlotListStateHolder,
     private val timeSlotEditStateHolder: TimeSlotEditStateHolder,
@@ -110,10 +118,20 @@ internal class TimeSlotListPageViewModel @Inject constructor(
 
     @OptIn(FlowPreview::class)
     private fun watchTimeSlotEdit() {
-        timeSlotEditStateHolder.state.mapNotNull { it }.debounce(
-            500
-        ).onEach {
-            updateTimeSlotEdit(it)
+        combine(
+            timeSlotEditStateHolder.state.mapNotNull { it },
+            dayOfWeekFlow.mapNotNull { it }
+        ) { state, dayOfWeek ->
+            state to dayOfWeek
+        }.distinctUntilChangedBy {
+            it.first
+        }.debounce(
+            timeoutMillis = 500
+        ).onEach { (state, week) ->
+            updateTimeSlotEdit(
+                state = state,
+                dayOfWeek = week
+            )
         }.launchIn(viewModelScope)
     }
 
@@ -183,12 +201,38 @@ internal class TimeSlotListPageViewModel @Inject constructor(
             }
 
             TimeSlotListPageUiIntent.Cancel -> {
-                timeSlotEditStateHolder.sendIntent(TimeSlotEditStateIntent.Clear)
+                timeSlotEditStateHolder.sendIntent(Init(null))
             }
 
             is TimeSlotListPageUiIntent.UpdateTimeSlotEdit -> {
                 timeSlotEditStateHolder.sendIntent(
                     intent.slotEditState
+                )
+            }
+
+            is TimeSlotListPageUiIntent.SelectTimeSlice -> {
+                timeSlotEditStateHolder.sendIntent(
+                    Init(
+                        state = TimeSlotEditState(
+                            slotUuid = null,
+                            title = "",
+                            startTime = LocalTime.of(intent.hourOfDay, 0),
+                            endTime = LocalTime.of(intent.hourOfDay, 0),
+                        )
+                    )
+                )
+            }
+
+            is TimeSlotListPageUiIntent.SelectTimeSlot -> {
+                timeSlotEditStateHolder.sendIntent(
+                    Init(
+                        state = TimeSlotEditState(
+                            slotUuid = intent.slot.slotUuid,
+                            title = intent.slot.title,
+                            startTime = LocalTimeUtil.create(intent.slot.startMinutesOfDay),
+                            endTime = LocalTimeUtil.create(intent.slot.endMinutesOfDay),
+                        )
+                    )
                 )
             }
         }
@@ -212,15 +256,49 @@ internal class TimeSlotListPageViewModel @Inject constructor(
         )
     }
 
-    private fun updateTimeSlotEdit(state: TimeSlotEditState) {
+    private fun updateTimeSlotEdit(state: TimeSlotEditState, dayOfWeek: DayOfWeek) {
         flowResultState {
-            val currentDayOfWeek = dayOfWeekFlow.first()
-                ?: return@flowResultState DomainResult.Failure(DomainError.Validation.NoSelectedDayOfWeek)
+            Timber.d("update time slot. state=${state}")
 
+            val updateSlotMeta = state.slotUuid?.let {
+                MetaInfo(
+                    uuid = it,
+                    createTime = OffsetDateTime.now()
+                )
+            }
+            val updateTimeSlotData = MetaEnvelope(
+                payload = TimeSlotVO(
+                    startTime = state.startTime,
+                    endTime = state.endTime,
+                    title = state.title,
+                ),
+                metaInfo = updateSlotMeta
+            )
 
-
-        }
-        TODO("Not yet implemented")
+            setDayOfWeekTimeSlotUseCase.invoke(
+                dayOfWeek = dayOfWeek,
+                timeSlotData = updateTimeSlotData
+            )
+        }.map { resultState: ResultState<DomainResult<MetaInfo>> ->
+            resultState.onlyDomainResult()
+        }.onEach { domainResult ->
+            when(domainResult) {
+                is DomainResult.Failure -> {
+                    Timber.d("update failed. ${domainResult.error}")
+                }
+                is DomainResult.Success -> {
+                    Timber.d("update success. updated slotId=${domainResult.value.uuid}")
+                    timeSlotEditStateHolder.sendIntent(
+                        Update(
+                            slotId = domainResult.value.uuid,
+                        )
+                    )
+                }
+                null -> {
+                    //no work.
+                }
+            }
+        }.launchIn(viewModelScope)
     }
 
     private fun updateTimeSlotList() {

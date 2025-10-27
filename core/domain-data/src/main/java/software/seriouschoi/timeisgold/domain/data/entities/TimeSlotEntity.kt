@@ -5,6 +5,7 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 import java.util.UUID
 
+@Deprecated("use vo.")
 data class TimeSlotEntity(
     val uuid: String,
     val startTime: LocalTime,

@@ -15,7 +15,6 @@ internal class SplashViewModel @Inject constructor(
 ) : ViewModel() {
 
     fun onLaunch() = viewModelScope.launch {
-        delay(500) // TODO: demo.
         destNavigatorPort.navigate(HomePresentationRoute) {
             this.popUpTo(SplashPresentationDest)
             this.launchSingleTop = true

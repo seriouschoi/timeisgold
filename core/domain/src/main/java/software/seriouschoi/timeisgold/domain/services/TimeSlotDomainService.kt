@@ -6,13 +6,14 @@ import software.seriouschoi.timeisgold.core.common.util.asMinutes
 import software.seriouschoi.timeisgold.domain.data.DomainError
 import software.seriouschoi.timeisgold.domain.data.DomainResult
 import software.seriouschoi.timeisgold.domain.data.entities.TimeSlotEntity
+import software.seriouschoi.timeisgold.domain.data.vo.TimeSlotVO
 import software.seriouschoi.timeisgold.domain.policy.TimeSlotPolicy
 import software.seriouschoi.timeisgold.domain.port.TimeSlotRepositoryPort
 import javax.inject.Inject
 import kotlin.math.abs
 
 class TimeSlotDomainService @Inject constructor(
-    val timeSlotRepository: TimeSlotRepositoryPort,
+    private val timeSlotRepository: TimeSlotRepositoryPort,
     private val timeSlotPolicy: TimeSlotPolicy
 ) {
 
@@ -39,6 +40,13 @@ class TimeSlotDomainService @Inject constructor(
         if (entity.title.length !in timeSlotPolicy.titleLengthRange) {
             return DomainResult.Failure(DomainError.Validation.TitleLength)
         }
+        if (abs(entity.endTime.asMinutes() - entity.startTime.asMinutes()) < 15) {
+            return DomainResult.Failure(DomainError.Conflict.Time)
+        }
+        return DomainResult.Success(Unit)
+    }
+
+    fun isPolicyValid(entity: TimeSlotVO): DomainResult<Unit> {
         if (abs(entity.endTime.asMinutes() - entity.startTime.asMinutes()) < 15) {
             return DomainResult.Failure(DomainError.Conflict.Time)
         }

@@ -1,10 +1,14 @@
 package software.seriouschoi.timeisgold.core.test.util
 
 import kotlinx.coroutines.flow.Flow
+import software.seriouschoi.timeisgold.core.common.util.MetaEnvelope
+import software.seriouschoi.timeisgold.core.common.util.MetaInfo
 import software.seriouschoi.timeisgold.domain.data.DataResult
 import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineComposition
 import software.seriouschoi.timeisgold.domain.data.entities.TimeSlotEntity
+import software.seriouschoi.timeisgold.domain.data.vo.TimeSlotVO
 import software.seriouschoi.timeisgold.domain.port.TimeSlotRepositoryPort
+import java.time.DayOfWeek
 
 /**
  * Created by jhchoi on 2025. 9. 5.
@@ -33,6 +37,13 @@ class FakeTimeSlotRepositoryAdapter(
         timeSlotData: TimeSlotEntity,
         timeRoutineUuid: String
     ): DataResult<String> {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun setTimeSlot(
+        timeSlot: MetaEnvelope<TimeSlotVO>,
+        dayOfWeek: DayOfWeek
+    ): DataResult<MetaInfo> {
         TODO("Not yet implemented")
     }
 }
