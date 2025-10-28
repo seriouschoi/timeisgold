@@ -82,3 +82,22 @@ combine(checkedDayOfWeeks, dayOfWeek) { checkedDayOfWeeks, dayOfWeek ->
     it.first
 }
 ```
+
+# 리팩토링 진행.
+루틴 제목, 요일, 슬롯 입력등의 흐름을 선형적으로 제공하지 않다보니,
+피쳐 완료후 리팩토링이 아닌 지금 리팩토링이 필요해졌다.
+
+1. 레포지토리를 새로 하나 만들자.
+   1. 이유. 루틴이 없을때도 슬롯을 바로 추가하면, 제목없는 루틴이 자동으로 생성되게 만들것이다.
+   2. 지금의 레포지토리는 루틴과 슬롯이 나뉘어 있음. 오히려 불분명함.
+2. 새로운 데이터 타입을 만들어서 정의부터 하고, 기존 데이터 타입을 전부 Deprecated로 표시한다.
+   1. 새로운 타입은 아래와 같다.
+      1. VO: 도메인의 타입.
+      2. MetaEnvelop: Meta정보를 포함한 봉투.
+         1. 이거..좀 고민되는게.. Meta라는 이름이 좀 이상한데.. 더 적절한 이름이 있을까?
+         2. 지금 Meta에는 id + createTime이 있음.
+         3. 기존 발행 id만 담고 있는 Envelop도 위 정보를 담은 MetaEnvelop으로 대채.
+      3. *Schema라는 이름의 데이터 객체는 전부 Entity라는 이름으로 바꾼다.
+         1. Entity는 DB와 관련된 개념으로 쓰는게 더 나을듯.
+3. createTime으로 System.currentTimeMillis 대신 OffsetDateTime으로 전부 대체하기.
+   1. LocalDateTime. .. 이것도 마찬가지.

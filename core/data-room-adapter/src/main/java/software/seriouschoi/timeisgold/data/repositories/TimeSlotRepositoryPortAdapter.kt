@@ -9,14 +9,18 @@ import software.seriouschoi.timeisgold.core.common.util.MetaInfo
 import software.seriouschoi.timeisgold.core.common.util.runSuspendCatching
 import software.seriouschoi.timeisgold.data.database.AppDatabase
 import software.seriouschoi.timeisgold.data.database.schema.TimeSlotSchema
+import software.seriouschoi.timeisgold.data.mapper.toTimeRoutineDayOfWeekEntity
+import software.seriouschoi.timeisgold.data.mapper.toTimeRoutineDayOfWeekSchema
 import software.seriouschoi.timeisgold.data.mapper.toTimeSlotEntity
 import software.seriouschoi.timeisgold.data.mapper.toTimeSlotSchema
 import software.seriouschoi.timeisgold.data.util.asDataResult
 import software.seriouschoi.timeisgold.domain.data.DataResult
+import software.seriouschoi.timeisgold.domain.data.entities.TimeRoutineEntity
 import software.seriouschoi.timeisgold.domain.data.entities.TimeSlotEntity
 import software.seriouschoi.timeisgold.domain.data.vo.TimeSlotVO
 import software.seriouschoi.timeisgold.domain.port.TimeSlotRepositoryPort
 import java.time.DayOfWeek
+import java.util.UUID
 import javax.inject.Inject
 
 internal class TimeSlotRepositoryPortAdapter @Inject constructor(
@@ -72,10 +76,25 @@ internal class TimeSlotRepositoryPortAdapter @Inject constructor(
     ): DataResult<MetaInfo> = runSuspendCatching {
         val routineDayOfWeekDao = database.TimeRoutineJoinDayOfWeekViewDao()
         val timeSlotDao = database.TimeSlotDao()
+        val dayOfWeekDao = database.TimeRoutineDayOfWeekDao()
         database.withTransaction {
-            // TODO: jhchoi 2025. 10. 27. routine 생성.
-            val routineId = routineDayOfWeekDao.getLatestByDayOfWeek(dayOfWeek)?.routineId
-                ?: throw IllegalStateException("routine is null")
+            var routine = routineDayOfWeekDao.getLatestByDayOfWeek(dayOfWeek)
+            if (routine == null) {
+                val newRoutineEntity = TimeRoutineEntity(
+                    uuid = UUID.randomUUID().toString(),
+                    title = "",
+                    createTime = 0
+                )
+                val routineId = database.TimeRoutineDao().upsert(newRoutineEntity)
+                dayOfWeekDao.add(
+                    dayOfWeek.toTimeRoutineDayOfWeekEntity()
+                        .toTimeRoutineDayOfWeekSchema(
+                            timeRoutineId = routineId
+                        )
+                )
+                routine = routineDayOfWeekDao.getLatestByDayOfWeek(dayOfWeek)
+            }
+            if (routine == null) throw IllegalStateException("time routine is null")
 
             val timeSlot = timeSlotEnvelope.payload
             val slotMeta = timeSlotEnvelope.metaInfo ?: MetaInfo.createNew()
@@ -88,7 +107,7 @@ internal class TimeSlotRepositoryPortAdapter @Inject constructor(
                 title = timeSlot.title,
                 uuid = slotMeta.uuid,
                 createTime = slotMeta.createTime.toEpochSecond(),
-                timeRoutineId = routineId
+                timeRoutineId = routine.routineId
             )
             timeSlotDao.upsert(
                 timeSlotSchema

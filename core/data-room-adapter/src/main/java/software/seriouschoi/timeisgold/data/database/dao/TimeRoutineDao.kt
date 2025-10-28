@@ -31,6 +31,7 @@ internal abstract class TimeRoutineDao {
     abstract fun update(timeRoutineSchema: TimeRoutineSchema)
 
     suspend fun upsert(timeRoutine: TimeRoutineEntity): Long  {
+        // TODO: jhchoi 2025. 10. 28. TimeRoutineEntity 대신 schema로..
         val routineId = get(timeRoutine.uuid)?.id
         return timeRoutine.toTimeRoutineSchema(routineId).let {
             if (it.id == null) add(it)
