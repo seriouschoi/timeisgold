@@ -5,6 +5,7 @@ package software.seriouschoi.timeisgold.domain.data
  * jhchoi
  */
 sealed class DomainResult<out T> {
+    // TODO: jhchoi 2025. 10. 28. domain 모듈로 이동.
     data class Success<T>(val value: T) : DomainResult<T>()
     data class Failure(val error: DomainError, val exception: Throwable? = null) : DomainResult<Nothing>()
 }

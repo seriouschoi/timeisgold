@@ -4,6 +4,7 @@ import software.seriouschoi.timeisgold.core.common.util.toEpochMillis
 import java.time.LocalDateTime
 import java.util.UUID
 
+@Deprecated("use time routine vo")
 data class TimeRoutineEntity(
     val title: String,
     val uuid: String,

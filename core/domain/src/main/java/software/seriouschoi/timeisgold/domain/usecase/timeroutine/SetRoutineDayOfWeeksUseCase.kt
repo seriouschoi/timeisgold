@@ -10,6 +10,7 @@ import javax.inject.Inject
  * Created by jhchoi on 2025. 10. 15.
  * jhchoi
  */
+@Deprecated("use SetRoutineUseCase")
 class SetRoutineDayOfWeeksUseCase @Inject constructor(
     private val routineRepository: TimeRoutineRepositoryPort,
 ) {

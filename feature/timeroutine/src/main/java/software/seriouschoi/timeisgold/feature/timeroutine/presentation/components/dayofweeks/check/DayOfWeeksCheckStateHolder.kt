@@ -92,7 +92,7 @@ internal data class DayOfWeekItemUiState(
 
 internal sealed interface DayOfWeeksCheckIntent {
     data class Update(
-        val checked: List<DayOfWeek>, val enabled: List<DayOfWeek>
+        val checked: Collection<DayOfWeek>, val enabled: Collection<DayOfWeek>
     ) : DayOfWeeksCheckIntent
 
     data class Check(

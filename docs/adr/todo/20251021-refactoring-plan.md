@@ -94,10 +94,14 @@ combine(checkedDayOfWeeks, dayOfWeek) { checkedDayOfWeeks, dayOfWeek ->
    1. 새로운 타입은 아래와 같다.
       1. VO: 도메인의 타입.
       2. MetaEnvelop: Meta정보를 포함한 봉투.
-         1. 이거..좀 고민되는게.. Meta라는 이름이 좀 이상한데.. 더 적절한 이름이 있을까?
-         2. 지금 Meta에는 id + createTime이 있음.
-         3. 기존 발행 id만 담고 있는 Envelop도 위 정보를 담은 MetaEnvelop으로 대채.
       3. *Schema라는 이름의 데이터 객체는 전부 Entity라는 이름으로 바꾼다.
          1. Entity는 DB와 관련된 개념으로 쓰는게 더 나을듯.
 3. createTime으로 System.currentTimeMillis 대신 OffsetDateTime으로 전부 대체하기.
    1. LocalDateTime. .. 이것도 마찬가지.
+
+timeSlot을 저장할때, 루틴을 자동생성하는 건 useCase에서 처리할 일..
+레포지토리는 문자그대로 CRUD만 한다고 생각하자...딴생각 하지 말고..
+
+MetaEnvelop은 Meta가 not null이어야지..
+
+

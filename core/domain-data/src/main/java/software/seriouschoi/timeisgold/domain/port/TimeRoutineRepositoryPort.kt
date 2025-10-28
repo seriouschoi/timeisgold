@@ -8,6 +8,7 @@ import software.seriouschoi.timeisgold.domain.data.entities.TimeRoutineEntity
 import software.seriouschoi.timeisgold.domain.data.entities.TimeSlotEntity
 import java.time.DayOfWeek
 
+@Deprecated("PlanRepositoryPort")
 interface TimeRoutineRepositoryPort {
     suspend fun saveTimeRoutineComposition(composition: TimeRoutineComposition): DataResult<String>
 

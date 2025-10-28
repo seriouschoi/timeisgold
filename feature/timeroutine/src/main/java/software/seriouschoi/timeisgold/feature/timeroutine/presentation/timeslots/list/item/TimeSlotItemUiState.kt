@@ -6,7 +6,6 @@ import software.seriouschoi.timeisgold.domain.data.entities.TimeSlotEntity
 
 internal data class TimeSlotItemUiState(
     val slotUuid: String,
-    val routineUuid: String,
     val title: String,
     val startMinutesOfDay: Int,
     val endMinutesOfDay: Int,

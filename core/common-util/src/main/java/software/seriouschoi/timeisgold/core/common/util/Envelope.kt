@@ -10,7 +10,7 @@ data class Envelope<T>(
 
 data class MetaEnvelope<T>(
     val payload: T,
-    val metaInfo: MetaInfo? = null
+    val metaInfo: MetaInfo
 )
 
 data class MetaInfo(

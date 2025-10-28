@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapConcat
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
@@ -40,9 +41,10 @@ import software.seriouschoi.timeisgold.domain.data.DomainResult
 import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineComposition
 import software.seriouschoi.timeisgold.domain.data.entities.TimeSlotEntity
 import software.seriouschoi.timeisgold.domain.data.vo.TimeSlotVO
-import software.seriouschoi.timeisgold.domain.usecase.timeroutine.WatchTimeRoutineCompositionUseCase
+import software.seriouschoi.timeisgold.domain.usecase.timeroutine.WatchRoutineUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeslot.SetDayOfWeekTimeSlotUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeslot.SetTimeSlotListUseCase
+import software.seriouschoi.timeisgold.domain.usecase.timeslot.WatchTimeSlotListUseCase
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.TimeSlotListStateHolder
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.TimeSlotListStateIntent
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.item.TimeSlotItemUiState
@@ -68,7 +70,8 @@ import software.seriouschoi.timeisgold.core.common.ui.R as CommonR
 internal class TimeSlotListPageViewModel @Inject constructor(
     private val navigator: DestNavigatorPort,
 
-    private val watchTimeRoutineCompositionUseCase: WatchTimeRoutineCompositionUseCase,
+    private val watchRoutineUseCase: WatchRoutineUseCase,
+    private val watchTimeSlotListUseCase: WatchTimeSlotListUseCase,
     private val setTimeSlotsUseCase: SetTimeSlotListUseCase,
     private val setDayOfWeekTimeSlotUseCase: SetDayOfWeekTimeSlotUseCase,
 
@@ -80,16 +83,30 @@ internal class TimeSlotListPageViewModel @Inject constructor(
     private val dayOfWeekFlow = MutableStateFlow<DayOfWeek?>(null)
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    private val routineCompositionFlow: StateFlow<ResultState<DomainResult<TimeRoutineComposition>>> =
-        dayOfWeekFlow.mapNotNull { it }.flatMapConcat {
-            watchTimeRoutineCompositionUseCase.invoke(it)
-        }.onEach {
-            Timber.d("received routine composition.")
-        }.asResultState().stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.Lazily,
-            initialValue = ResultState.Loading
-        )
+    private val routine = dayOfWeekFlow.mapNotNull {
+        it
+    }.flatMapLatest {
+        watchRoutineUseCase.invoke(it)
+    }.onEach {
+        Timber.d("received routine.")
+    }.asResultState().stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.Lazily,
+        initialValue = ResultState.Loading
+    )
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val timeslotList = dayOfWeekFlow.mapNotNull {
+        it
+    }.flatMapLatest {
+        watchTimeSlotListUseCase.invoke(it)
+    }.onEach {
+        Timber.d("received time slot list.")
+    }.asResultState().stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.Lazily,
+        initialValue = ResultState.Loading
+    )
 
     private val _intent = MutableSharedFlow<Envelope<TimeSlotListPageUiIntent>>()
 
@@ -112,8 +129,50 @@ internal class TimeSlotListPageViewModel @Inject constructor(
 
     init {
         watchIntent()
-        watchRoutineComposition()
+        watchSlotList()
         watchTimeSlotEdit()
+    }
+
+    private fun watchSlotList() {
+        timeslotList.map {resultState ->
+            when(resultState) {
+                is ResultState.Loading -> TimeSlotListStateIntent.Loading
+                is ResultState.Error -> TimeSlotListStateIntent.Error(
+                    UiText.Res(CommonR.string.message_error_tech_unknown)
+                )
+                is ResultState.Success -> {
+                    when(val domainResult = resultState.data) {
+                        is DomainResult.Failure -> {
+                            when(val domainError = domainResult.error) {
+                                is DomainError.NotFound -> {
+                                    TimeSlotListStateIntent.UpdateList(
+                                        emptyList = emptyList()
+                                    )
+                                }
+                                else -> {
+                                    val errorMessage = domainError.toUiText()
+                                    TimeSlotListStateIntent.Error(errorMessage)
+                                }
+                            }
+                        }
+                        is DomainResult.Success -> {
+                            val slotList = domainResult.value.map {
+                                TimeSlotItemUiState(
+                                    slotUuid = it.metaInfo.uuid,
+                                    title = it.payload.title,
+                                    startMinutesOfDay = it.payload.startTime.asMinutes(),
+                                    endMinutesOfDay = it.payload.endTime.asMinutes(),
+                                    isSelected = false
+                                )
+                            }
+                            TimeSlotListStateIntent.UpdateList(slotList)
+                        }
+                    }
+                }
+            }
+        }.onEach {
+            timeSlotListStateHolder.sendIntent(it)
+        }.launchIn(viewModelScope)
     }
 
     @OptIn(FlowPreview::class)
@@ -139,48 +198,6 @@ internal class TimeSlotListPageViewModel @Inject constructor(
         viewModelScope.launch {
             dayOfWeekFlow.emit(dayOfWeek)
         }
-    }
-
-    private fun watchRoutineComposition() {
-        routineCompositionFlow.map { resultState: ResultState<DomainResult<TimeRoutineComposition>> ->
-            when (resultState) {
-                is ResultState.Success -> {
-                    when (val domainResult = resultState.data) {
-                        is DomainResult.Failure -> {
-                            when (domainResult.error) {
-                                is DomainError.NotFound -> {
-                                    TimeSlotListStateIntent.UpdateList(emptyList())
-                                }
-
-                                else -> {
-                                    val errorMessage = domainResult.error.toUiText()
-                                    TimeSlotListStateIntent.Error(errorMessage)
-                                }
-                            }
-                        }
-
-                        is DomainResult.Success -> {
-                            val routineComposition = domainResult.value
-                            val routineUuid = routineComposition.timeRoutine.uuid
-                            val slotItemList = routineComposition.timeSlots.flatMap { slot ->
-                                slot.toSlotItem(
-                                    routineUuid = routineUuid
-                                ).splitOverMidnight()
-                            }
-                            TimeSlotListStateIntent.UpdateList(slotItemList)
-                        }
-                    }
-                }
-
-                is ResultState.Error -> TimeSlotListStateIntent.Error(
-                    UiText.Res(CommonR.string.message_error_tech_unknown)
-                )
-
-                ResultState.Loading -> TimeSlotListStateIntent.Loading
-            }
-        }.onEach {
-            timeSlotListStateHolder.sendIntent(it)
-        }.launchIn(viewModelScope)
     }
 
     private fun watchIntent() {
@@ -266,26 +283,24 @@ internal class TimeSlotListPageViewModel @Inject constructor(
                     createTime = OffsetDateTime.now()
                 )
             }
-            val updateTimeSlotData = MetaEnvelope(
-                payload = TimeSlotVO(
+
+            setDayOfWeekTimeSlotUseCase.execute(
+                dayOfWeek = dayOfWeek,
+                timeSlot = TimeSlotVO(
                     startTime = state.startTime,
                     endTime = state.endTime,
                     title = state.title,
                 ),
-                metaInfo = updateSlotMeta
-            )
-
-            setDayOfWeekTimeSlotUseCase.invoke(
-                dayOfWeek = dayOfWeek,
-                timeSlotData = updateTimeSlotData
+                slotId = state.slotUuid
             )
         }.map { resultState: ResultState<DomainResult<MetaInfo>> ->
             resultState.onlyDomainResult()
         }.onEach { domainResult ->
-            when(domainResult) {
+            when (domainResult) {
                 is DomainResult.Failure -> {
                     Timber.d("update failed. ${domainResult.error}")
                 }
+
                 is DomainResult.Success -> {
                     Timber.d("update success. updated slotId=${domainResult.value.uuid}")
                     timeSlotEditStateHolder.sendIntent(
@@ -294,6 +309,7 @@ internal class TimeSlotListPageViewModel @Inject constructor(
                         )
                     )
                 }
+
                 null -> {
                     //no work.
                 }
@@ -303,9 +319,8 @@ internal class TimeSlotListPageViewModel @Inject constructor(
 
     private fun updateTimeSlotList() {
         flowResultState {
-            val currentRoutine =
-                routineCompositionFlow.onlyDomainSuccess().first()
-                    ?: return@flowResultState DomainResult.Failure(DomainError.NotFound.TimeRoutine)
+            val routineUuid = routine.onlyDomainSuccess().first()?.metaInfo?.uuid
+                ?: return@flowResultState DomainResult.Failure(DomainError.NotFound.TimeRoutine)
 
             val dataState = timeSlotListStateHolder.state.first()
             val updateSlots = dataState.slotItemList.map {
@@ -313,7 +328,7 @@ internal class TimeSlotListPageViewModel @Inject constructor(
             }
 
             setTimeSlotsUseCase.invoke(
-                timeRoutineUuid = currentRoutine.timeRoutine.uuid,
+                timeRoutineUuid = routineUuid,
                 timeSlotList = updateSlots
             )
         }.onlyDomainResult().onEach { domainResult ->
@@ -350,15 +365,4 @@ internal class TimeSlotListPageViewModel @Inject constructor(
             _intent.emit(Envelope(createRoutine))
         }
     }
-}
-
-private fun TimeSlotEntity.toSlotItem(routineUuid: String): TimeSlotItemUiState {
-    return TimeSlotItemUiState(
-        slotUuid = this.uuid,
-        routineUuid = routineUuid,
-        title = this.title,
-        startMinutesOfDay = this.startTime.asMinutes(),
-        endMinutesOfDay = this.endTime.asMinutes(),
-        isSelected = false,
-    )
 }

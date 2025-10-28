@@ -101,16 +101,6 @@ private fun TimeRoutinePagerRootView(
             }
         },
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = {
-                    sendIntent(TimeRoutinePagerUiIntent.AddRoutine)
-                }
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Add,
-                    contentDescription = null
-                )
-            }
         }
     )
 }
@@ -130,13 +120,6 @@ private fun TopBar(
             TigCircleText(text = uiState.dayOfWeekState.currentDayOfWeek.asShortText())
         },
         actions = {
-            IconButton(
-                onClick = {
-                    sendIntent(TimeRoutinePagerUiIntent.ModifyRoutine)
-                }
-            ) {
-                Icon(Icons.Default.Edit, contentDescription = null)
-            }
         },
     )
 }

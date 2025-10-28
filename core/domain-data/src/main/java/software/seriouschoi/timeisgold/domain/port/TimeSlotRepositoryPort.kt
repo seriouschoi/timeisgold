@@ -8,6 +8,7 @@ import software.seriouschoi.timeisgold.domain.data.entities.TimeSlotEntity
 import software.seriouschoi.timeisgold.domain.data.vo.TimeSlotVO
 import java.time.DayOfWeek
 
+@Deprecated("use PlanRepositoryPort")
 interface TimeSlotRepositoryPort {
 
     suspend fun watchTimeSlotDetail(timeslotUuid: String): Flow<TimeSlotEntity?>

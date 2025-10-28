@@ -4,7 +4,6 @@ import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import org.junit.After
 import org.junit.Before
-import software.seriouschoi.timeisgold.core.test.util.TimeRoutineTestFixtures
 import software.seriouschoi.timeisgold.data.database.AppDatabase
 import software.seriouschoi.timeisgold.data.repositories.TimeRoutineRepositoryPortAdapter
 import software.seriouschoi.timeisgold.data.repositories.TimeSlotRepositoryPortAdapter
