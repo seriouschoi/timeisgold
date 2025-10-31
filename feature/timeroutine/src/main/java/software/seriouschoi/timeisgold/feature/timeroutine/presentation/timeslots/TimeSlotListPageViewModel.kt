@@ -45,8 +45,7 @@ import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslot
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.logic.TimeSlotCalculator
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.slotedit.TimeSlotEditState
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.slotedit.TimeSlotEditStateHolder
-import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.slotedit.TimeSlotEditStateIntent.Init
-import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.slotedit.TimeSlotEditStateIntent.Update
+import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.slotedit.TimeSlotEditStateIntent
 import timber.log.Timber
 import java.time.DayOfWeek
 import java.time.LocalTime
@@ -115,7 +114,8 @@ internal class TimeSlotListPageViewModel @Inject constructor(
         initialValue = TimeSlotListPageUiState()
     )
 
-    private val _uiEvent: MutableSharedFlow<MetaEnvelope<TimeSlotListPageUiEvent>> = MutableSharedFlow()
+    private val _uiEvent: MutableSharedFlow<MetaEnvelope<TimeSlotListPageUiEvent>> =
+        MutableSharedFlow()
     val uiEvent: SharedFlow<MetaEnvelope<TimeSlotListPageUiEvent>> = _uiEvent
 
     init {
@@ -125,27 +125,30 @@ internal class TimeSlotListPageViewModel @Inject constructor(
     }
 
     private fun watchSlotList() {
-        timeslotList.map {resultState ->
-            when(resultState) {
+        timeslotList.map { resultState ->
+            when (resultState) {
                 is ResultState.Loading -> TimeSlotListStateIntent.Loading
                 is ResultState.Error -> TimeSlotListStateIntent.Error(
                     UiText.Res(CommonR.string.message_error_tech_unknown)
                 )
+
                 is ResultState.Success -> {
-                    when(val domainResult = resultState.data) {
+                    when (val domainResult = resultState.data) {
                         is DomainResult.Failure -> {
-                            when(val domainError = domainResult.error) {
+                            when (val domainError = domainResult.error) {
                                 is DomainError.NotFound -> {
                                     TimeSlotListStateIntent.UpdateList(
                                         emptyList = emptyList()
                                     )
                                 }
+
                                 else -> {
                                     val errorMessage = domainError.toUiText()
                                     TimeSlotListStateIntent.Error(errorMessage)
                                 }
                             }
                         }
+
                         is DomainResult.Success -> {
                             val slotList = domainResult.value.map {
                                 TimeSlotItemUiState(
@@ -209,7 +212,7 @@ internal class TimeSlotListPageViewModel @Inject constructor(
             }
 
             TimeSlotListPageUiIntent.Cancel -> {
-                timeSlotEditStateHolder.sendIntent(Init(null))
+                timeSlotEditStateHolder.sendIntent(TimeSlotEditStateIntent.Clear)
             }
 
             is TimeSlotListPageUiIntent.UpdateTimeSlotEdit -> {
@@ -219,13 +222,21 @@ internal class TimeSlotListPageViewModel @Inject constructor(
             }
 
             is TimeSlotListPageUiIntent.SelectTimeSlice -> {
+                val currentSlotList = timeSlotListStateHolder.state.first().slotItemList.map {
+                    val startTime = LocalTimeUtil.create(it.startMinutesOfDay)
+                    val endTime = LocalTimeUtil.create(it.endMinutesOfDay)
+                    startTime to endTime
+                }
+
+                val (startTime, endTime) = findAvailableTimeSlot(currentSlotList, intent.hourOfDay)
+
                 timeSlotEditStateHolder.sendIntent(
-                    Init(
+                    TimeSlotEditStateIntent.Init(
                         state = TimeSlotEditState(
                             slotUuid = null,
                             title = "",
-                            startTime = LocalTime.of(intent.hourOfDay, 0),
-                            endTime = LocalTime.of(intent.hourOfDay, 0),
+                            startTime = startTime,
+                            endTime = endTime,
                         )
                     )
                 )
@@ -233,7 +244,7 @@ internal class TimeSlotListPageViewModel @Inject constructor(
 
             is TimeSlotListPageUiIntent.SelectTimeSlot -> {
                 timeSlotEditStateHolder.sendIntent(
-                    Init(
+                    TimeSlotEditStateIntent.Init(
                         state = TimeSlotEditState(
                             slotUuid = intent.slot.slotUuid,
                             title = intent.slot.title,
@@ -246,6 +257,36 @@ internal class TimeSlotListPageViewModel @Inject constructor(
         }
     }
 
+    /**
+     * 시간 목록에 특정 hour를 전달하면, 그 사이의 빈 시간을 리턴. (최대 1시간)
+     * 기본 한시간 길이로, 만약 한시간 길이로 했는데, 다른 슬롯과 중복되면, 중복되지 않는 범위 까지만.
+     *
+     * @param existingSlots 현재 시간 슬롯 목록
+     * @param startHourOfDay 시작 시간 (hour)
+     * @return 시작 시간과 종료 시간 Pair
+     */
+    private fun findAvailableTimeSlot(
+        existingSlots: List<Pair<LocalTime, LocalTime>>, 
+        startHourOfDay: Int
+    ): Pair<LocalTime, LocalTime> {
+        val startTime = LocalTime.of(startHourOfDay, 0)
+        val potentialEndTime = startTime.plusHours(1)
+
+        // 선택된 시간과 겹치는 기존 슬롯이 있는지 확인합니다.
+        for (slot in existingSlots) {
+            val slotStart = slot.first
+            val slotEnd = slot.second
+
+            // 새로운 슬롯의 시작 시간이 기존 슬롯 내에 있거나,
+            // 기존 슬롯의 시작 시간이 새로운 슬롯 내에 있는 경우 겹칩니다.
+            if (startTime.isBefore(slotEnd) && potentialEndTime.isAfter(slotStart)) {
+                // 겹치는 경우, 새로운 슬롯의 종료 시간을 겹치는 슬롯의 시작 시간으로 조정합니다.
+                return startTime to slotStart
+            }
+        }
+
+        return startTime to potentialEndTime
+    }
 
     private var dragMinsAcc = 0
 
@@ -288,7 +329,7 @@ internal class TimeSlotListPageViewModel @Inject constructor(
                 is DomainResult.Success -> {
                     Timber.d("update success. updated slotId=${domainResult.value.uuid}")
                     timeSlotEditStateHolder.sendIntent(
-                        Update(
+                        TimeSlotEditStateIntent.Update(
                             slotId = domainResult.value.uuid,
                         )
                     )

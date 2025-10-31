@@ -7,6 +7,5 @@ import javax.inject.Inject
  * jhchoi
  */
 class TimeSlotPolicy @Inject constructor() {
-    val titleLengthRange = 1..15
     val timeSlotDragStep = 15
 }
