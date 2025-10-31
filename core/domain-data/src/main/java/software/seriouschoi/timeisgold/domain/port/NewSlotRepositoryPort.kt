@@ -11,16 +11,16 @@ import software.seriouschoi.timeisgold.domain.data.vo.TimeSlotVO
  * jhchoi
  */
 interface NewSlotRepositoryPort {
-    fun setTimeSlot(
+    suspend fun setTimeSlot(
         timeSlot: TimeSlotVO,
         slotId: String?,
         routineId: String
     ): DataResult<MetaInfo>
 
-    fun setTimeSlots(
-        timeSlots: List<Map<String, TimeSlotVO>>,
+    suspend fun setTimeSlots(
+        timeSlots: Map<String, TimeSlotVO>,
         routineId: String
-    ): DataResult<Unit>
+    ): DataResult<List<MetaInfo>>
 
     fun watchTimeSlot(
         timeSlotId: String
@@ -30,7 +30,7 @@ interface NewSlotRepositoryPort {
         routineId: String
     ): Flow<DataResult<List<MetaEnvelope<TimeSlotVO>>>>
 
-    fun deleteTimeSlot(
+    suspend fun deleteTimeSlot(
         timeSlotId: String
     ): DataResult<Unit>
 

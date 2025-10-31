@@ -13,16 +13,18 @@ import java.time.DayOfWeek
  */
 interface NewRoutineRepositoryPort {
 
-    fun setTimeRoutine(
+    suspend fun setTimeRoutine(
         timeRoutine: TimeRoutineVO,
-        routineId: String?
+        routineId: String? = null
     ): DataResult<MetaInfo>
 
     fun watchRoutine(
         dayOfWeek: DayOfWeek
     ): Flow<DataResult<MetaEnvelope<TimeRoutineVO>>>
 
-    fun deleteRoutine(
+    fun watchAllDayOfWeeks() : Flow<DataResult<Set<DayOfWeek>>>
+
+    suspend fun deleteRoutine(
         routineId: String
     ): DataResult<Unit>
 }

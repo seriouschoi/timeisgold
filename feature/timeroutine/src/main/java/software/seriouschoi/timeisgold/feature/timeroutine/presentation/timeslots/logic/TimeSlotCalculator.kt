@@ -3,12 +3,12 @@ package software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslo
 import software.seriouschoi.timeisgold.core.common.util.LocalTimeUtil
 import software.seriouschoi.timeisgold.core.common.util.asMinutes
 import software.seriouschoi.timeisgold.domain.data.DomainResult
+import software.seriouschoi.timeisgold.domain.data.vo.TimeSlotVO
 import software.seriouschoi.timeisgold.domain.usecase.timeslot.NormalizeMinutesForUiUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeslot.valid.GetTimeSlotPolicyValidUseCase
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.TimeSlotListPageUiIntent
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.TimeSlotUpdateTimeType
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.item.TimeSlotItemUiState
-import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.item.asEntity
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.item.midMinute
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.item.splitOverMidnight
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.item.timeLog
@@ -45,7 +45,13 @@ internal class TimeSlotCalculator @Inject constructor(
             )
         }
 
-        val policy = getPolicyValidUseCase.invoke(updatedItem.asEntity())
+        val policy = getPolicyValidUseCase.invoke(
+            TimeSlotVO(
+                startTime = LocalTimeUtil.create(updatedItem.startMinutesOfDay),
+                endTime = LocalTimeUtil.create(updatedItem.endMinutesOfDay),
+                title = updatedItem.title
+            )
+        )
         if (policy !is DomainResult.Success) return currentList to nextDragAcc
 
         val result = if (intent.updateTimeType == TimeSlotUpdateTimeType.START_AND_END)

@@ -21,7 +21,7 @@ import java.time.DayOfWeek
     ]
 )
 internal data class TimeRoutineDayOfWeekSchema(
-    @PrimaryKey(autoGenerate = true) val id: Long? = null,
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val dayOfWeek: DayOfWeek,
     val timeRoutineId: Long
 )

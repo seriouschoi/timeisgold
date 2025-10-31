@@ -104,4 +104,11 @@ timeSlot을 저장할때, 루틴을 자동생성하는 건 useCase에서 처리�
 
 MetaEnvelop은 Meta가 not null이어야지..
 
+## NewRepoAdapter만들기. -> 완료.
+
+## id를 nullable로 하기 보다, = 0으로 초기화만 하자. -> 완료.
+nullable체크를 자꾸 추가하는게 번거롭다.
+애초에 DB에선 여기가 null일수 없는데, 이걸 nullable로 정의해놔서 직관적이지도 않고,
+기본적으로 autoGen true해놨으면, id가 0이면 자동으로 autoGen이 타게 되어 있다.
+
 

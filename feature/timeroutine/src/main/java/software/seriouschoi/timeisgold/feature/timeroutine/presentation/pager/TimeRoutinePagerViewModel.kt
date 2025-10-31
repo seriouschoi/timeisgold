@@ -138,9 +138,11 @@ internal class TimeRoutinePagerViewModel @Inject constructor(
     private fun watchRoutineDayOfWeeks() {
         combine(
             state.selectableDayOfWeeks,
-            currentRoutine
-        ) { enableDayOfWeeks, routine ->
-            val currentRoutineDayOfWeeks = routine?.payload?.dayOfWeeks ?: emptySet()
+            currentRoutine.map {
+                it?.payload?.dayOfWeeks
+            }
+        ) { enableDayOfWeeks, routineDayOfWeeks ->
+            val currentRoutineDayOfWeeks = routineDayOfWeeks ?: emptySet()
             Timber.d("watchRoutineDayOfWeeks - enableDayOfWeeks=$enableDayOfWeeks, currentRoutineDayOfWeeks=$currentRoutineDayOfWeeks")
             DayOfWeeksCheckIntent.Update(
                 checked = currentRoutineDayOfWeeks,

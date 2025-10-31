@@ -4,7 +4,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import software.seriouschoi.timeisgold.domain.data.DomainResult
 import software.seriouschoi.timeisgold.domain.data.asDomainResult
-import software.seriouschoi.timeisgold.domain.port.TimeRoutineRepositoryPort
+import software.seriouschoi.timeisgold.domain.port.NewRoutineRepositoryPort
 import java.time.DayOfWeek
 import javax.inject.Inject
 
@@ -13,11 +13,11 @@ import javax.inject.Inject
  * jhchoi
  */
 class WatchAllRoutineDayOfWeeksUseCase @Inject constructor(
-    val timeRoutineRepository: TimeRoutineRepositoryPort
+    val timeRoutineRepository: NewRoutineRepositoryPort
 ) {
 
-    fun invoke(): Flow<DomainResult<List<DayOfWeek>>> {
-        return timeRoutineRepository.watchAllRoutineDayOfWeeks().map {
+    fun invoke(): Flow<DomainResult<Set<DayOfWeek>>> {
+        return timeRoutineRepository.watchAllDayOfWeeks().map {
             it.asDomainResult()
         }
     }

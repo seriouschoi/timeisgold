@@ -4,6 +4,7 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import java.time.Instant
 import java.time.LocalTime
 
 @Entity(
@@ -21,11 +22,11 @@ import java.time.LocalTime
     ]
 )
 internal data class TimeSlotSchema(
-    @PrimaryKey(autoGenerate = true) val id: Long? = null,
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val startTime: LocalTime,
     val endTime: LocalTime,
     val title: String,
     val uuid: String,
-    val createTime: Long, //TODO: 이거 OffsetDateTime 으로 바꾸기..
+    val createTime: Instant,
     val timeRoutineId: Long
 )

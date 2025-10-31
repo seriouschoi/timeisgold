@@ -1,6 +1,6 @@
 package software.seriouschoi.timeisgold.core.common.util
 
-import java.time.OffsetDateTime
+import java.time.Instant
 import java.util.UUID
 
 data class Envelope<T>(
@@ -15,13 +15,13 @@ data class MetaEnvelope<T>(
 
 data class MetaInfo(
     val uuid: String,
-    val createTime: OffsetDateTime
+    val createTime: Instant
 ) {
     companion object {
-        fun createNew() : MetaInfo{
+        fun createNew(): MetaInfo {
             return MetaInfo(
                 uuid = UUID.randomUUID().toString(),
-                createTime = OffsetDateTime.now()
+                createTime = Instant.now()
             )
         }
     }

@@ -3,6 +3,7 @@ package software.seriouschoi.timeisgold.data.database.schema
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import java.time.Instant
 
 @Entity(
     indices = [
@@ -11,8 +12,8 @@ import androidx.room.PrimaryKey
     ]
 )
 internal data class TimeRoutineSchema(
-    @PrimaryKey(autoGenerate = true) val id: Long? = null,
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val uuid: String,
     val title: String,
-    val createTime: Long
+    val createTime: Instant
 )

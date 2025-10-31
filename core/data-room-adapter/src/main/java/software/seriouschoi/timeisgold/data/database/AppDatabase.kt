@@ -6,14 +6,12 @@ import androidx.room.TypeConverters
 import software.seriouschoi.timeisgold.data.database.dao.TimeRoutineDao
 import software.seriouschoi.timeisgold.data.database.dao.TimeRoutineDayOfWeekDao
 import software.seriouschoi.timeisgold.data.database.dao.TimeSlotDao
-import software.seriouschoi.timeisgold.data.database.dao.view.TimeRoutineJoinDayOfWeekViewDao
 import software.seriouschoi.timeisgold.data.database.dao.view.TimeRoutineJoinTimeSlotViewDao
 import software.seriouschoi.timeisgold.data.database.schema.TimeRoutineDayOfWeekSchema
 import software.seriouschoi.timeisgold.data.database.schema.TimeRoutineSchema
 import software.seriouschoi.timeisgold.data.database.schema.TimeSlotSchema
 import software.seriouschoi.timeisgold.data.database.typeconverter.DayOfWeekConverter
 import software.seriouschoi.timeisgold.data.database.typeconverter.LocalTimeConverter
-import software.seriouschoi.timeisgold.data.database.view.TimeRoutineJoinDayOfWeekView
 import software.seriouschoi.timeisgold.data.database.view.TimeRoutineJoinTimeSlotView
 
 @Database(
@@ -24,7 +22,6 @@ import software.seriouschoi.timeisgold.data.database.view.TimeRoutineJoinTimeSlo
     ],
     views = [
         TimeRoutineJoinTimeSlotView::class,
-        TimeRoutineJoinDayOfWeekView::class
     ],
     version = 1,
     exportSchema = true
@@ -36,6 +33,5 @@ internal abstract class AppDatabase : RoomDatabase() {
 
     abstract fun TimeSlotDao(): TimeSlotDao
 
-    abstract fun TimeRoutineJoinDayOfWeekViewDao(): TimeRoutineJoinDayOfWeekViewDao
     abstract fun TimeRoutineJoinTimeSlotViewDao(): TimeRoutineJoinTimeSlotViewDao
 }

@@ -1,7 +1,6 @@
 package software.seriouschoi.timeisgold.domain.usecase.timeroutine
 
 import kotlinx.coroutines.flow.first
-import software.seriouschoi.timeisgold.core.common.util.MetaEnvelope
 import software.seriouschoi.timeisgold.core.common.util.MetaInfo
 import software.seriouschoi.timeisgold.domain.data.DataResult
 import software.seriouschoi.timeisgold.domain.data.DomainResult
@@ -18,7 +17,10 @@ import javax.inject.Inject
 class SetRoutineUseCase @Inject constructor(
     private val routineRepository: NewRoutineRepositoryPort,
 ) {
-    suspend fun invoke(routineVO: TimeRoutineVO, dayOfWeek: DayOfWeek): DomainResult<MetaInfo> {
+    suspend fun invoke(
+        routineVO: TimeRoutineVO,
+        dayOfWeek: DayOfWeek
+    ): DomainResult<MetaInfo> {
         val routineDataResult =
             routineRepository.watchRoutine(dayOfWeek).first() as? DataResult.Success
 

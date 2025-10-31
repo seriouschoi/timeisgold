@@ -2,7 +2,6 @@ package software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslo
 
 import software.seriouschoi.timeisgold.core.common.util.LocalTimeUtil
 import software.seriouschoi.timeisgold.core.common.util.asFormattedString
-import software.seriouschoi.timeisgold.domain.data.entities.TimeSlotEntity
 
 internal data class TimeSlotItemUiState(
     val slotUuid: String,
@@ -55,12 +54,3 @@ internal fun TimeSlotItemUiState.splitOverMidnight(): List<TimeSlotItemUiState> 
         )
     }
 }
-
-internal fun TimeSlotItemUiState.asEntity() = TimeSlotEntity(
-    uuid = this.slotUuid,
-    title = this.title,
-    startTime = LocalTimeUtil.create(this.startMinutesOfDay),
-    endTime = LocalTimeUtil.create(this.endMinutesOfDay),
-    createTime = System.currentTimeMillis()
-    // TODO: jhchoi 2025. 10. 8. createTime을 여기서 주는것도 문제인데..
-)
