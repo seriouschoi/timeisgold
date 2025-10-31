@@ -52,6 +52,7 @@ sealed class로 나눠놓은 uiState를 정리.
 # 타임 슬롯 편집 뷰의 동작.
 일단 인텐트를 발행하자.
 
+
 ## 흐름.
 
 1. slotEditView의 요소 수정 인텐트 발행.

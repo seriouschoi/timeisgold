@@ -37,7 +37,6 @@ android {
 }
 
 dependencies {
-    implementation(project(":presentation"))
     implementation(project(":feature:timeroutine"))
     implementation(project(":core:domain"))
     implementation(project(":core:domain-data"))
