@@ -164,7 +164,6 @@ private fun PreviewStateView() {
     val sampleSlotList = listOf(
         TimeSlotItemUiState(
             slotUuid = "temp_uuid",
-            routineUuid = "temp_routine_uuid",
             title = "Some Slot Title",
             startMinutesOfDay = startTime.asMinutes(),
             endMinutesOfDay = endTime.asMinutes(),
@@ -200,7 +199,6 @@ private fun PreviewSlotList() {
             slotItemList = listOf(
                 TimeSlotItemUiState(
                     slotUuid = "temp_uuid",
-                    routineUuid = "temp_routine_uuid",
                     title = "Some Slot Title",
                     startMinutesOfDay = startTime.asMinutes(),
                     endMinutesOfDay = endTime.asMinutes(),

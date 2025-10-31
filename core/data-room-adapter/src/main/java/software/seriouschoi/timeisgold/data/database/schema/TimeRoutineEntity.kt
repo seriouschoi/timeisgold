@@ -11,7 +11,7 @@ import java.time.Instant
         Index(value = ["createTime"], orders = arrayOf(Index.Order.DESC))
     ]
 )
-internal data class TimeRoutineSchema(
+internal data class TimeRoutineEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val uuid: String,
     val title: String,

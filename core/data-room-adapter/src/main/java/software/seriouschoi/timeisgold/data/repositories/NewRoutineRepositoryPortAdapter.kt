@@ -11,8 +11,8 @@ import software.seriouschoi.timeisgold.core.common.util.MetaEnvelope
 import software.seriouschoi.timeisgold.core.common.util.MetaInfo
 import software.seriouschoi.timeisgold.core.common.util.runSuspendCatching
 import software.seriouschoi.timeisgold.data.database.AppDatabase
-import software.seriouschoi.timeisgold.data.database.schema.TimeRoutineDayOfWeekSchema
-import software.seriouschoi.timeisgold.data.database.schema.TimeRoutineSchema
+import software.seriouschoi.timeisgold.data.database.schema.TimeRoutineDayOfWeekEntity
+import software.seriouschoi.timeisgold.data.database.schema.TimeRoutineEntity
 import software.seriouschoi.timeisgold.data.util.asDataResult
 import software.seriouschoi.timeisgold.domain.data.DataError
 import software.seriouschoi.timeisgold.domain.data.DataResult
@@ -57,7 +57,7 @@ internal class NewRoutineRepositoryPortAdapter @Inject constructor(
 
             timeRoutine.dayOfWeeks.forEach {
                 dayOfWeeksDao.add(
-                    TimeRoutineDayOfWeekSchema(
+                    TimeRoutineDayOfWeekEntity(
                         timeRoutineId = routineDbId,
                         dayOfWeek = it
                     )
@@ -144,7 +144,7 @@ internal class NewRoutineRepositoryPortAdapter @Inject constructor(
             )
         }
 
-        val routineForAdd = TimeRoutineSchema(
+        val routineForAdd = TimeRoutineEntity(
             uuid = metaInfo.uuid,
             createTime = metaInfo.createTime,
             title = timeRoutine.title

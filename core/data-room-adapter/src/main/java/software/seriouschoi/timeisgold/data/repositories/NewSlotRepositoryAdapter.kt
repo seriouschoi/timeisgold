@@ -10,8 +10,8 @@ import software.seriouschoi.timeisgold.core.common.util.MetaEnvelope
 import software.seriouschoi.timeisgold.core.common.util.MetaInfo
 import software.seriouschoi.timeisgold.core.common.util.runSuspendCatching
 import software.seriouschoi.timeisgold.data.database.AppDatabase
-import software.seriouschoi.timeisgold.data.database.schema.TimeRoutineSchema
-import software.seriouschoi.timeisgold.data.database.schema.TimeSlotSchema
+import software.seriouschoi.timeisgold.data.database.schema.TimeRoutineEntity
+import software.seriouschoi.timeisgold.data.database.schema.TimeSlotEntity
 import software.seriouschoi.timeisgold.data.util.asDataResult
 import software.seriouschoi.timeisgold.domain.data.DataError
 import software.seriouschoi.timeisgold.domain.data.DataResult
@@ -60,7 +60,7 @@ internal class NewSlotRepositoryAdapter @Inject constructor(
 
     override fun watchTimeSlot(timeSlotId: String): Flow<DataResult<MetaEnvelope<TimeSlotVO>>> {
         val slotDao = database.TimeSlotDao()
-        return slotDao.watch(timeSlotId).map { slot: TimeSlotSchema? ->
+        return slotDao.watch(timeSlotId).map { slot: TimeSlotEntity? ->
             if (slot == null) {
                 return@map DataResult.Failure(DataError.NotFound)
             }
@@ -83,13 +83,13 @@ internal class NewSlotRepositoryAdapter @Inject constructor(
         val slotDao = database.TimeSlotDao()
         val routineDao = database.TimeRoutineDao()
 
-        return routineDao.watch(routineId).flatMapLatest { routine: TimeRoutineSchema? ->
+        return routineDao.watch(routineId).flatMapLatest { routine: TimeRoutineEntity? ->
             if (routine == null) {
                 flowOf(emptyList())
             } else {
                 slotDao.watchList(
                     routineId = routine.id
-                ).map { slotList: List<TimeSlotSchema> ->
+                ).map { slotList: List<TimeSlotEntity> ->
                     slotList.map { slot ->
                         val metaInfo = MetaInfo(
                             uuid = slot.uuid,
@@ -134,7 +134,7 @@ internal class NewSlotRepositoryAdapter @Inject constructor(
             )
         }
 
-        val slotForAdd = TimeSlotSchema(
+        val slotForAdd = TimeSlotEntity(
             startTime = timeSlot.startTime,
             endTime = timeSlot.endTime,
             title = timeSlot.title,

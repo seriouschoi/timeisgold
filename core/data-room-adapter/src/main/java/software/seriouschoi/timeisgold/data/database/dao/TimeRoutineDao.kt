@@ -7,29 +7,29 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
-import software.seriouschoi.timeisgold.data.database.schema.TimeRoutineSchema
+import software.seriouschoi.timeisgold.data.database.schema.TimeRoutineEntity
 
 @Dao
 internal abstract class TimeRoutineDao {
 
-    @Query("SELECT * FROM TimeRoutineSchema WHERE uuid = :uuid")
-    abstract fun watch(uuid: String): Flow<TimeRoutineSchema?>
+    @Query("SELECT * FROM TimeRoutineEntity WHERE uuid = :uuid")
+    abstract fun watch(uuid: String): Flow<TimeRoutineEntity?>
 
-    @Query("SELECT * FROM TimeRoutineSchema WHERE uuid = :uuid")
-    abstract suspend fun get(uuid: String): TimeRoutineSchema?
+    @Query("SELECT * FROM TimeRoutineEntity WHERE uuid = :uuid")
+    abstract suspend fun get(uuid: String): TimeRoutineEntity?
 
-    @Query("SELECT * FROM TimeRoutineSchema WHERE id = :id")
-    abstract fun watch(id: Long): Flow<TimeRoutineSchema?>
+    @Query("SELECT * FROM TimeRoutineEntity WHERE id = :id")
+    abstract fun watch(id: Long): Flow<TimeRoutineEntity?>
 
-    @Query("SELECT * FROM TimeRoutineSchema WHERE id = :id")
-    abstract suspend fun get(id: Long): TimeRoutineSchema?
+    @Query("SELECT * FROM TimeRoutineEntity WHERE id = :id")
+    abstract suspend fun get(id: Long): TimeRoutineEntity?
 
     @Insert(onConflict = OnConflictStrategy.ABORT)
-    abstract fun add(entity: TimeRoutineSchema): Long
+    abstract fun add(entity: TimeRoutineEntity): Long
 
     @Update
-    abstract fun update(timeRoutineSchema: TimeRoutineSchema): Int
+    abstract fun update(timeRoutineEntity: TimeRoutineEntity): Int
 
     @Delete
-    abstract fun delete(timeRoutineSchema: TimeRoutineSchema): Int
+    abstract fun delete(timeRoutineEntity: TimeRoutineEntity): Int
 }

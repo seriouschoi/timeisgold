@@ -19,7 +19,7 @@ createTime등의 메타데이터를 vo에서 분리하여 MetaEnvelope으로 감
 리팩토링된 구조 기준으로 테스트 코드 작성 진행.
 AI를 통해 자동으로 테스트를 작성할 수 있는지 확인.
 
-VO(Value Object)
+# VO(Value Object)
 변경 불가능한 값의 객체.
 값 자체로 의미가 있어야함.
 아마 도메인의 객체를 이걸로 하는게 맞을듯.
@@ -34,7 +34,7 @@ data class MetaEnvelope<T>(
 ```
 이러면 VO는 값에 더 집중될것 같긴 하다.
 
-DTO(Data Transfer Object)
+# DTO(Data Transfer Object)
 계층간 데이터 전달을 위한 객체.
 주로 presentation/data layer간 통신에 사용한다고 하는데..
 presentation의 uiState -> VO로 변환해서 도메인에 전달하고,
@@ -42,7 +42,7 @@ presentation의 uiState -> VO로 변환해서 도메인에 전달하고,
 레포지토리를 VO를 받아서 처리하고,
 즉 DTO는 사실상 레포지토리가 외부의 리모트와 통신할 형태를 정의할때 정의하는 객체가 될것 같다.
 
-Entity
+# Entity
 고유 식별자를 가지고, 영속성 대상이 되는 객체.
 DB의 테이블 row에 대응.
 생성시간, 업데이트 시간등 변경 가능한 필드를 포함한다.
@@ -67,12 +67,12 @@ DB 스키마 정의할때, 더 적합한 용어이므로, 영속성이 되는 �
 Aggregate Root??
 
 
-# [ ] LocalDateTime -> OffsetDateTime
+# ~~[ ] LocalDateTime -> OffsetDateTime~~
 createTime처럼 로그 목적의 시간은 OffsetDateTime으로 저장한다.
 이유: LocalDateTime은 현재 위치의 시간을 저장하므로, 
 위치정보없이 저장된 시간만으로는 정확한 시간을 특정할 수 없다.
-
 OffsetDateTime은 UTC기준이므로 이게 더 적절.
+-> Instant로 변경.
 
 # n개의 요소를 combine하는데 그중에 한 요소가 변경될때만 flow를 발행하고 싶으면..
 ```kotlin
@@ -87,17 +87,21 @@ combine(checkedDayOfWeeks, dayOfWeek) { checkedDayOfWeeks, dayOfWeek ->
 루틴 제목, 요일, 슬롯 입력등의 흐름을 선형적으로 제공하지 않다보니,
 피쳐 완료후 리팩토링이 아닌 지금 리팩토링이 필요해졌다.
 
-1. 레포지토리를 새로 하나 만들자.
+1. 레포지토리를 새로 하나 만들자. -> 완료.
    1. 이유. 루틴이 없을때도 슬롯을 바로 추가하면, 제목없는 루틴이 자동으로 생성되게 만들것이다.
    2. 지금의 레포지토리는 루틴과 슬롯이 나뉘어 있음. 오히려 불분명함.
-2. 새로운 데이터 타입을 만들어서 정의부터 하고, 기존 데이터 타입을 전부 Deprecated로 표시한다.
+      1. 이건 오히려 잘못된 생각. 해당 문제는 비지니스로직이며, usecase에서 처리함.
+      2. 허나 기존 레포지토리는 플로우에 대한 잘못된 이해와 과설계로 인해 불필요하게 추가된 함수들이 많고,
+      3. dao와 repo, usecase의 경계를 잘못 이해하고 만들었으므로, 새로 만드는게 옳다.
+2. 새로운 데이터 타입을 만들어서 정의부터 하고, 기존 데이터 타입을 전부 Deprecated로 표시한다. -> 완료.
    1. 새로운 타입은 아래와 같다.
       1. VO: 도메인의 타입.
       2. MetaEnvelop: Meta정보를 포함한 봉투.
-      3. *Schema라는 이름의 데이터 객체는 전부 Entity라는 이름으로 바꾼다.
+      3. *Schema라는 이름의 데이터 객체는 전부 Entity라는 이름으로 바꾼다. -> 완료.
          1. Entity는 DB와 관련된 개념으로 쓰는게 더 나을듯.
 3. createTime으로 System.currentTimeMillis 대신 OffsetDateTime으로 전부 대체하기.
    1. LocalDateTime. .. 이것도 마찬가지.
+   2. 이것도 생각을 잘못했다. Instant로 대체.
 
 timeSlot을 저장할때, 루틴을 자동생성하는 건 useCase에서 처리할 일..
 레포지토리는 문자그대로 CRUD만 한다고 생각하자...딴생각 하지 말고..

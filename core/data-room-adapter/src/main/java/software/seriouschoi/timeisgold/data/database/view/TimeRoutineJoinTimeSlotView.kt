@@ -3,7 +3,8 @@ package software.seriouschoi.timeisgold.data.database.view
 import androidx.room.DatabaseView
 import java.time.LocalTime
 
-@DatabaseView("""
+@DatabaseView(
+    """
     SELECT
         r.id AS routineId,
         r.uuid AS routineUuid,
@@ -16,9 +17,10 @@ import java.time.LocalTime
         ts.title AS timeSlotTitle,
         ts.uuid AS timeSlotUuid,
         ts.createTime AS timeSlotCreateTime
-    FROM TimeRoutineSchema r
-    JOIN TimeSlotSchema ts ON r.id = ts.timeRoutineId
-""")
+    FROM TimeRoutineEntity r
+    JOIN TimeSlotEntity ts ON r.id = ts.timeRoutineId
+"""
+)
 data class TimeRoutineJoinTimeSlotView(
     val routineId: Long,
     val routineUuid: String,

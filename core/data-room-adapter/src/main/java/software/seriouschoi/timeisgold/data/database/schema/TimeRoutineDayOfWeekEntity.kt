@@ -13,14 +13,14 @@ import java.time.DayOfWeek
     ],
     foreignKeys = [
         ForeignKey(
-            entity = TimeRoutineSchema::class,
+            entity = TimeRoutineEntity::class,
             parentColumns = ["id"],
             childColumns = ["timeRoutineId"],
             onDelete = ForeignKey.CASCADE
         )
     ]
 )
-internal data class TimeRoutineDayOfWeekSchema(
+internal data class TimeRoutineDayOfWeekEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val dayOfWeek: DayOfWeek,
     val timeRoutineId: Long

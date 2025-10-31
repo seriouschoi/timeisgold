@@ -14,14 +14,14 @@ import java.time.LocalTime
     ],
     foreignKeys = [
         ForeignKey(
-            entity = TimeRoutineSchema::class,
+            entity = TimeRoutineEntity::class,
             parentColumns = ["id"],
             childColumns = ["timeRoutineId"],
             onDelete = ForeignKey.CASCADE
         ),
     ]
 )
-internal data class TimeSlotSchema(
+internal data class TimeSlotEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val startTime: LocalTime,
     val endTime: LocalTime,

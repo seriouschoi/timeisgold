@@ -6,19 +6,19 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
-import software.seriouschoi.timeisgold.data.database.schema.TimeSlotSchema
+import software.seriouschoi.timeisgold.data.database.schema.TimeSlotEntity
 
 @Dao
 internal abstract class TimeSlotDao {
     @Insert(onConflict = OnConflictStrategy.ABORT)
-    abstract fun insert(timeSlot: TimeSlotSchema): Long
+    abstract fun insert(timeSlot: TimeSlotEntity): Long
 
     @Update
-    abstract fun update(timeSlots: TimeSlotSchema): Int
+    abstract fun update(timeSlots: TimeSlotEntity): Int
 
     @Query(
         """
-        DELETE FROM TimeSlotSchema 
+        DELETE FROM TimeSlotEntity 
         WHERE uuid = :slotUuid
     """
     )
@@ -26,29 +26,29 @@ internal abstract class TimeSlotDao {
 
     @Query(
         """
-        SELECT * FROM TimeSlotSchema WHERE uuid = :timeslotUuid
+        SELECT * FROM TimeSlotEntity WHERE uuid = :timeslotUuid
     """
     )
-    abstract fun watch(timeslotUuid: String): Flow<TimeSlotSchema?>
+    abstract fun watch(timeslotUuid: String): Flow<TimeSlotEntity?>
 
     @Query(
         """
-        SELECT * FROM TimeSlotSchema WHERE timeRoutineId = :routineId
+        SELECT * FROM TimeSlotEntity WHERE timeRoutineId = :routineId
     """
     )
-    abstract fun watchList(routineId: Long): Flow<List<TimeSlotSchema>>
+    abstract fun watchList(routineId: Long): Flow<List<TimeSlotEntity>>
 
     @Query(
         """
-        SELECT * FROM TimeSlotSchema WHERE uuid = :timeslotUuid
+        SELECT * FROM TimeSlotEntity WHERE uuid = :timeslotUuid
     """
     )
-    abstract suspend fun get(timeslotUuid: String): TimeSlotSchema?
+    abstract suspend fun get(timeslotUuid: String): TimeSlotEntity?
 
     @Query(
         """
-        SELECT * FROM TimeSlotSchema WHERE id = :id
+        SELECT * FROM TimeSlotEntity WHERE id = :id
     """
     )
-    abstract suspend fun get(id: Long): TimeSlotSchema?
+    abstract suspend fun get(id: Long): TimeSlotEntity?
 }

@@ -5,9 +5,10 @@ import software.seriouschoi.timeisgold.core.common.util.asMinutes
 import software.seriouschoi.timeisgold.domain.data.DomainError
 import software.seriouschoi.timeisgold.domain.data.DomainResult
 import software.seriouschoi.timeisgold.domain.data.vo.TimeSlotVO
+import javax.inject.Inject
 import kotlin.math.abs
 
-class TimeSlotDomainService {
+class TimeSlotDomainService @Inject constructor(){
     fun isPolicyValid(entity: TimeSlotVO): DomainResult<Unit> {
         if (abs(entity.endTime.asMinutes() - entity.startTime.asMinutes()) < 15) {
             return DomainResult.Failure(DomainError.Conflict.Time)
