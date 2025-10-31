@@ -30,7 +30,7 @@ import software.seriouschoi.timeisgold.core.common.ui.TigTheme
 import software.seriouschoi.timeisgold.core.common.ui.TigThemePreview
 import software.seriouschoi.timeisgold.core.common.ui.UiText
 import software.seriouschoi.timeisgold.core.common.ui.asString
-import software.seriouschoi.timeisgold.core.common.util.Envelope
+import software.seriouschoi.timeisgold.core.common.util.MetaEnvelope
 import software.seriouschoi.timeisgold.core.common.util.asMinutes
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.TimeSlotListState
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.TimeSlotListView
@@ -112,7 +112,7 @@ private fun StateView(
 
 @Composable
 private fun EventView(
-    event: Envelope<TimeSlotListPageUiEvent>?,
+    event: MetaEnvelope<TimeSlotListPageUiEvent>?,
     snackBar: SnackbarHostState,
 ) {
     val context = LocalContext.current

@@ -26,8 +26,8 @@ import software.seriouschoi.timeisgold.core.common.ui.ResultState
 import software.seriouschoi.timeisgold.core.common.ui.UiText
 import software.seriouschoi.timeisgold.core.common.ui.asResultState
 import software.seriouschoi.timeisgold.core.common.ui.flowResultState
-import software.seriouschoi.timeisgold.core.common.util.Envelope
 import software.seriouschoi.timeisgold.core.common.util.LocalTimeUtil
+import software.seriouschoi.timeisgold.core.common.util.MetaEnvelope
 import software.seriouschoi.timeisgold.core.common.util.MetaInfo
 import software.seriouschoi.timeisgold.core.common.util.asMinutes
 import software.seriouschoi.timeisgold.core.domain.mapper.onlyDomainResult
@@ -99,7 +99,7 @@ internal class TimeSlotListPageViewModel @Inject constructor(
         initialValue = ResultState.Loading
     )
 
-    private val _intent = MutableSharedFlow<Envelope<TimeSlotListPageUiIntent>>()
+    private val _intent = MutableSharedFlow<MetaEnvelope<TimeSlotListPageUiIntent>>()
 
     val uiState = combine(
         timeSlotListStateHolder.state,
@@ -115,8 +115,8 @@ internal class TimeSlotListPageViewModel @Inject constructor(
         initialValue = TimeSlotListPageUiState()
     )
 
-    private val _uiEvent: MutableSharedFlow<Envelope<TimeSlotListPageUiEvent>> = MutableSharedFlow()
-    val uiEvent: SharedFlow<Envelope<TimeSlotListPageUiEvent>> = _uiEvent
+    private val _uiEvent: MutableSharedFlow<MetaEnvelope<TimeSlotListPageUiEvent>> = MutableSharedFlow()
+    val uiEvent: SharedFlow<MetaEnvelope<TimeSlotListPageUiEvent>> = _uiEvent
 
     init {
         watchIntent()
@@ -344,14 +344,14 @@ internal class TimeSlotListPageViewModel @Inject constructor(
                     null
                 }
             }?.let {
-                _uiEvent.emit(Envelope(it))
+                _uiEvent.emit(MetaEnvelope(it))
             }
         }.launchIn(viewModelScope)
     }
 
     fun sendIntent(createRoutine: TimeSlotListPageUiIntent) {
         viewModelScope.launch {
-            _intent.emit(Envelope(createRoutine))
+            _intent.emit(MetaEnvelope(createRoutine))
         }
     }
 }

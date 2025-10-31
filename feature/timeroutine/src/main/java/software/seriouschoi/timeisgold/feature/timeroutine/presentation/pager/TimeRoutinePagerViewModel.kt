@@ -17,7 +17,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import software.seriouschoi.navigator.DestNavigatorPort
 import software.seriouschoi.timeisgold.core.common.ui.asResultState
-import software.seriouschoi.timeisgold.core.common.util.Envelope
+import software.seriouschoi.timeisgold.core.common.util.MetaEnvelope
 import software.seriouschoi.timeisgold.core.domain.mapper.onlyDomainSuccess
 import software.seriouschoi.timeisgold.domain.data.vo.TimeRoutineVO
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.SetRoutineUseCase
@@ -50,7 +50,7 @@ internal class TimeRoutinePagerViewModel @Inject constructor(
 
 ) : ViewModel() {
 
-    private val _intent = MutableSharedFlow<Envelope<TimeRoutinePagerUiIntent>>()
+    private val _intent = MutableSharedFlow<MetaEnvelope<TimeRoutinePagerUiIntent>>()
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private val currentRoutine =
@@ -78,7 +78,7 @@ internal class TimeRoutinePagerViewModel @Inject constructor(
 
     fun sendIntent(intent: TimeRoutinePagerUiIntent) {
         viewModelScope.launch {
-            this@TimeRoutinePagerViewModel._intent.emit(Envelope(intent))
+            this@TimeRoutinePagerViewModel._intent.emit(MetaEnvelope(intent))
         }
     }
 
