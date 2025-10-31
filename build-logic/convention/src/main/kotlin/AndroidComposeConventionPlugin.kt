@@ -27,10 +27,11 @@ class AndroidComposeConventionPlugin : Plugin<Project> {
                 androidTestImplementation(target.libs, bom)
 
                 implementation(target.libs, "androidx.runtime")
-
-                implementation(target.libs, "compose.material")
                 implementation(target.libs, "androidx.activity.compose")
+
                 implementation(target.libs, "compose.ui")
+                implementation(target.libs, "compose.material3")
+                implementation(target.libs, "compose.icon")
                 implementation(target.libs, "compose.ui.tooling.preview")
                 debugImplementation(target.libs, "compose.ui.tooling")
                 implementation(target.libs, "navigation.compose")
