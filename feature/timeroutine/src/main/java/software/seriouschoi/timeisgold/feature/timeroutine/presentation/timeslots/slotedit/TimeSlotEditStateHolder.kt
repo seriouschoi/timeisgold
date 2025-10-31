@@ -56,7 +56,7 @@ internal sealed interface TimeSlotEditStateIntent {
 }
 
 internal data class TimeSlotEditState(
-    val slotUuid: String? = null, // TODO: jhchoi 2025. 10. 27. 이거대신 MetaInfo..
+    val slotUuid: String? = null,
     val title: String,
     val startTime: LocalTime,
     val endTime: LocalTime
