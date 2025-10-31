@@ -1,44 +1,15 @@
 package software.seriouschoi.timeisgold.domain.services
 
-import kotlinx.coroutines.flow.first
 import software.seriouschoi.timeisgold.core.common.util.LocalTimeUtil
 import software.seriouschoi.timeisgold.core.common.util.asMinutes
 import software.seriouschoi.timeisgold.domain.data.DomainError
 import software.seriouschoi.timeisgold.domain.data.DomainResult
-import software.seriouschoi.timeisgold.domain.data.entities.TimeSlotEntity
-import software.seriouschoi.timeisgold.domain.policy.TimeSlotPolicy
-import software.seriouschoi.timeisgold.domain.port.TimeSlotRepositoryPort
+import software.seriouschoi.timeisgold.domain.data.vo.TimeSlotVO
 import javax.inject.Inject
 import kotlin.math.abs
 
-class TimeSlotDomainService @Inject constructor(
-    val timeSlotRepository: TimeSlotRepositoryPort,
-    private val timeSlotPolicy: TimeSlotPolicy
-) {
-
-    suspend fun isValid(
-        timeSlotData: TimeSlotEntity,
-        routineUuid: String,
-    ): DomainResult<Unit> {
-        val policyResult = isPolicyValid(timeSlotData)
-        if (policyResult is DomainResult.Failure) {
-            return policyResult
-        }
-
-        val allTimeSlotList = timeSlotRepository.watchTimeSlotList(routineUuid).first()
-            .filter {
-                it.uuid != timeSlotData.uuid
-            }.toMutableList().apply {
-                this.add(timeSlotData)
-            }
-
-        return isConflict(allTimeSlotList)
-    }
-
-    fun isPolicyValid(entity: TimeSlotEntity): DomainResult<Unit> {
-        if (entity.title.length !in timeSlotPolicy.titleLengthRange) {
-            return DomainResult.Failure(DomainError.Validation.TitleLength)
-        }
+class TimeSlotDomainService @Inject constructor(){
+    fun isPolicyValid(entity: TimeSlotVO): DomainResult<Unit> {
         if (abs(entity.endTime.asMinutes() - entity.startTime.asMinutes()) < 15) {
             return DomainResult.Failure(DomainError.Conflict.Time)
         }
@@ -46,7 +17,7 @@ class TimeSlotDomainService @Inject constructor(
     }
 
     fun isConflict(
-        timeSlotList: List<TimeSlotEntity>
+        timeSlotList: List<TimeSlotVO>
     ): DomainResult<Unit> {
         val sorted = timeSlotList.sortedBy {
             it.endTime.asMinutes()
@@ -54,7 +25,7 @@ class TimeSlotDomainService @Inject constructor(
             it.startTime.asMinutes()
         }.distinct()
 
-        var current: TimeSlotEntity? = null
+        var current: TimeSlotVO? = null
         for (next in sorted) {
 
             val slotValid = isPolicyValid(next)

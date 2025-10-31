@@ -17,26 +17,31 @@ import kotlin.math.absoluteValue
  */
 fun Modifier.multipleGesture(
     key: Any,
-    slotBoundsMap: () -> Map<Int, Rect>,
-    onSelected: (index: Int, dragTarget: DragTarget) -> Unit,
-    onDrag: (index: Int, dx: Float, dy: Float, dragTarget: DragTarget) -> Unit,
-    onDrop: (index: Int, dragTarget: DragTarget) -> Unit,
-    onTap: (index: Int, dragTarget: DragTarget) -> Unit,
+    boundsMap: () -> Map<Int, Rect>,
+    onSelectedBound: (index: Int, dragTarget: DragTarget) -> Unit = { _, _ -> },
+    onDragBound: (index: Int, dx: Float, dy: Float, dragTarget: DragTarget) -> Unit = { _, _, _, _ -> },
+    onDropBound: (index: Int, dragTarget: DragTarget) -> Unit = { _, _ -> },
+    onTapBound: (index: Int, dragTarget: DragTarget) -> Unit = { _, _ -> },
+    onTapBoundElse: (Offset) -> Unit = { },
 ) = pointerInput(key) {
     awaitEachGesture {
         val down = awaitFirstDown()
         Timber.d("down position. x=${down.position.x}, y=${down.position.y}")
 
-        val hit = slotBoundsMap().entries.firstOrNull {
+        val hit = boundsMap().entries.firstOrNull {
             it.value.contains(down.position)
         }
-        if (hit == null) return@awaitEachGesture
+        if (hit == null) {
+            down.consume()
+            onTapBoundElse.invoke(down.position)
+            return@awaitEachGesture
+        }
         val activeDragTarget = when {
             down.position.y - hit.value.top < 20.dp.toPx() -> DragTarget.Top
             down.position.y - hit.value.top > hit.value.height - 20.dp.toPx() -> DragTarget.Bottom
             else -> DragTarget.Card
         }
-        onSelected(hit.key, activeDragTarget)
+        onSelectedBound(hit.key, activeDragTarget)
         Timber.d("gesture hit. index=${hit.key}, activeDragTarget=${activeDragTarget}")
 
         var distanceXAbs = 0f
@@ -48,13 +53,16 @@ fun Modifier.multipleGesture(
         while (true) {
             val event = awaitPointerEvent().changes.firstOrNull() ?: break
             if (event.pressed.not()) {
-                event.consume()
                 if (longPressed) {
-                    onDrop(hit.key, activeDragTarget)
+                    Timber.d("long press up.")
+                    event.consume()
+                    onDropBound(hit.key, activeDragTarget)
                     break
                 }
                 if (!isMoved) {
-                    onTap(hit.key, activeDragTarget)
+                    Timber.d("simple touch up.")
+                    event.consume()
+                    onTapBound(hit.key, activeDragTarget)
                     break
                 }
                 break
@@ -67,7 +75,7 @@ fun Modifier.multipleGesture(
             if (longPressed) {
                 event.consume()
 
-                onDrag(hit.key, dragAmount.x, dragAmount.y, activeDragTarget)
+                onDragBound(hit.key, dragAmount.x, dragAmount.y, activeDragTarget)
                 continue
             }
 

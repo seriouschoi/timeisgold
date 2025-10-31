@@ -306,3 +306,12 @@ Qualifier: 의존성 주입할때, 같은 타입이 여러개 있을때, 구분�
 # SupervisorJob?
 
 # @InstallIn(SingletonComponent::class)?
+
+# n개의 요소를 combine하는데 그중에 한 요소가 변경될때만 flow를 발행하고 싶으면..
+```kotlin
+combine(checkedDayOfWeeks, dayOfWeek) { checkedDayOfWeeks, dayOfWeek ->
+    checkedDayOfWeeks to dayOfWeek
+}.distinctUntilChangedBy {
+    it.first
+}
+```

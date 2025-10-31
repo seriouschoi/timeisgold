@@ -1,40 +1,40 @@
 package software.seriouschoi.timeisgold.domain.services
 
+import kotlinx.coroutines.flow.first
+import software.seriouschoi.timeisgold.core.common.util.MetaEnvelope
+import software.seriouschoi.timeisgold.domain.data.DataResult
 import software.seriouschoi.timeisgold.domain.data.DomainError
 import software.seriouschoi.timeisgold.domain.data.DomainResult
-import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineDefinition
-import software.seriouschoi.timeisgold.domain.port.TimeRoutineRepositoryPort
+import software.seriouschoi.timeisgold.domain.data.vo.TimeRoutineVO
+import software.seriouschoi.timeisgold.domain.port.NewRoutineRepositoryPort
+import java.time.DayOfWeek
 import javax.inject.Inject
 
+/**
+ * Created by jhchoi on 2025. 10. 29.
+ * jhchoi
+ */
 class TimeRoutineDomainService @Inject constructor(
-    private val timeRoutineRepository: TimeRoutineRepositoryPort,
-) {
-    suspend fun isValidForAdd(newRoutine: TimeRoutineDefinition): DomainResult<Unit> {
-        val newRoutineTitle = newRoutine.timeRoutine.title
-        // TODO: jhchoi 2025. 10. 13. 이거 없어도 될듯..
-        if (newRoutineTitle.length !in 1..15) {
-            return DomainResult.Failure(DomainError.Validation.TitleLength)
-        }
+    private val routineRepository: NewRoutineRepositoryPort
+){
+    suspend fun getOrCreateRoutineId(dayOfWeek: DayOfWeek): DomainResult<String> {
+        val routineId = routineRepository.watchRoutine(dayOfWeek).first().let {
+            it as? DataResult.Success
+        }?.let { it: DataResult.Success<MetaEnvelope<TimeRoutineVO>> ->
+            it.value.metaInfo.uuid
+        } ?: run {
+            routineRepository.setTimeRoutine(
+                timeRoutine = TimeRoutineVO(
+                    title = "",
+                    dayOfWeeks = setOf(dayOfWeek)
+                ),
+            ).let {
+                it as? DataResult.Success
+            }?.value?.uuid
+        } ?: return DomainResult.Failure(
+            DomainError.NotFound.TimeRoutine
+        )
 
-        val newDays = newRoutine.dayOfWeeks.map { it.dayOfWeek }
-        if (newDays.isEmpty()) {
-            return DomainResult.Failure(DomainError.Validation.NoSelectedDayOfWeek)
-        }
-
-        val existingDays = timeRoutineRepository.getAllTimeRoutineDefinitions().filter {
-            it.timeRoutine.uuid != newRoutine.timeRoutine.uuid
-        }.map {
-            it.dayOfWeeks.map { it.dayOfWeek }
-        }.flatten()
-
-        val conflictDays = existingDays.filter {
-            newDays.contains(it)
-        }
-        if (conflictDays.isNotEmpty()) {
-            return DomainResult.Failure(DomainError.Conflict.DayOfWeek)
-        }
-
-        return DomainResult.Success(Unit)
+        return DomainResult.Success(routineId)
     }
-
 }

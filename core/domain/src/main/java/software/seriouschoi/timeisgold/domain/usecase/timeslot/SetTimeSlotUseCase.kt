@@ -1,33 +1,48 @@
 package software.seriouschoi.timeisgold.domain.usecase.timeslot
 
+import kotlinx.coroutines.flow.first
+import software.seriouschoi.timeisgold.core.common.util.MetaInfo
+import software.seriouschoi.timeisgold.domain.data.DataResult
+import software.seriouschoi.timeisgold.domain.data.DomainError
 import software.seriouschoi.timeisgold.domain.data.DomainResult
 import software.seriouschoi.timeisgold.domain.data.asDomainResult
-import software.seriouschoi.timeisgold.domain.data.entities.TimeSlotEntity
-import software.seriouschoi.timeisgold.domain.port.TimeSlotRepositoryPort
+import software.seriouschoi.timeisgold.domain.data.vo.TimeRoutineVO
+import software.seriouschoi.timeisgold.domain.data.vo.TimeSlotVO
+import software.seriouschoi.timeisgold.domain.port.NewRoutineRepositoryPort
+import software.seriouschoi.timeisgold.domain.port.NewSlotRepositoryPort
+import software.seriouschoi.timeisgold.domain.services.TimeRoutineDomainService
 import software.seriouschoi.timeisgold.domain.services.TimeSlotDomainService
+import java.time.DayOfWeek
 import javax.inject.Inject
 
+/**
+ * Created by jhchoi on 2025. 10. 27.
+ * jhchoi
+ */
 class SetTimeSlotUseCase @Inject constructor(
-    private val timeslotRepositoryPort: TimeSlotRepositoryPort,
-    private val timeSlotDomainService: TimeSlotDomainService
+    private val slotRepository: NewSlotRepositoryPort,
+    private val routineRepository: NewRoutineRepositoryPort,
+    private val timeSlotDomainService: TimeSlotDomainService,
+    private val timeRoutineService: TimeRoutineDomainService
 ) {
-
-    suspend operator fun invoke(
-        timeRoutineUuid: String,
-        timeSlotData: TimeSlotEntity
-    ): DomainResult<String> {
-        val validResult = timeSlotDomainService.isValid(
-            routineUuid = timeRoutineUuid,
-            timeSlotData = timeSlotData
+    suspend fun execute(
+        dayOfWeek: DayOfWeek,
+        timeSlot: TimeSlotVO,
+        slotId: String?,
+    ): DomainResult<MetaInfo> {
+        val policyResult = timeSlotDomainService.isPolicyValid(
+            timeSlot
         )
-        if(validResult is DomainResult.Failure) return validResult
+        if (policyResult is DomainResult.Failure) return policyResult
 
-        val dataResult = timeslotRepositoryPort.setTimeSlot(
-            timeSlotData,
-            timeRoutineUuid
-        )
-        return dataResult.asDomainResult()
+        val routineUuid = timeRoutineService.getOrCreateRoutineId(dayOfWeek).let {
+            it as? DomainResult.Success
+        }?.value ?: return DomainResult.Failure(DomainError.Technical.Unknown)
+
+        return slotRepository.setTimeSlot(
+            timeSlot = timeSlot,
+            slotId = slotId,
+            routineId = routineUuid
+        ).asDomainResult()
     }
 }
-
-

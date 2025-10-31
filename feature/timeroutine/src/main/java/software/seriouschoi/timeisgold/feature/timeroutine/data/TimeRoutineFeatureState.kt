@@ -8,13 +8,12 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
+import software.seriouschoi.timeisgold.core.common.util.MetaEnvelope
 import software.seriouschoi.timeisgold.core.domain.mapper.onlySuccess
 import software.seriouschoi.timeisgold.domain.data.DomainResult
-import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineComposition
-import software.seriouschoi.timeisgold.domain.data.composition.TimeRoutineDefinition
+import software.seriouschoi.timeisgold.domain.data.vo.TimeRoutineVO
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.WatchAllRoutineDayOfWeeksUseCase
-import software.seriouschoi.timeisgold.domain.usecase.timeroutine.WatchTimeRoutineCompositionUseCase
-import software.seriouschoi.timeisgold.domain.usecase.timeroutine.WatchTimeRoutineDefinitionUseCase
+import software.seriouschoi.timeisgold.domain.usecase.timeroutine.WatchRoutineUseCase
 import java.time.DayOfWeek
 import java.time.LocalDate
 
@@ -23,32 +22,27 @@ import java.time.LocalDate
  * jhchoi
  */
 internal class TimeRoutineFeatureState(
-    private val watchRoutineUseCase: WatchTimeRoutineDefinitionUseCase,
-    private val watchRoutineCompositionUseCase: WatchTimeRoutineCompositionUseCase,
     private val allDayOfWeeksUseCase: WatchAllRoutineDayOfWeeksUseCase,
+    private val watchRoutineUseCase: WatchRoutineUseCase
 ) {
     private val _data = MutableStateFlow(TimeRoutineFeatureStateData(defaultDayOfWeek))
 
     val data: StateFlow<TimeRoutineFeatureStateData> = _data
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val routineDefinition: Flow<DomainResult<TimeRoutineDefinition>> = data.map { it.dayOfWeek }
-        .flatMapLatest {
-            watchRoutineUseCase.invoke(it)
-        }
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val routineComposition: Flow<DomainResult<TimeRoutineComposition>> =
-        data.map { it.dayOfWeek }.flatMapLatest {
-            watchRoutineCompositionUseCase.invoke(it)
-        }
+    val routine: Flow<DomainResult<MetaEnvelope<TimeRoutineVO>>> = data.map {
+        it.dayOfWeek
+    }.flatMapLatest {
+        watchRoutineUseCase.invoke(it)
+    }
 
     val selectableDayOfWeeks = combine(
         allDayOfWeeksUseCase.invoke(),
-        routineDefinition.map { it.onlySuccess() }
+        routine.map { it.onlySuccess() }
     ) { allDayOfWeeks, routine ->
+
         val allRoutinesDayOfWeeks = allDayOfWeeks.onlySuccess() ?: emptyList()
-        val currentRoutineDayOfWeeks = routine?.dayOfWeeks?.map { it.dayOfWeek } ?: emptyList()
+        val currentRoutineDayOfWeeks = routine?.payload?.dayOfWeeks ?: emptyList()
 
         DayOfWeek.entries.filter { day ->
             val usedByOtherRoutine = allRoutinesDayOfWeeks.contains(day)

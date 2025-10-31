@@ -2,22 +2,23 @@ package software.seriouschoi.timeisgold.domain.usecase.timeroutine
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import software.seriouschoi.timeisgold.core.common.util.MetaEnvelope
 import software.seriouschoi.timeisgold.domain.data.DomainResult
 import software.seriouschoi.timeisgold.domain.data.asDomainResult
+import software.seriouschoi.timeisgold.domain.data.vo.TimeRoutineVO
 import software.seriouschoi.timeisgold.domain.port.NewRoutineRepositoryPort
 import java.time.DayOfWeek
 import javax.inject.Inject
 
 /**
- * Created by jhchoi on 2025. 10. 11.
+ * Created by jhchoi on 2025. 10. 28.
  * jhchoi
  */
-class WatchAllRoutineDayOfWeeksUseCase @Inject constructor(
-    val timeRoutineRepository: NewRoutineRepositoryPort
+class WatchRoutineUseCase @Inject constructor(
+    private val routineRepository: NewRoutineRepositoryPort
 ) {
-
-    fun invoke(): Flow<DomainResult<Set<DayOfWeek>>> {
-        return timeRoutineRepository.watchAllDayOfWeeks().map {
+    suspend fun invoke(dayOfWeek: DayOfWeek): Flow<DomainResult<MetaEnvelope<TimeRoutineVO>>> {
+        return routineRepository.watchRoutine(dayOfWeek).map {
             it.asDomainResult()
         }
     }
