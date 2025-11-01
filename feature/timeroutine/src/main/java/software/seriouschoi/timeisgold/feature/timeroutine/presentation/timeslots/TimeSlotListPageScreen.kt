@@ -16,6 +16,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -49,8 +50,10 @@ import software.seriouschoi.timeisgold.core.common.ui.R as CommonR
 @Composable
 fun TimeSlotListPageScreen(
     dayOfWeek: DayOfWeek,
+    isCurrentPage: Boolean,
 ) {
     val viewModel = hiltViewModel<TimeSlotListPageViewModel>(key = dayOfWeek.name)
+
     val uiState by viewModel.uiState.collectAsState()
 
     val uiEvent by viewModel.uiEvent.collectAsState(null)
@@ -59,7 +62,25 @@ fun TimeSlotListPageScreen(
         viewModel.load(dayOfWeek)
     }
 
-    BackHandler {
+    DisposableEffect(dayOfWeek) {
+        onDispose {
+            viewModel.sendIntent(TimeSlotListPageUiIntent.Cancel)
+        }
+    }
+
+    /*
+    [BackHandler 이슈 요약]
+    문제:
+    Pager 내에서 BackHandler를 사용하면,
+    현재 보이지 않는 미리 그려진(pre-composed) 페이지의 BackHandler가 뒤로가기 이벤트를 가로채는 현상 발생.
+    이는 Composable 계층 구조상 가장 나중에 그려진 BackHandler가 우선권을 갖기 때문이다.
+
+    해결:
+    Pager로부터 현재 페이지 여부를 나타내는 `isCurrentPage` 상태를 전달받아,
+    `BackHandler(enabled = isCurrentPage)` 와 같이 설정.
+    이를 통해 현재 화면에 보이는 페이지의 BackHandler만 활성화하여 문제를 해결함.
+     */
+    BackHandler(enabled = isCurrentPage) {
         viewModel.sendIntent(TimeSlotListPageUiIntent.Cancel)
     }
 

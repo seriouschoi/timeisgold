@@ -39,8 +39,7 @@ internal class TimeSlotEditStateHolder @Inject constructor() {
                 }
             }
 
-            TimeSlotEditStateIntent.Clear -> {
-                Timber.d("clear intent.")
+            is TimeSlotEditStateIntent.Clear -> {
                 _state.update {
                     null
                 }
