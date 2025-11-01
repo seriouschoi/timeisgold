@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -14,10 +15,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import software.seriouschoi.timeisgold.core.common.ui.TigTheme
+import software.seriouschoi.timeisgold.core.common.ui.TigThemePreview
 import software.seriouschoi.timeisgold.core.common.ui.times.TimePixelUtil
 import kotlin.math.abs
+import software.seriouschoi.timeisgold.core.common.ui.R as CommonR
 
 @Composable
 internal fun TimeSlotItemCardView(
@@ -64,22 +69,44 @@ internal fun TimeSlotItemCardView(
             Column(
                 modifier = Modifier.padding(10.dp)
             ) {
+                val unTitle = stringResource(CommonR.string.text_untitle)
                 Text(
-                    text = item.title,
-                    style = MaterialTheme.typography.titleLarge,
+                    text = item.title.takeIf { it.isNotEmpty() } ?: unTitle,
+                    style = MaterialTheme.typography.titleSmall,
                 )
                 Text(
                     text = item.getStartTimeText(),
-                    style = MaterialTheme.typography.bodyLarge
+                    style = MaterialTheme.typography.bodySmall
                 )
                 Spacer(
                     modifier = Modifier.weight(1f)
                 )
                 Text(
                     text = item.getEndTimeText(),
-                    style = MaterialTheme.typography.bodyLarge,
+                    style = MaterialTheme.typography.bodySmall,
                 )
             }
+        }
+    }
+}
+
+@TigThemePreview
+@Composable
+private fun Preview() {
+    TigTheme {
+        Box {
+            TimeSlotItemCardView(
+                modifier = Modifier.fillMaxWidth(),
+                item = TimeSlotItemUiState(
+                    slotUuid = "",
+                    title = "",
+                    startMinutesOfDay = 0,
+                    endMinutesOfDay = 60,
+                    isSelected = false
+                ),
+                globalPositioned = Modifier,
+                hourHeight = 60.dp
+            )
         }
     }
 }

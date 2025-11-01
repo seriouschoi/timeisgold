@@ -122,7 +122,7 @@ internal class TimeSlotListPageViewModel @Inject constructor(
                         is DomainResult.Failure -> {
                             when (val domainError = domainResult.error) {
                                 is DomainError.NotFound -> TimeSlotListStateIntent.UpdateList(
-                                    emptyList = emptyList()
+                                    itemList = emptyList()
                                 )
 
                                 else -> TimeSlotListStateIntent.Error(domainError.toUiText())

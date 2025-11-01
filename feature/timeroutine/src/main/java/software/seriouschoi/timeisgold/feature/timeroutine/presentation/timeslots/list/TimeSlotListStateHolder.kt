@@ -4,9 +4,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import software.seriouschoi.timeisgold.core.common.ui.UiText
-import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.TimeSlotUpdateTimeType
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.item.TimeSlotItemUiState
-import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.logic.TimeSlotCalculator
 import javax.inject.Inject
 
 internal class TimeSlotListStateHolder @Inject constructor(
@@ -37,7 +35,7 @@ internal class TimeSlotListStateHolder @Inject constructor(
                     it.copy(
                         loadingMessage = null,
                         errorMessage = null,
-                        slotItemList = intent.emptyList
+                        slotItemList = intent.itemList
                     )
                 }
             }
@@ -47,6 +45,6 @@ internal class TimeSlotListStateHolder @Inject constructor(
 
 internal sealed interface TimeSlotListStateIntent {
     data class Error(val message: UiText) : TimeSlotListStateIntent
-    data class UpdateList(val emptyList: List<TimeSlotItemUiState>) : TimeSlotListStateIntent
+    data class UpdateList(val itemList: List<TimeSlotItemUiState>) : TimeSlotListStateIntent
     object Loading : TimeSlotListStateIntent
 }
