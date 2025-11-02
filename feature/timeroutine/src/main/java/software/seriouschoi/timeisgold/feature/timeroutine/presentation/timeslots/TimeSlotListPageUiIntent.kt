@@ -27,6 +27,10 @@ internal sealed interface TimeSlotListPageUiIntent {
         val hourOfDay: Int,
     ): TimeSlotListPageUiIntent
 
+    data class DeleteTimeSlot(
+        val slotId: String
+    ): TimeSlotListPageUiIntent
+
 }
 
 internal enum class TimeSlotUpdateTimeType {

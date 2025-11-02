@@ -35,6 +35,7 @@ import software.seriouschoi.timeisgold.core.domain.mapper.toUiText
 import software.seriouschoi.timeisgold.domain.data.DomainError
 import software.seriouschoi.timeisgold.domain.data.DomainResult
 import software.seriouschoi.timeisgold.domain.data.vo.TimeSlotVO
+import software.seriouschoi.timeisgold.domain.usecase.timeslot.DeleteTimeSlotUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeslot.SetTimeSlotListUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeslot.SetTimeSlotUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeslot.WatchTimeSlotListUseCase
@@ -45,6 +46,7 @@ import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslot
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.slotedit.TimeSlotEditState
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.slotedit.TimeSlotEditStateHolder
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.slotedit.TimeSlotEditStateIntent
+import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.slotedit.TimeSlotEditStateIntent.Init
 import timber.log.Timber
 import java.time.DayOfWeek
 import java.time.LocalTime
@@ -62,6 +64,7 @@ internal class TimeSlotListPageViewModel @Inject constructor(
     private val watchTimeSlotListUseCase: WatchTimeSlotListUseCase,
     private val setTimeSlotsUseCase: SetTimeSlotListUseCase,
     private val setTimeSlotUseCase: SetTimeSlotUseCase,
+    private val deleteTimeSlotUseCase: DeleteTimeSlotUseCase,
 
     private val timeSlotListStateHolder: TimeSlotListStateHolder,
     private val timeSlotEditStateHolder: TimeSlotEditStateHolder,
@@ -211,7 +214,7 @@ internal class TimeSlotListPageViewModel @Inject constructor(
                 val availableTimeSlot = findAvailableTimeSlot(currentSlotList, intent.hourOfDay)
                 if (availableTimeSlot != null) {
                     timeSlotEditStateHolder.sendIntent(
-                        TimeSlotEditStateIntent.Init(
+                        Init(
                             state = TimeSlotEditState(
                                 slotUuid = null,
                                 title = "",
@@ -225,7 +228,7 @@ internal class TimeSlotListPageViewModel @Inject constructor(
 
             is TimeSlotListPageUiIntent.SelectTimeSlot -> {
                 timeSlotEditStateHolder.sendIntent(
-                    TimeSlotEditStateIntent.Init(
+                    Init(
                         state = TimeSlotEditState(
                             slotUuid = intent.slot.slotUuid,
                             title = intent.slot.title,
@@ -235,7 +238,18 @@ internal class TimeSlotListPageViewModel @Inject constructor(
                     )
                 )
             }
+
+            is TimeSlotListPageUiIntent.DeleteTimeSlot -> {
+                timeSlotEditStateHolder.sendIntent(TimeSlotEditStateIntent.Clear)
+                deleteTimeSlot(intent.slotId)
+            }
         }
+    }
+
+    private fun deleteTimeSlot(slotId: String) {
+        flowResultState {
+            deleteTimeSlotUseCase.invoke(slotId)
+        }.launchIn(viewModelScope)
     }
 
     /**

@@ -5,11 +5,18 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Card
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -24,6 +31,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -38,6 +46,7 @@ import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslot
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.item.TimeSlotItemUiState
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.loadingState
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.slotedit.TimeSlotEditState
+import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.slotedit.TimeSlotEditStateIntent
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.slotedit.TimeSlotEditView
 import java.time.DayOfWeek
 import java.time.LocalTime
@@ -80,8 +89,10 @@ fun TimeSlotListPageScreen(
     `BackHandler(enabled = isCurrentPage)` 와 같이 설정.
     이를 통해 현재 화면에 보이는 페이지의 BackHandler만 활성화하여 문제를 해결함.
      */
-    BackHandler(enabled = isCurrentPage) {
-        viewModel.sendIntent(TimeSlotListPageUiIntent.Cancel)
+    if(uiState.isEditMode) {
+        BackHandler(enabled = isCurrentPage) {
+            viewModel.sendIntent(TimeSlotListPageUiIntent.Cancel)
+        }
     }
 
     val snackBarHostState = remember { SnackbarHostState() }
@@ -114,21 +125,70 @@ private fun StateView(
         },
         bottomBar = {
             if (editSlotState != null) {
-                Card {
-                    TimeSlotEditView(
-                        state = editSlotState,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(200.dp)
-                    ) {
+                EditStateView(state = editSlotState, sendIntent = {
+                    sendIntent.invoke(it)
+                })
+            }
+        }
+    )
+}
+
+@Composable
+private fun EditStateView(
+    state: TimeSlotEditState,
+    sendIntent: (TimeSlotListPageUiIntent) -> Unit
+) {
+    Card {
+        Column {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                IconButton(onClick = {
+                    sendIntent.invoke(
+                        TimeSlotListPageUiIntent.UpdateTimeSlotEdit(
+                            TimeSlotEditStateIntent.Clear
+                        )
+                    )
+                }) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = stringResource(CommonR.string.text_close)
+                    )
+                }
+
+                if (state.slotUuid != null) {
+                    IconButton(onClick = {
                         sendIntent.invoke(
-                            TimeSlotListPageUiIntent.UpdateTimeSlotEdit(it)
+                            TimeSlotListPageUiIntent.DeleteTimeSlot(
+                                slotId = state.slotUuid
+                            )
+                        )
+                    }) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = stringResource(CommonR.string.text_delete)
                         )
                     }
                 }
             }
+
+            HorizontalDivider(
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            TimeSlotEditView(
+                state = state,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp)
+            ) {
+                sendIntent.invoke(
+                    TimeSlotListPageUiIntent.UpdateTimeSlotEdit(it)
+                )
+            }
         }
-    )
+    }
 }
 
 @Composable

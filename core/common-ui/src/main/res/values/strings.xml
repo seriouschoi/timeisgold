@@ -5,6 +5,7 @@
     <string name="text_confirm">확인</string>
     <string name="text_cancel">취소</string>
     <string name="text_edit">수정</string>
+    <string name="text_close">닫기</string>
 
     <string name="text_routine">시간표</string>
     <string name="text_timeslot">계획</string>

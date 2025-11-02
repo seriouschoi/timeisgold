@@ -10,7 +10,10 @@ fun <T> DataResult<T>.asDomainResult(): DomainResult<T> {
             when (this.error) {
                 DataError.Conflict -> DomainResult.Failure(DomainError.Conflict.Data)
                 DataError.NotFound -> DomainResult.Failure(DomainError.NotFound.TimeSlot)
-                else -> DomainResult.Failure(DomainError.Technical.Unknown)
+                else -> DomainResult.Failure(
+                    error = DomainError.Technical.Unknown,
+                    exception = this.exception
+                )
             }
         }
 

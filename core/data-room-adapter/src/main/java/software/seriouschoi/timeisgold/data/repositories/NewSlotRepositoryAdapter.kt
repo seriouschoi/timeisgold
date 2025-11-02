@@ -111,7 +111,9 @@ internal class NewSlotRepositoryAdapter @Inject constructor(
 
     override suspend fun deleteTimeSlot(timeSlotId: String): DataResult<Unit> = runSuspendCatching {
         val slotDao = database.TimeSlotDao()
-        slotDao.delete(timeSlotId)
+        database.withTransaction {
+            slotDao.delete(timeSlotId)
+        }
     }.asDataResult()
 
     suspend fun upsert(
