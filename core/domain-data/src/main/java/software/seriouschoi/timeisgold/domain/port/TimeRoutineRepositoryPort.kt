@@ -11,7 +11,7 @@ import java.time.DayOfWeek
  * Created by jhchoi on 2025. 10. 28.
  * jhchoi
  */
-interface NewRoutineRepositoryPort {
+interface TimeRoutineRepositoryPort {
 
     suspend fun setTimeRoutine(
         timeRoutine: TimeRoutineVO,

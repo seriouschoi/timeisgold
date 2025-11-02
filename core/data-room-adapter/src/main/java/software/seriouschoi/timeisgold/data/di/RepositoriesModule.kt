@@ -5,10 +5,10 @@ import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import jakarta.inject.Singleton
-import software.seriouschoi.timeisgold.data.repositories.NewRoutineRepositoryPortAdapter
-import software.seriouschoi.timeisgold.data.repositories.NewSlotRepositoryAdapter
-import software.seriouschoi.timeisgold.domain.port.NewRoutineRepositoryPort
-import software.seriouschoi.timeisgold.domain.port.NewSlotRepositoryPort
+import software.seriouschoi.timeisgold.data.repositories.TimeRoutineRepositoryPortAdapter
+import software.seriouschoi.timeisgold.data.repositories.TimeSlotRepositoryAdapter
+import software.seriouschoi.timeisgold.domain.port.TimeRoutineRepositoryPort
+import software.seriouschoi.timeisgold.domain.port.TimeSlotRepositoryPort
 
 
 @Module
@@ -17,13 +17,13 @@ internal abstract class RepositoriesModule {
 
     @Binds
     @Singleton
-    abstract fun bindNewRoutineRepository(
-        impl: NewRoutineRepositoryPortAdapter
-    ): NewRoutineRepositoryPort
+    abstract fun bindTimeRoutineRepository(
+        impl: TimeRoutineRepositoryPortAdapter
+    ): TimeRoutineRepositoryPort
 
     @Binds
     @Singleton
-    abstract fun bindNewSlotRepository(
-        impl: NewSlotRepositoryAdapter
-    ) : NewSlotRepositoryPort
+    abstract fun bindTimeSlotRepository(
+        impl: TimeSlotRepositoryAdapter
+    ) : TimeSlotRepositoryPort
 }
