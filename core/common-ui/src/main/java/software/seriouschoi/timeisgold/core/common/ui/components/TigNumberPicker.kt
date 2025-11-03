@@ -4,6 +4,7 @@ import android.widget.NumberPicker
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
+import timber.log.Timber
 
 /**
  * Created by jhchoi on 2025. 10. 21.
@@ -14,7 +15,7 @@ fun TigNumberPickerView(
     value: Int,
     range: IntRange,
     modifier: Modifier = Modifier,
-    onValueChange: (Int) -> Unit
+    onValueChange: (Int) -> Unit,
 ) {
     AndroidView(
         modifier = modifier,
@@ -29,9 +30,7 @@ fun TigNumberPickerView(
             NumberPicker(context)
         },
         update = { picker ->
-            if (picker.value != value) {
-                picker.value = value
-            }
+            picker.value = value
             picker.minValue = range.first
             picker.maxValue = range.last
             picker.setOnValueChangedListener { _, _, newVal ->
