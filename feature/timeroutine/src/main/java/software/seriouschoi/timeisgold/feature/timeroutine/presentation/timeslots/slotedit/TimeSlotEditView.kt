@@ -95,6 +95,10 @@ private fun Preview() {
                 title = "Some Slot Title",
                 startTime = LocalTime.of(1, 30),
                 endTime = LocalTime.of(4, 20),
+
+                //TODO 아래 속성의 실제 동작 구현.
+                minimumTime = LocalTime.of(0, 0),
+                maximumTime = LocalTime.of(0, 0)
             )
         )
     }

@@ -27,15 +27,22 @@ fun TigNumberPickerView(
              setOnValueChangedListener를 factory에서 설정하게 되면,
              재구성 이전의 onValueChange 를 호출하는 문제가 발생 할 수 있음.
              */
-            NumberPicker(context)
+            NumberPicker(context).apply {
+                this.updateValue(value, range)
+            }
         },
         update = { picker ->
             picker.value = value
-            picker.minValue = range.first
-            picker.maxValue = range.last
+            picker.updateValue(value, range)
             picker.setOnValueChangedListener { _, _, newVal ->
                 onValueChange(newVal)
             }
         }
     )
+}
+
+private fun NumberPicker.updateValue(value: Int, range: IntRange) {
+    this.value = value
+    this.minValue = range.first
+    this.maxValue = range.last
 }

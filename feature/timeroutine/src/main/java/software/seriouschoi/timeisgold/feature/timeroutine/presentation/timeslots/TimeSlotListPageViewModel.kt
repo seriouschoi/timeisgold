@@ -78,6 +78,8 @@ internal class TimeSlotListPageViewModel @Inject constructor(
         it
     }.flatMapLatest {
         watchTimeSlotListUseCase.invoke(it)
+    }.onEach {
+        Timber.d("received time slot list.")
     }.asResultState().stateIn(
         scope = viewModelScope,
         started = SharingStarted.Lazily,
@@ -140,6 +142,30 @@ internal class TimeSlotListPageViewModel @Inject constructor(
                                     isSelected = false,
                                 )
                             }
+                            // TODO: 상태 처리에 대한 고민.
+                            /*
+                            slotList의 success만 watch해서 목록 stateHolder를 갱신하고,
+                            여러 상태를 fail만 watch해서 오류를 state를 표시하고,
+                            여러 상태의 loading만 watch해서 로딩을 보여주는 방법도 괜찮을려나..?
+
+                            이를 위해선, uiState의 내부를 좀더 세분화 해야할 수도 있겠네..
+                            스크린 데이터,
+                            스크린 오류,
+                            스크린 로딩,
+
+                            하단 항목 편집 창.
+                            편집창 오류.
+                            편집창 로딩.
+
+                            근데 그렇게 만들면, 속성이 너무 복잡해지는것 같은데..
+                            현재 스크린 상태에 데이터, 오류, 로딩 속성을 두고 있는데..
+                            이걸...차라리 오류가 일어날 상태를 수신하고 있다가..
+                            상태 홀더에 오류라고 던지는 구현이 더 낫겠는데..
+
+
+
+                             */
+                            Timber.d("")
                             TimeSlotListStateIntent.UpdateList(slotList)
                         }
                     }
@@ -162,6 +188,7 @@ internal class TimeSlotListPageViewModel @Inject constructor(
         }.debounce(
             timeoutMillis = 500
         ).onEach { (state, week) ->
+            // TODO: 상태를 관찰하지 말고, 의도가 발행될때 apply를 수행하자.
             applyTimeSlot(
                 slotVO = TimeSlotVO(
                     startTime = state.startTime,

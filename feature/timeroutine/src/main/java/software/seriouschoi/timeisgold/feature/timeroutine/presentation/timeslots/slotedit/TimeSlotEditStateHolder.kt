@@ -68,5 +68,8 @@ internal data class TimeSlotEditState(
     val title: String,
     val startTime: LocalTime,
     val endTime: LocalTime,
-    // TODO: jhchoi 2025. 11. 2. 선택이 가능한 시간 범위 전달.
+
+    // TODO: jhchoi 2025. 11. 4. 아래의 시간을 전달해야 함.
+    val minimumTime: LocalTime? = null,
+    val maximumTime: LocalTime? = null,
 )
