@@ -1,15 +1,12 @@
 package software.seriouschoi.timeisgold.domain.usecase.timeslot
 
-import kotlinx.coroutines.flow.first
 import software.seriouschoi.timeisgold.core.common.util.MetaInfo
-import software.seriouschoi.timeisgold.domain.data.DataResult
 import software.seriouschoi.timeisgold.domain.data.DomainError
 import software.seriouschoi.timeisgold.domain.data.DomainResult
 import software.seriouschoi.timeisgold.domain.data.asDomainResult
-import software.seriouschoi.timeisgold.domain.data.vo.TimeRoutineVO
 import software.seriouschoi.timeisgold.domain.data.vo.TimeSlotVO
-import software.seriouschoi.timeisgold.domain.port.NewRoutineRepositoryPort
-import software.seriouschoi.timeisgold.domain.port.NewSlotRepositoryPort
+import software.seriouschoi.timeisgold.domain.port.TimeRoutineRepositoryPort
+import software.seriouschoi.timeisgold.domain.port.TimeSlotRepositoryPort
 import software.seriouschoi.timeisgold.domain.services.TimeRoutineDomainService
 import software.seriouschoi.timeisgold.domain.services.TimeSlotDomainService
 import java.time.DayOfWeek
@@ -20,8 +17,8 @@ import javax.inject.Inject
  * jhchoi
  */
 class SetTimeSlotUseCase @Inject constructor(
-    private val slotRepository: NewSlotRepositoryPort,
-    private val routineRepository: NewRoutineRepositoryPort,
+    private val slotRepository: TimeSlotRepositoryPort,
+    private val routineRepository: TimeRoutineRepositoryPort,
     private val timeSlotDomainService: TimeSlotDomainService,
     private val timeRoutineService: TimeRoutineDomainService
 ) {

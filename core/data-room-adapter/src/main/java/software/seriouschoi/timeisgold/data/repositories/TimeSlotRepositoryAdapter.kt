@@ -16,16 +16,16 @@ import software.seriouschoi.timeisgold.data.util.asDataResult
 import software.seriouschoi.timeisgold.domain.data.DataError
 import software.seriouschoi.timeisgold.domain.data.DataResult
 import software.seriouschoi.timeisgold.domain.data.vo.TimeSlotVO
-import software.seriouschoi.timeisgold.domain.port.NewSlotRepositoryPort
+import software.seriouschoi.timeisgold.domain.port.TimeSlotRepositoryPort
 import javax.inject.Inject
 
 /**
  * Created by jhchoi on 2025. 10. 30.
  * jhchoi
  */
-internal class NewSlotRepositoryAdapter @Inject constructor(
+internal class TimeSlotRepositoryAdapter @Inject constructor(
     private val database: AppDatabase
-) : NewSlotRepositoryPort {
+) : TimeSlotRepositoryPort {
     override suspend fun setTimeSlot(
         timeSlot: TimeSlotVO,
         slotId: String?,
@@ -111,7 +111,9 @@ internal class NewSlotRepositoryAdapter @Inject constructor(
 
     override suspend fun deleteTimeSlot(timeSlotId: String): DataResult<Unit> = runSuspendCatching {
         val slotDao = database.TimeSlotDao()
-        slotDao.delete(timeSlotId)
+        database.withTransaction {
+            slotDao.delete(timeSlotId)
+        }
     }.asDataResult()
 
     suspend fun upsert(

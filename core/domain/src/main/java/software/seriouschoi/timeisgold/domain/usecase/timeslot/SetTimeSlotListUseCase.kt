@@ -5,7 +5,7 @@ import software.seriouschoi.timeisgold.domain.data.DomainError
 import software.seriouschoi.timeisgold.domain.data.DomainResult
 import software.seriouschoi.timeisgold.domain.data.asDomainResult
 import software.seriouschoi.timeisgold.domain.data.vo.TimeSlotVO
-import software.seriouschoi.timeisgold.domain.port.NewSlotRepositoryPort
+import software.seriouschoi.timeisgold.domain.port.TimeSlotRepositoryPort
 import software.seriouschoi.timeisgold.domain.services.TimeRoutineDomainService
 import software.seriouschoi.timeisgold.domain.services.TimeSlotDomainService
 import java.time.DayOfWeek
@@ -17,7 +17,7 @@ import javax.inject.Inject
  */
 class SetTimeSlotListUseCase @Inject constructor(
     private val timeSlotDomainService: TimeSlotDomainService,
-    private val slotRepository: NewSlotRepositoryPort,
+    private val slotRepository: TimeSlotRepositoryPort,
     private val routineService: TimeRoutineDomainService
 ) {
     suspend fun invoke(

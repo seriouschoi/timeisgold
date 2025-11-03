@@ -51,14 +51,14 @@ object LocalTimeUtil {
     fun splitOverMidnight(
         startTime: LocalTime,
         endTime: LocalTime,
-    ): List<IntRange> {
+    ): List<Pair<Int, Int>> {
         return if (startTime > endTime) {
             listOf(
-                startTime.asMinutes() until DAY_MINUTES,
-                0 until endTime.asMinutes()
+                startTime.asMinutes() to DAY_MINUTES,
+                0 to endTime.asMinutes()
             )
         } else {
-            listOf(startTime.asMinutes() until endTime.asMinutes())
+            listOf(startTime.asMinutes() to endTime.asMinutes())
         }
     }
 
@@ -66,8 +66,12 @@ object LocalTimeUtil {
         timeRange1: Pair<LocalTime, LocalTime>,
         timeRange2: Pair<LocalTime, LocalTime>,
     ): Boolean {
-        val ranges1 = splitOverMidnight(timeRange1.first, timeRange1.second)
-        val ranges2 = splitOverMidnight(timeRange2.first, timeRange2.second)
+        val ranges1 = splitOverMidnight(timeRange1.first, timeRange1.second).map {
+            it.first until it.second
+        }
+        val ranges2 = splitOverMidnight(timeRange2.first, timeRange2.second).map {
+            it.first until it.second
+        }
         return ranges1.any { range1 ->
             ranges2.any { range2 ->
                 overlab(range1, range2)

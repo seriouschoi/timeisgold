@@ -6,7 +6,7 @@ import software.seriouschoi.timeisgold.domain.data.DataResult
 import software.seriouschoi.timeisgold.domain.data.DomainResult
 import software.seriouschoi.timeisgold.domain.data.asDomainResult
 import software.seriouschoi.timeisgold.domain.data.vo.TimeRoutineVO
-import software.seriouschoi.timeisgold.domain.port.NewRoutineRepositoryPort
+import software.seriouschoi.timeisgold.domain.port.TimeRoutineRepositoryPort
 import java.time.DayOfWeek
 import javax.inject.Inject
 
@@ -15,7 +15,7 @@ import javax.inject.Inject
  * jhchoi
  */
 class SetRoutineUseCase @Inject constructor(
-    private val routineRepository: NewRoutineRepositoryPort,
+    private val routineRepository: TimeRoutineRepositoryPort,
 ) {
     suspend fun invoke(
         routineVO: TimeRoutineVO,

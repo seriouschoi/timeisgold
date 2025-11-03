@@ -39,7 +39,7 @@ internal class TimeSlotEditStateHolder @Inject constructor() {
                 }
             }
 
-            TimeSlotEditStateIntent.Clear -> {
+            is TimeSlotEditStateIntent.Clear -> {
                 _state.update {
                     null
                 }
@@ -67,5 +67,6 @@ internal data class TimeSlotEditState(
     val slotUuid: String? = null,
     val title: String,
     val startTime: LocalTime,
-    val endTime: LocalTime
+    val endTime: LocalTime,
+    // TODO: jhchoi 2025. 11. 2. 선택이 가능한 시간 범위 전달.
 )

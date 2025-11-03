@@ -35,7 +35,7 @@ import software.seriouschoi.timeisgold.core.domain.mapper.toUiText
 import software.seriouschoi.timeisgold.domain.data.DomainError
 import software.seriouschoi.timeisgold.domain.data.DomainResult
 import software.seriouschoi.timeisgold.domain.data.vo.TimeSlotVO
-import software.seriouschoi.timeisgold.domain.usecase.timeroutine.WatchRoutineUseCase
+import software.seriouschoi.timeisgold.domain.usecase.timeslot.DeleteTimeSlotUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeslot.SetTimeSlotListUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeslot.SetTimeSlotUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeslot.WatchTimeSlotListUseCase
@@ -46,6 +46,7 @@ import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslot
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.slotedit.TimeSlotEditState
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.slotedit.TimeSlotEditStateHolder
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.slotedit.TimeSlotEditStateIntent
+import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.slotedit.TimeSlotEditStateIntent.Init
 import timber.log.Timber
 import java.time.DayOfWeek
 import java.time.LocalTime
@@ -60,10 +61,10 @@ import software.seriouschoi.timeisgold.core.common.ui.R as CommonR
 internal class TimeSlotListPageViewModel @Inject constructor(
     private val navigator: DestNavigatorPort,
 
-    private val watchRoutineUseCase: WatchRoutineUseCase,
     private val watchTimeSlotListUseCase: WatchTimeSlotListUseCase,
     private val setTimeSlotsUseCase: SetTimeSlotListUseCase,
     private val setTimeSlotUseCase: SetTimeSlotUseCase,
+    private val deleteTimeSlotUseCase: DeleteTimeSlotUseCase,
 
     private val timeSlotListStateHolder: TimeSlotListStateHolder,
     private val timeSlotEditStateHolder: TimeSlotEditStateHolder,
@@ -71,19 +72,6 @@ internal class TimeSlotListPageViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val dayOfWeekFlow = MutableStateFlow<DayOfWeek?>(null)
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    private val routine = dayOfWeekFlow.mapNotNull {
-        it
-    }.flatMapLatest {
-        watchRoutineUseCase.invoke(it)
-    }.onEach {
-        Timber.d("received routine.")
-    }.asResultState().stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.Lazily,
-        initialValue = ResultState.Loading
-    )
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private val timeslotList = dayOfWeekFlow.mapNotNull {
@@ -136,16 +124,11 @@ internal class TimeSlotListPageViewModel @Inject constructor(
                     when (val domainResult = resultState.data) {
                         is DomainResult.Failure -> {
                             when (val domainError = domainResult.error) {
-                                is DomainError.NotFound -> {
-                                    TimeSlotListStateIntent.UpdateList(
-                                        emptyList = emptyList()
-                                    )
-                                }
+                                is DomainError.NotFound -> TimeSlotListStateIntent.UpdateList(
+                                    itemList = emptyList()
+                                )
 
-                                else -> {
-                                    val errorMessage = domainError.toUiText()
-                                    TimeSlotListStateIntent.Error(errorMessage)
-                                }
+                                else -> TimeSlotListStateIntent.Error(domainError.toUiText())
                             }
                         }
 
@@ -156,7 +139,7 @@ internal class TimeSlotListPageViewModel @Inject constructor(
                                     title = it.payload.title,
                                     startMinutesOfDay = it.payload.startTime.asMinutes(),
                                     endMinutesOfDay = it.payload.endTime.asMinutes(),
-                                    isSelected = false
+                                    isSelected = false,
                                 )
                             }
                             TimeSlotListStateIntent.UpdateList(slotList)
@@ -208,7 +191,7 @@ internal class TimeSlotListPageViewModel @Inject constructor(
             }
 
             is TimeSlotListPageUiIntent.UpdateTimeSlotUi -> {
-                handleUpdateTimeSlot(intent)
+                handleUpdateTimeSlotIntent(intent)
             }
 
             TimeSlotListPageUiIntent.Cancel -> {
@@ -228,23 +211,24 @@ internal class TimeSlotListPageViewModel @Inject constructor(
                     startTime to endTime
                 }
 
-                val (startTime, endTime) = findAvailableTimeSlot(currentSlotList, intent.hourOfDay)
-
-                timeSlotEditStateHolder.sendIntent(
-                    TimeSlotEditStateIntent.Init(
-                        state = TimeSlotEditState(
-                            slotUuid = null,
-                            title = "",
-                            startTime = startTime,
-                            endTime = endTime,
+                val availableTimeSlot = findAvailableTimeSlot(currentSlotList, intent.hourOfDay)
+                if (availableTimeSlot != null) {
+                    timeSlotEditStateHolder.sendIntent(
+                        Init(
+                            state = TimeSlotEditState(
+                                slotUuid = null,
+                                title = "",
+                                startTime = availableTimeSlot.first,
+                                endTime = availableTimeSlot.second,
+                            )
                         )
                     )
-                )
+                }
             }
 
             is TimeSlotListPageUiIntent.SelectTimeSlot -> {
                 timeSlotEditStateHolder.sendIntent(
-                    TimeSlotEditStateIntent.Init(
+                    Init(
                         state = TimeSlotEditState(
                             slotUuid = intent.slot.slotUuid,
                             title = intent.slot.title,
@@ -254,43 +238,63 @@ internal class TimeSlotListPageViewModel @Inject constructor(
                     )
                 )
             }
+
+            is TimeSlotListPageUiIntent.DeleteTimeSlot -> {
+                timeSlotEditStateHolder.sendIntent(TimeSlotEditStateIntent.Clear)
+                deleteTimeSlot(intent.slotId)
+            }
         }
     }
 
+    private fun deleteTimeSlot(slotId: String) {
+        flowResultState {
+            deleteTimeSlotUseCase.invoke(slotId)
+        }.launchIn(viewModelScope)
+    }
+
     /**
-     * 시간 목록에 특정 hour를 전달하면, 그 사이의 빈 시간을 리턴. (최대 1시간)
-     * 기본 한시간 길이로, 만약 한시간 길이로 했는데, 다른 슬롯과 중복되면, 중복되지 않는 범위 까지만.
-     *
      * @param existingSlots 현재 시간 슬롯 목록
      * @param startHourOfDay 시작 시간 (hour)
      * @return 시작 시간과 종료 시간 Pair
      */
     private fun findAvailableTimeSlot(
-        existingSlots: List<Pair<LocalTime, LocalTime>>, 
+        existingSlots: List<Pair<LocalTime, LocalTime>>,
         startHourOfDay: Int
-    ): Pair<LocalTime, LocalTime> {
-        val startTime = LocalTime.of(startHourOfDay, 0)
-        val potentialEndTime = startTime.plusHours(1)
+    ): Pair<LocalTime, LocalTime>? {
 
-        // 선택된 시간과 겹치는 기존 슬롯이 있는지 확인합니다.
-        for (slot in existingSlots) {
-            val slotStart = slot.first
-            val slotEnd = slot.second
+        val startOfHour = startHourOfDay * 60
+        val endOfHour = startOfHour + 60
 
-            // 새로운 슬롯의 시작 시간이 기존 슬롯 내에 있거나,
-            // 기존 슬롯의 시작 시간이 새로운 슬롯 내에 있는 경우 겹칩니다.
-            if (startTime.isBefore(slotEnd) && potentialEndTime.isAfter(slotStart)) {
-                // 겹치는 경우, 새로운 슬롯의 종료 시간을 겹치는 슬롯의 시작 시간으로 조정합니다.
-                return startTime to slotStart
+        val slotsInMinutes = existingSlots
+            .map { it.first.asMinutes() to it.second.asMinutes() }
+            .sortedBy { it.first }
+
+        var potentialStartTime = startOfHour
+
+        for ((slotStart, slotEnd) in slotsInMinutes) {
+            if (potentialStartTime >= slotEnd) continue
+
+            if (potentialStartTime < slotStart) {
+                val availableEnd = minOf(slotStart, endOfHour)
+                if (potentialStartTime < availableEnd) {
+                    return LocalTimeUtil.create(potentialStartTime) to LocalTimeUtil.create(
+                        availableEnd
+                    )
+                }
             }
+            potentialStartTime = maxOf(potentialStartTime, slotEnd)
         }
 
-        return startTime to potentialEndTime
+        if (potentialStartTime < endOfHour) {
+            return LocalTimeUtil.create(potentialStartTime) to LocalTimeUtil.create(endOfHour)
+        }
+
+        return null
     }
 
     private var dragMinsAcc = 0
 
-    private suspend fun handleUpdateTimeSlot(
+    private suspend fun handleUpdateTimeSlotIntent(
         intent: TimeSlotListPageUiIntent.UpdateTimeSlotUi,
     ) {
         val slotListState = timeSlotListStateHolder.state.first()
@@ -303,6 +307,24 @@ internal class TimeSlotListPageViewModel @Inject constructor(
         timeSlotListStateHolder.sendIntent(
             TimeSlotListStateIntent.UpdateList(newList)
         )
+
+        // time slot edit이 표시 상태라면, 함께 갱신한다.
+        // 현재 편집 중인 슬롯이 있는지 확인
+        timeSlotEditStateHolder.state.first()?.slotUuid?.let { editingSlotUuid ->
+            // 업데이트된 목록에서 현재 편집 중인 슬롯의 최신 정보를 찾음
+            newList.find { it.slotUuid == editingSlotUuid }?.let { updatedSlot ->
+                // TimeSlotEditStateHolder에 변경된 시간 정보로 업데이트 인텐트를 보냄
+                timeSlotEditStateHolder.sendIntent(
+                    TimeSlotEditStateIntent.Update(
+                        slotId = updatedSlot.slotUuid,
+                        slotTitle = updatedSlot.title,
+                        startTime = LocalTimeUtil.create(updatedSlot.startMinutesOfDay),
+                        endTime = LocalTimeUtil.create(updatedSlot.endMinutesOfDay),
+                    )
+                )
+            }
+        }
+
     }
 
     private fun updateTimeSlotEdit(state: TimeSlotEditState, dayOfWeek: DayOfWeek) {

@@ -9,8 +9,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import software.seriouschoi.timeisgold.core.common.ui.TigTheme
-import software.seriouschoi.timeisgold.core.common.ui.components.TigNumberPickerView
 import software.seriouschoi.timeisgold.core.common.ui.components.TigSingleLineTextField
+import software.seriouschoi.timeisgold.core.common.ui.components.TigTimePicker
 import timber.log.Timber
 import java.time.LocalTime
 import software.seriouschoi.timeisgold.core.common.ui.R as CommonR
@@ -53,21 +53,12 @@ internal fun TimeSlotEditView(
             Spacer(
                 modifier = Modifier.weight(1f)
             )
-            TigNumberPickerView(
-                value = state.startTime.hour,
-                range = 0..23,
+            TigTimePicker(
+                time = state.startTime,
             ) {
+                Timber.d("picked start time. time=${it}")
                 sendIntent.invoke(TimeSlotEditStateIntent.Update(
-                    startTime = LocalTime.of(it, state.startTime.minute),
-                    slotId = state.slotUuid
-                ))
-            }
-            TigNumberPickerView(
-                value = state.startTime.minute,
-                range = 0..59,
-            ) {
-                sendIntent.invoke(TimeSlotEditStateIntent.Update(
-                    startTime = LocalTime.of(state.startTime.hour, it),
+                    startTime = it,
                     slotId = state.slotUuid
                 ))
             }
@@ -76,24 +67,16 @@ internal fun TimeSlotEditView(
                 modifier = Modifier.weight(1f)
             )
 
-            TigNumberPickerView(
-                value = state.endTime.hour,
-                range = 0..23,
+            TigTimePicker(
+                time = state.endTime,
             ) {
+                Timber.d("picked end time. time=${it}")
                 sendIntent.invoke(TimeSlotEditStateIntent.Update(
-                    endTime = LocalTime.of(it, state.endTime.minute),
+                    endTime = it,
                     slotId = state.slotUuid
                 ))
             }
-            TigNumberPickerView(
-                value = state.endTime.minute,
-                range = 0..59,
-            ) {
-                sendIntent.invoke(TimeSlotEditStateIntent.Update(
-                    endTime = LocalTime.of(state.endTime.hour, it),
-                    slotId = state.slotUuid
-                ))
-            }
+
             Spacer(
                 modifier = Modifier.weight(1f)
             )

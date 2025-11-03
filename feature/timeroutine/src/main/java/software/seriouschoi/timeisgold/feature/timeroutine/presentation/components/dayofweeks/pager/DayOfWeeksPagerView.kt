@@ -33,7 +33,8 @@ internal fun DayOfWeekPagerView(
     ) {
         val dayOfWeek = pagerItems[it]
         TimeSlotListPageScreen(
-            dayOfWeek = dayOfWeek
+            dayOfWeek = dayOfWeek,
+            isCurrentPage = dayOfWeek == currentDayOfWeek
         )
     }
 }

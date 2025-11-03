@@ -60,7 +60,8 @@ internal fun TimeSlotListView(
                 //no work.
             },
             onDragBound = onDrag@{ index, dx, dy, target ->
-                val selectedItemUuid = currentSlotList.getOrNull(index)?.slotUuid ?: return@onDrag
+                val selectedItem = currentSlotList.getOrNull(index) ?: return@onDrag
+
                 val minutesFactor = TimePixelUtil.pxToMinutes(dy.toLong(), hourHeightPx)
                 val updateTime = when (target) {
                     DragTarget.Card -> TimeSlotUpdateTimeType.START_AND_END
@@ -68,7 +69,7 @@ internal fun TimeSlotListView(
                     DragTarget.Bottom -> TimeSlotUpdateTimeType.END
                 }
                 val intent = TimeSlotListPageUiIntent.UpdateTimeSlotUi(
-                    uuid = selectedItemUuid,
+                    uuid = selectedItem.slotUuid,
                     minuteFactor = minutesFactor.toInt(),
                     updateTimeType = updateTime
                 )

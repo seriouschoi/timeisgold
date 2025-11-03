@@ -11,8 +11,8 @@ import software.seriouschoi.timeisgold.domain.data.DomainResult
 import software.seriouschoi.timeisgold.domain.data.asDomainResult
 import software.seriouschoi.timeisgold.domain.data.vo.TimeRoutineVO
 import software.seriouschoi.timeisgold.domain.data.vo.TimeSlotVO
-import software.seriouschoi.timeisgold.domain.port.NewRoutineRepositoryPort
-import software.seriouschoi.timeisgold.domain.port.NewSlotRepositoryPort
+import software.seriouschoi.timeisgold.domain.port.TimeRoutineRepositoryPort
+import software.seriouschoi.timeisgold.domain.port.TimeSlotRepositoryPort
 import java.time.DayOfWeek
 import javax.inject.Inject
 
@@ -21,8 +21,8 @@ import javax.inject.Inject
  * jhchoi
  */
 class WatchTimeSlotListUseCase @Inject constructor(
-    private val timeSlotRepository: NewSlotRepositoryPort,
-    private val timeRoutineRepository: NewRoutineRepositoryPort
+    private val timeSlotRepository: TimeSlotRepositoryPort,
+    private val timeRoutineRepository: TimeRoutineRepositoryPort
 ) {
     @OptIn(ExperimentalCoroutinesApi::class)
     operator fun invoke(dayOfWeek: DayOfWeek): Flow<DomainResult<List<MetaEnvelope<TimeSlotVO>>>> {

@@ -17,7 +17,7 @@ import software.seriouschoi.timeisgold.data.util.asDataResult
 import software.seriouschoi.timeisgold.domain.data.DataError
 import software.seriouschoi.timeisgold.domain.data.DataResult
 import software.seriouschoi.timeisgold.domain.data.vo.TimeRoutineVO
-import software.seriouschoi.timeisgold.domain.port.NewRoutineRepositoryPort
+import software.seriouschoi.timeisgold.domain.port.TimeRoutineRepositoryPort
 import java.time.DayOfWeek
 import javax.inject.Inject
 
@@ -25,9 +25,9 @@ import javax.inject.Inject
  * Created by jhchoi on 2025. 10. 29.
  * jhchoi
  */
-internal class NewRoutineRepositoryPortAdapter @Inject constructor(
+internal class TimeRoutineRepositoryPortAdapter @Inject constructor(
     private val database: AppDatabase
-) : NewRoutineRepositoryPort {
+) : TimeRoutineRepositoryPort {
 
     override suspend fun setTimeRoutine(
         timeRoutine: TimeRoutineVO,
