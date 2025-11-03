@@ -78,8 +78,6 @@ internal class TimeSlotListPageViewModel @Inject constructor(
         it
     }.flatMapLatest {
         watchTimeSlotListUseCase.invoke(it)
-    }.onEach {
-        Timber.d("received time slot list.")
     }.asResultState().stateIn(
         scope = viewModelScope,
         started = SharingStarted.Lazily,
@@ -109,7 +107,7 @@ internal class TimeSlotListPageViewModel @Inject constructor(
     init {
         watchIntent()
         watchSlotList()
-        watchTimeSlotEdit()
+        watchTimeSlotEditState()
     }
 
     private fun watchSlotList() {
@@ -153,7 +151,7 @@ internal class TimeSlotListPageViewModel @Inject constructor(
     }
 
     @OptIn(FlowPreview::class)
-    private fun watchTimeSlotEdit() {
+    private fun watchTimeSlotEditState() {
         combine(
             timeSlotEditStateHolder.state.mapNotNull { it },
             dayOfWeekFlow.mapNotNull { it }
@@ -164,9 +162,14 @@ internal class TimeSlotListPageViewModel @Inject constructor(
         }.debounce(
             timeoutMillis = 500
         ).onEach { (state, week) ->
-            updateTimeSlotEdit(
-                state = state,
-                dayOfWeek = week
+            applyTimeSlot(
+                slotVO = TimeSlotVO(
+                    startTime = state.startTime,
+                    endTime = state.endTime,
+                    title = state.title
+                ),
+                dayOfWeek = week,
+                slotId = state.slotUuid
             )
         }.launchIn(viewModelScope)
     }
@@ -186,8 +189,8 @@ internal class TimeSlotListPageViewModel @Inject constructor(
     private suspend fun handleIntentSideEffect(intent: TimeSlotListPageUiIntent) {
         when (intent) {
 
-            is TimeSlotListPageUiIntent.UpdateTimeSlotList -> {
-                updateTimeSlotList()
+            is TimeSlotListPageUiIntent.ApplyTimeSlotListChanges -> {
+                applyTimeSlotList()
             }
 
             is TimeSlotListPageUiIntent.UpdateTimeSlotUi -> {
@@ -259,7 +262,7 @@ internal class TimeSlotListPageViewModel @Inject constructor(
      */
     private fun findAvailableTimeSlot(
         existingSlots: List<Pair<LocalTime, LocalTime>>,
-        startHourOfDay: Int
+        startHourOfDay: Int,
     ): Pair<LocalTime, LocalTime>? {
 
         val startOfHour = startHourOfDay * 60
@@ -327,18 +330,18 @@ internal class TimeSlotListPageViewModel @Inject constructor(
 
     }
 
-    private fun updateTimeSlotEdit(state: TimeSlotEditState, dayOfWeek: DayOfWeek) {
+    private fun applyTimeSlot(
+        dayOfWeek: DayOfWeek,
+        slotVO: TimeSlotVO,
+        slotId: String?,
+    ) {
         flowResultState {
-            Timber.d("update time slot. state=${state}")
+            Timber.d("update time slot. state=${slotVO}")
 
             setTimeSlotUseCase.execute(
                 dayOfWeek = dayOfWeek,
-                timeSlot = TimeSlotVO(
-                    startTime = state.startTime,
-                    endTime = state.endTime,
-                    title = state.title,
-                ),
-                slotId = state.slotUuid
+                timeSlot = slotVO,
+                slotId = slotId
             )
         }.map { resultState: ResultState<DomainResult<MetaInfo>> ->
             resultState.onlyDomainResult()
@@ -364,7 +367,7 @@ internal class TimeSlotListPageViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
-    private fun updateTimeSlotList() {
+    private fun applyTimeSlotList() {
         flowResultState {
             val dayOfWeek = dayOfWeekFlow.first()
                 ?: return@flowResultState DomainResult.Failure(DomainError.NotFound.TimeRoutine)
