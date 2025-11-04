@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChangedBy
@@ -23,13 +24,11 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import software.seriouschoi.navigator.DestNavigatorPort
 import software.seriouschoi.timeisgold.core.common.ui.ResultState
 import software.seriouschoi.timeisgold.core.common.ui.UiText
-import software.seriouschoi.timeisgold.core.common.ui.asResultState
 import software.seriouschoi.timeisgold.core.common.ui.flowResultState
 import software.seriouschoi.timeisgold.core.common.ui.withResultStateLifecycle
 import software.seriouschoi.timeisgold.core.common.util.LocalTimeUtil
@@ -38,7 +37,6 @@ import software.seriouschoi.timeisgold.core.common.util.MetaInfo
 import software.seriouschoi.timeisgold.core.common.util.asMinutes
 import software.seriouschoi.timeisgold.core.domain.mapper.asDomainError
 import software.seriouschoi.timeisgold.core.domain.mapper.asResultState
-import software.seriouschoi.timeisgold.core.domain.mapper.onlyDomainResult
 import software.seriouschoi.timeisgold.core.domain.mapper.toUiText
 import software.seriouschoi.timeisgold.domain.data.DomainError
 import software.seriouschoi.timeisgold.domain.data.DomainResult
@@ -82,17 +80,20 @@ internal class TimeSlotListPageViewModel @Inject constructor(
     private val dayOfWeekFlow = MutableStateFlow<DayOfWeek?>(null)
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    private val timeslotList = dayOfWeekFlow.mapNotNull {
-        it
-    }.flatMapLatest {
-        watchTimeSlotListUseCase.invoke(it)
-    }.onEach {
-        Timber.d("received time slot list.")
-    }.asResultState().stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.Lazily,
-        initialValue = ResultState.Loading
-    )
+    private val timeslotList: StateFlow<ResultState<List<MetaEnvelope<TimeSlotVO>>>> =
+        dayOfWeekFlow.mapNotNull {
+            it
+        }.flatMapLatest {
+            watchTimeSlotListUseCase.invoke(it)
+        }.map {
+            it.asResultState()
+        }.withResultStateLifecycle().onEach {
+            Timber.d("received time slot list.")
+        }.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.Lazily,
+            initialValue = ResultState.Loading
+        )
 
     private val _intent = MutableSharedFlow<MetaEnvelope<TimeSlotListPageUiIntent>>()
 
@@ -127,40 +128,25 @@ internal class TimeSlotListPageViewModel @Inject constructor(
                 TimeSlotListStateIntent.Loading
             }
         val errorFlow: Flow<TimeSlotListStateIntent> =
-            timeslotList.filterIsInstance<ResultState.Error>().map {
-                TimeSlotListStateIntent.Error(
-                    UiText.Res(CommonR.string.message_error_tech_unknown)
-                )
+            timeslotList.filterIsInstance<ResultState.Error>().mapNotNull {
+                if (it.asDomainError() !is DomainError.NotFound) {
+                    TimeSlotListStateIntent.Error(it.asDomainError().toUiText())
+                } else null
             }
 
-        val domainResultFlow = timeslotList.mapNotNull {
-            it as? ResultState.Success
-        }.mapNotNull {
-            it.data
-        }.shareIn(viewModelScope, SharingStarted.Lazily, replay = 1)
-
-        val domainFailFlow = domainResultFlow.mapNotNull {
-            it as? DomainResult.Failure
-        }
-
-        val emptyListFlow: Flow<TimeSlotListStateIntent> = domainFailFlow.mapNotNull {
-            it.error as? DomainError.NotFound
-        }.map {
-            TimeSlotListStateIntent.UpdateList(
-                itemList = emptyList()
-            )
-        }
-
-        val domainErrorFlow: Flow<TimeSlotListStateIntent> = domainFailFlow.mapNotNull {
-            it.error.takeIf { it !is DomainError.NotFound }?.let {
-                TimeSlotListStateIntent.Error(it.toUiText())
+        val emptyFlow: Flow<TimeSlotListStateIntent> =
+            timeslotList.filterIsInstance<ResultState.Error>().mapNotNull {
+                if (it.asDomainError() is DomainError.NotFound) {
+                    TimeSlotListStateIntent.UpdateList(
+                        itemList = emptyList()
+                    )
+                } else null
             }
-        }
 
-        val domainSuccessFlow: Flow<TimeSlotListStateIntent> = domainResultFlow.mapNotNull {
-            it as? DomainResult.Success
-        }.map { domainResult ->
-            val slotList = domainResult.value.map {
+        val dataFlow = timeslotList.mapNotNull {
+            (it as? ResultState.Success)?.data
+        }.map { result: List<MetaEnvelope<TimeSlotVO>> ->
+            val slotList = result.map {
                 TimeSlotItemUiState(
                     slotUuid = it.metaInfo.uuid,
                     title = it.payload.title,
@@ -175,9 +161,8 @@ internal class TimeSlotListPageViewModel @Inject constructor(
         merge(
             loadingFlow,
             errorFlow,
-            emptyListFlow,
-            domainErrorFlow,
-            domainSuccessFlow
+            emptyFlow,
+            dataFlow
         ).onEach {
             timeSlotListStateHolder.sendIntent(it)
         }.launchIn(viewModelScope)
@@ -392,7 +377,7 @@ internal class TimeSlotListPageViewModel @Inject constructor(
             loading.mapNotNull {
                 //no work.
                 null
-           },
+            },
             failed.mapNotNull {
                 //no work.
                 null

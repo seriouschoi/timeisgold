@@ -4,7 +4,6 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 
 sealed class ResultState<out T> {
@@ -15,15 +14,6 @@ sealed class ResultState<out T> {
 
 fun <T> Flow<ResultState<T>>.withResultStateLifecycle(): Flow<ResultState<T>> {
     return this
-        .onStart { emit(ResultState.Loading) }
-        .catch { e -> emit(ResultState.Error(e)) }
-}
-
-@Deprecated("use map{it.asResultState}.withResultStateLifeCycle()")
-fun <T> Flow<T>.asResultState(): Flow<ResultState<T>> {
-    return this.map<T, ResultState<T>> {
-        ResultState.Success(it)
-    }
         .onStart { emit(ResultState.Loading) }
         .catch { e -> emit(ResultState.Error(e)) }
 }

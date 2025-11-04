@@ -3,7 +3,6 @@ package software.seriouschoi.timeisgold.feature.timeroutine.presentation.pager
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -12,13 +11,15 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import software.seriouschoi.navigator.DestNavigatorPort
-import software.seriouschoi.timeisgold.core.common.ui.asResultState
+import software.seriouschoi.timeisgold.core.common.ui.ResultState
+import software.seriouschoi.timeisgold.core.common.ui.withResultStateLifecycle
 import software.seriouschoi.timeisgold.core.common.util.MetaEnvelope
-import software.seriouschoi.timeisgold.core.domain.mapper.onlyDomainSuccess
+import software.seriouschoi.timeisgold.core.domain.mapper.asResultState
 import software.seriouschoi.timeisgold.domain.data.vo.TimeRoutineVO
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.SetRoutineUseCase
 import software.seriouschoi.timeisgold.feature.timeroutine.data.TimeRoutineFeatureState
@@ -52,13 +53,15 @@ internal class TimeRoutinePagerViewModel @Inject constructor(
 
     private val _intent = MutableSharedFlow<MetaEnvelope<TimeRoutinePagerUiIntent>>()
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    private val currentRoutine =
-        state.routine.asResultState().onlyDomainSuccess().stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.Lazily,
-            initialValue = null
-        )
+    private val currentRoutine = state.routine.map {
+        it.asResultState()
+    }.withResultStateLifecycle().mapNotNull {
+        (it as? ResultState.Success)?.data
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.Lazily,
+        initialValue = null
+    )
 
     val uiState = combine(
         routineTitleStateHolder.state,
