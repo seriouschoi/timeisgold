@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -13,12 +14,16 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChangedBy
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.scan
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import software.seriouschoi.navigator.DestNavigatorPort
@@ -88,6 +93,7 @@ internal class TimeSlotListPageViewModel @Inject constructor(
 
     private val _intent = MutableSharedFlow<MetaEnvelope<TimeSlotListPageUiIntent>>()
 
+    //state holder의 조합만 이뤄짐.
     val uiState = combine(
         timeSlotListStateHolder.state,
         timeSlotEditStateHolder.state
@@ -113,65 +119,61 @@ internal class TimeSlotListPageViewModel @Inject constructor(
     }
 
     private fun watchSlotList() {
-        timeslotList.map { resultState ->
-            when (resultState) {
-                is ResultState.Loading -> TimeSlotListStateIntent.Loading
-                is ResultState.Error -> TimeSlotListStateIntent.Error(
-                    UiText.Res(CommonR.string.message_error_tech_unknown)
-                )
+        val loadingFlow: Flow<TimeSlotListStateIntent> = timeslotList.filterIsInstance<ResultState.Loading>().map {
+            TimeSlotListStateIntent.Loading
+        }
+        val errorFlow: Flow<TimeSlotListStateIntent> = timeslotList.filterIsInstance<ResultState.Error>().map {
+            TimeSlotListStateIntent.Error(
+                UiText.Res(CommonR.string.message_error_tech_unknown)
+            )
+        }
 
-                is ResultState.Success -> {
-                    when (val domainResult = resultState.data) {
-                        is DomainResult.Failure -> {
-                            when (val domainError = domainResult.error) {
-                                is DomainError.NotFound -> TimeSlotListStateIntent.UpdateList(
-                                    itemList = emptyList()
-                                )
+        val domainResultFlow = timeslotList.mapNotNull {
+            it as? ResultState.Success
+        }.mapNotNull {
+            it.data
+        }.shareIn(viewModelScope, SharingStarted.Lazily, replay = 1)
 
-                                else -> TimeSlotListStateIntent.Error(domainError.toUiText())
-                            }
-                        }
+        val domainFailFlow = domainResultFlow.mapNotNull {
+            it as? DomainResult.Failure
+        }
+        
+        val emptyListFlow: Flow<TimeSlotListStateIntent> = domainFailFlow.mapNotNull {
+            it.error as? DomainError.NotFound
+        }.map {
+            TimeSlotListStateIntent.UpdateList(
+                itemList = emptyList()
+            )
+        }
 
-                        is DomainResult.Success -> {
-                            val slotList = domainResult.value.map {
-                                TimeSlotItemUiState(
-                                    slotUuid = it.metaInfo.uuid,
-                                    title = it.payload.title,
-                                    startMinutesOfDay = it.payload.startTime.asMinutes(),
-                                    endMinutesOfDay = it.payload.endTime.asMinutes(),
-                                    isSelected = false,
-                                )
-                            }
-                            // TODO: 상태 처리에 대한 고민.
-                            /*
-                            slotList의 success만 watch해서 목록 stateHolder를 갱신하고,
-                            여러 상태를 fail만 watch해서 오류를 state를 표시하고,
-                            여러 상태의 loading만 watch해서 로딩을 보여주는 방법도 괜찮을려나..?
-
-                            이를 위해선, uiState의 내부를 좀더 세분화 해야할 수도 있겠네..
-                            스크린 데이터,
-                            스크린 오류,
-                            스크린 로딩,
-
-                            하단 항목 편집 창.
-                            편집창 오류.
-                            편집창 로딩.
-
-                            근데 그렇게 만들면, 속성이 너무 복잡해지는것 같은데..
-                            현재 스크린 상태에 데이터, 오류, 로딩 속성을 두고 있는데..
-                            이걸...차라리 오류가 일어날 상태를 수신하고 있다가..
-                            상태 홀더에 오류라고 던지는 구현이 더 낫겠는데..
-
-
-
-                             */
-                            Timber.d("")
-                            TimeSlotListStateIntent.UpdateList(slotList)
-                        }
-                    }
-                }
+        val domainErrorFlow: Flow<TimeSlotListStateIntent> = domainFailFlow.mapNotNull {
+            it.error.takeIf { it !is DomainError.NotFound }?.let {
+                TimeSlotListStateIntent.Error(it.toUiText())
             }
-        }.onEach {
+        }
+
+        val domainSuccessFlow: Flow<TimeSlotListStateIntent> = domainResultFlow.mapNotNull {
+            it as? DomainResult.Success
+        }.map { domainResult ->
+            val slotList = domainResult.value.map {
+                TimeSlotItemUiState(
+                    slotUuid = it.metaInfo.uuid,
+                    title = it.payload.title,
+                    startMinutesOfDay = it.payload.startTime.asMinutes(),
+                    endMinutesOfDay = it.payload.endTime.asMinutes(),
+                    isSelected = false,
+                )
+            }
+            TimeSlotListStateIntent.UpdateList(slotList)
+        }
+
+        merge(
+            loadingFlow,
+            errorFlow,
+            emptyListFlow,
+            domainErrorFlow,
+            domainSuccessFlow
+        ).onEach {
             timeSlotListStateHolder.sendIntent(it)
         }.launchIn(viewModelScope)
     }
@@ -214,6 +216,10 @@ internal class TimeSlotListPageViewModel @Inject constructor(
     }
 
     private suspend fun handleIntentSideEffect(intent: TimeSlotListPageUiIntent) {
+        // TODO: jhchoi 2025. 11. 4. 이부분을 reducer/intentHandler로 만들어야 함.
+        /*
+        근데 reducer로 만들려면, intent의 결과를 또 받아서 어떻게 해야하는거지..?
+         */
         when (intent) {
 
             is TimeSlotListPageUiIntent.ApplyTimeSlotListChanges -> {
