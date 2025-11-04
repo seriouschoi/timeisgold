@@ -29,7 +29,6 @@ import kotlinx.coroutines.launch
 import software.seriouschoi.navigator.DestNavigatorPort
 import software.seriouschoi.timeisgold.core.common.ui.ResultState
 import software.seriouschoi.timeisgold.core.common.ui.UiText
-import software.seriouschoi.timeisgold.core.common.ui.flowResultState
 import software.seriouschoi.timeisgold.core.common.ui.withResultStateLifecycle
 import software.seriouschoi.timeisgold.core.common.util.LocalTimeUtil
 import software.seriouschoi.timeisgold.core.common.util.MetaEnvelope
@@ -273,9 +272,11 @@ internal class TimeSlotListPageViewModel @Inject constructor(
     }
 
     private fun deleteTimeSlot(slotId: String) {
-        flowResultState {
-            deleteTimeSlotUseCase.invoke(slotId)
-        }.launchIn(viewModelScope)
+        flow {
+            emit(deleteTimeSlotUseCase.invoke(slotId))
+        }.map {
+            it.asResultState()
+        }.withResultStateLifecycle().launchIn(viewModelScope)
     }
 
     /**

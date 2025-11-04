@@ -8,8 +8,10 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
+import software.seriouschoi.timeisgold.core.common.ui.ResultState
+import software.seriouschoi.timeisgold.core.common.ui.withResultStateLifecycle
 import software.seriouschoi.timeisgold.core.common.util.MetaEnvelope
-import software.seriouschoi.timeisgold.core.domain.mapper.onlySuccess
+import software.seriouschoi.timeisgold.core.domain.mapper.asResultState
 import software.seriouschoi.timeisgold.domain.data.DomainResult
 import software.seriouschoi.timeisgold.domain.data.vo.TimeRoutineVO
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.WatchAllRoutineDayOfWeeksUseCase
@@ -37,12 +39,20 @@ internal class TimeRoutineFeatureState(
     }
 
     val selectableDayOfWeeks = combine(
-        allDayOfWeeksUseCase.invoke(),
-        routine.map { it.onlySuccess() }
+        allDayOfWeeksUseCase.invoke().map {
+            it.asResultState()
+        }.withResultStateLifecycle().map {
+            (it as? ResultState.Success)?.data
+        },
+        routine.map {
+            it.asResultState()
+        }.withResultStateLifecycle().map {
+            (it as? ResultState.Success)?.data
+        }
     ) { allDayOfWeeks, routine ->
 
-        val allRoutinesDayOfWeeks = allDayOfWeeks.onlySuccess() ?: emptyList()
-        val currentRoutineDayOfWeeks = routine?.payload?.dayOfWeeks ?: emptyList()
+        val allRoutinesDayOfWeeks = allDayOfWeeks ?: emptyList()
+        val currentRoutineDayOfWeeks = routine?.payload?.dayOfWeeks ?: emptySet()
 
         DayOfWeek.entries.filter { day ->
             val usedByOtherRoutine = allRoutinesDayOfWeeks.contains(day)

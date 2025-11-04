@@ -17,18 +17,3 @@ fun <T> Flow<ResultState<T>>.withResultStateLifecycle(): Flow<ResultState<T>> {
         .onStart { emit(ResultState.Loading) }
         .catch { e -> emit(ResultState.Error(e)) }
 }
-
-@Deprecated("use asResultState")
-fun <T> flowResultState(block: suspend () -> T): Flow<ResultState<T>> {
-    return flow {
-        emit(ResultState.Loading)
-        try {
-            val result = block.invoke()
-            emit(ResultState.Success(result))
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: Exception) {
-            emit(ResultState.Error(e))
-        }
-    }
-}
