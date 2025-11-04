@@ -11,7 +11,6 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChangedBy
@@ -37,7 +36,7 @@ import software.seriouschoi.timeisgold.core.common.util.LocalTimeUtil
 import software.seriouschoi.timeisgold.core.common.util.MetaEnvelope
 import software.seriouschoi.timeisgold.core.common.util.MetaInfo
 import software.seriouschoi.timeisgold.core.common.util.asMinutes
-import software.seriouschoi.timeisgold.core.domain.mapper.DomainErrorException
+import software.seriouschoi.timeisgold.core.domain.mapper.asDomainError
 import software.seriouschoi.timeisgold.core.domain.mapper.asResultState
 import software.seriouschoi.timeisgold.core.domain.mapper.onlyDomainResult
 import software.seriouschoi.timeisgold.core.domain.mapper.toUiText
@@ -374,40 +373,45 @@ internal class TimeSlotListPageViewModel @Inject constructor(
         slotVO: TimeSlotVO,
         slotId: String?,
     ) {
-        flowResultState {
-            Timber.d("update time slot. state=${slotVO}")
-
+        val applyFlow = flow {
             setTimeSlotUseCase.execute(
                 dayOfWeek = dayOfWeek,
                 timeSlot = slotVO,
                 slotId = slotId
-            )
-        }.map { resultState: ResultState<DomainResult<MetaInfo>> ->
-            resultState.onlyDomainResult()
-        }.onEach { domainResult ->
-            when (domainResult) {
-                is DomainResult.Failure -> {
-                    Timber.d("update failed. ${domainResult.error}")
-                }
-
-                is DomainResult.Success -> {
-                    Timber.d("update success. updated slotId=${domainResult.value.uuid}")
-                    timeSlotEditStateHolder.sendIntent(
-                        TimeSlotEditStateIntent.Update(
-                            slotId = domainResult.value.uuid,
-                        )
-                    )
-                }
-
-                null -> {
-                    //no work.
-                }
+            ).let {
+                emit(it)
             }
+        }.map { it.asResultState() }.withResultStateLifecycle()
+
+
+        val loading = applyFlow.filterIsInstance<ResultState.Loading>()
+        val failed = applyFlow.filterIsInstance<ResultState.Error>().map { it.asDomainError() }
+        val success = applyFlow.mapNotNull { it as? ResultState.Success }
+
+        merge(
+            loading.mapNotNull {
+                //no work.
+                null
+           },
+            failed.mapNotNull {
+                //no work.
+                null
+            },
+            success.mapNotNull {
+                //uuid 갱신.
+                TimeSlotEditStateIntent.Update(
+                    slotId = it.data.uuid,
+                )
+            }
+        ).onEach {
+            timeSlotEditStateHolder.sendIntent(
+                it
+            )
         }.launchIn(viewModelScope)
     }
 
     private fun applyTimeSlotList() {
-        val applyFlow =  combine(
+        val applyFlow = combine(
             timeSlotListStateHolder.state,
             dayOfWeekFlow.mapNotNull { it }
         ) { dataState, dayOfWeek ->
@@ -429,7 +433,7 @@ internal class TimeSlotListPageViewModel @Inject constructor(
 
         val loading = applyFlow.filterIsInstance<ResultState.Loading>()
         val error = applyFlow.filterIsInstance<ResultState.Error>().mapNotNull {
-            (it.throwable as? DomainErrorException)?.error ?: DomainError.Technical.Unknown
+            it.asDomainError()
         }
         val success = applyFlow.mapNotNull { (it as? ResultState.Success)?.data }
 

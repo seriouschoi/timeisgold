@@ -1,11 +1,7 @@
 package software.seriouschoi.timeisgold.core.domain.mapper
 
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onStart
 import software.seriouschoi.timeisgold.core.common.ui.ResultState
 import software.seriouschoi.timeisgold.domain.data.DomainError
 import software.seriouschoi.timeisgold.domain.data.DomainResult
@@ -30,7 +26,9 @@ fun <T> DomainResult<T>?.asResultState(): ResultState<T> {
     }
 }
 
-
+fun ResultState.Error.asDomainError(): DomainError {
+    return (this.throwable as? DomainErrorException)?.error ?: DomainError.Technical.Unknown
+}
 
 @Deprecated("use asResultState")
 fun <T> Flow<ResultState<DomainResult<T>>>.onlyDomainSuccess(): Flow<T?> =
