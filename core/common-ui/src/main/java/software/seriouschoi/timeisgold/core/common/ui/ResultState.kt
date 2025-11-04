@@ -13,6 +13,13 @@ sealed class ResultState<out T> {
     data class Error(val throwable: Throwable) : ResultState<Nothing>()
 }
 
+fun <T> Flow<ResultState<T>>.withResultStateLifecycle(): Flow<ResultState<T>> {
+    return this
+        .onStart { emit(ResultState.Loading) }
+        .catch { e -> emit(ResultState.Error(e)) }
+}
+
+@Deprecated("use map{it.asResultState}.withResultStateLifeCycle()")
 fun <T> Flow<T>.asResultState(): Flow<ResultState<T>> {
     return this.map<T, ResultState<T>> {
         ResultState.Success(it)
@@ -21,6 +28,7 @@ fun <T> Flow<T>.asResultState(): Flow<ResultState<T>> {
         .catch { e -> emit(ResultState.Error(e)) }
 }
 
+@Deprecated("use asResultState")
 fun <T> flowResultState(block: suspend () -> T): Flow<ResultState<T>> {
     return flow {
         emit(ResultState.Loading)

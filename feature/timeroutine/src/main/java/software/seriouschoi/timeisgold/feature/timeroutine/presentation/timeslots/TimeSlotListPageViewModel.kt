@@ -11,18 +11,19 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.scan
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -31,10 +32,13 @@ import software.seriouschoi.timeisgold.core.common.ui.ResultState
 import software.seriouschoi.timeisgold.core.common.ui.UiText
 import software.seriouschoi.timeisgold.core.common.ui.asResultState
 import software.seriouschoi.timeisgold.core.common.ui.flowResultState
+import software.seriouschoi.timeisgold.core.common.ui.withResultStateLifecycle
 import software.seriouschoi.timeisgold.core.common.util.LocalTimeUtil
 import software.seriouschoi.timeisgold.core.common.util.MetaEnvelope
 import software.seriouschoi.timeisgold.core.common.util.MetaInfo
 import software.seriouschoi.timeisgold.core.common.util.asMinutes
+import software.seriouschoi.timeisgold.core.domain.mapper.DomainErrorException
+import software.seriouschoi.timeisgold.core.domain.mapper.asResultState
 import software.seriouschoi.timeisgold.core.domain.mapper.onlyDomainResult
 import software.seriouschoi.timeisgold.core.domain.mapper.toUiText
 import software.seriouschoi.timeisgold.domain.data.DomainError
@@ -119,14 +123,16 @@ internal class TimeSlotListPageViewModel @Inject constructor(
     }
 
     private fun watchSlotList() {
-        val loadingFlow: Flow<TimeSlotListStateIntent> = timeslotList.filterIsInstance<ResultState.Loading>().map {
-            TimeSlotListStateIntent.Loading
-        }
-        val errorFlow: Flow<TimeSlotListStateIntent> = timeslotList.filterIsInstance<ResultState.Error>().map {
-            TimeSlotListStateIntent.Error(
-                UiText.Res(CommonR.string.message_error_tech_unknown)
-            )
-        }
+        val loadingFlow: Flow<TimeSlotListStateIntent> =
+            timeslotList.filterIsInstance<ResultState.Loading>().map {
+                TimeSlotListStateIntent.Loading
+            }
+        val errorFlow: Flow<TimeSlotListStateIntent> =
+            timeslotList.filterIsInstance<ResultState.Error>().map {
+                TimeSlotListStateIntent.Error(
+                    UiText.Res(CommonR.string.message_error_tech_unknown)
+                )
+            }
 
         val domainResultFlow = timeslotList.mapNotNull {
             it as? ResultState.Success
@@ -137,7 +143,7 @@ internal class TimeSlotListPageViewModel @Inject constructor(
         val domainFailFlow = domainResultFlow.mapNotNull {
             it as? DomainResult.Failure
         }
-        
+
         val emptyListFlow: Flow<TimeSlotListStateIntent> = domainFailFlow.mapNotNull {
             it.error as? DomainError.NotFound
         }.map {
@@ -346,12 +352,13 @@ internal class TimeSlotListPageViewModel @Inject constructor(
 
         // time slot edit이 표시 상태라면, 함께 갱신한다.
         // 현재 편집 중인 슬롯이 있는지 확인
+
         timeSlotEditStateHolder.state.first()?.slotUuid?.let { editingSlotUuid ->
             // 업데이트된 목록에서 현재 편집 중인 슬롯의 최신 정보를 찾음
             newList.find { it.slotUuid == editingSlotUuid }?.let { updatedSlot ->
                 // TimeSlotEditStateHolder에 변경된 시간 정보로 업데이트 인텐트를 보냄
                 timeSlotEditStateHolder.sendIntent(
-                    TimeSlotEditStateIntent.Update(
+                    intent = TimeSlotEditStateIntent.Update(
                         slotId = updatedSlot.slotUuid,
                         slotTitle = updatedSlot.title,
                         startTime = LocalTimeUtil.create(updatedSlot.startMinutesOfDay),
@@ -360,7 +367,6 @@ internal class TimeSlotListPageViewModel @Inject constructor(
                 )
             }
         }
-
     }
 
     private fun applyTimeSlot(
@@ -401,12 +407,10 @@ internal class TimeSlotListPageViewModel @Inject constructor(
     }
 
     private fun applyTimeSlotList() {
-        flowResultState {
-            val dayOfWeek = dayOfWeekFlow.first()
-                ?: return@flowResultState DomainResult.Failure(DomainError.NotFound.TimeRoutine)
-
-
-            val dataState = timeSlotListStateHolder.state.first()
+        val applyFlow =  combine(
+            timeSlotListStateHolder.state,
+            dayOfWeekFlow.mapNotNull { it }
+        ) { dataState, dayOfWeek ->
             val updateSlots = dataState.slotItemList.associate {
                 it.slotUuid to TimeSlotVO(
                     startTime = LocalTimeUtil.create(it.startMinutesOfDay),
@@ -419,32 +423,41 @@ internal class TimeSlotListPageViewModel @Inject constructor(
                 dayOfWeek = dayOfWeek,
                 timeSlotMap = updateSlots
             )
-        }.onlyDomainResult().onEach { domainResult ->
-            when (domainResult) {
-                is DomainResult.Failure -> {
-                    TimeSlotListPageUiEvent.ShowToast(
-                        domainResult.error.toUiText(),
-                        Toast.LENGTH_SHORT
-                    )
-                }
+        }.map { it: DomainResult<List<MetaInfo>> ->
+            it.asResultState()
+        }.withResultStateLifecycle()
 
-                is DomainResult.Success -> {
-                    TimeSlotListPageUiEvent.ShowToast(
-                        UiText.MultipleResArgs.create(
-                            CommonR.string.message_format_complete,
-                            CommonR.string.text_save,
-                        ),
-                        Toast.LENGTH_SHORT
-                    )
-                }
+        val loading = applyFlow.filterIsInstance<ResultState.Loading>()
+        val error = applyFlow.filterIsInstance<ResultState.Error>().mapNotNull {
+            (it.throwable as? DomainErrorException)?.error ?: DomainError.Technical.Unknown
+        }
+        val success = applyFlow.mapNotNull { (it as? ResultState.Success)?.data }
 
-                null -> {
-                    //no work
-                    null
-                }
-            }?.let {
-                _uiEvent.emit(MetaEnvelope(it))
+        val eventFlow: Flow<MetaEnvelope<TimeSlotListPageUiEvent>> = merge(
+            loading.map {
+                null
+            },
+            error.map {
+                TimeSlotListPageUiEvent.ShowToast(
+                    it.toUiText(),
+                    Toast.LENGTH_SHORT
+                )
+            },
+            success.map {
+                TimeSlotListPageUiEvent.ShowToast(
+                    UiText.MultipleResArgs.create(
+                        CommonR.string.message_format_complete,
+                        CommonR.string.text_save,
+                    ),
+                    Toast.LENGTH_SHORT
+                )
             }
+        ).mapNotNull {
+            it?.let { MetaEnvelope(it) }
+        }
+
+        eventFlow.onEach {
+            _uiEvent.emit(it)
         }.launchIn(viewModelScope)
     }
 
