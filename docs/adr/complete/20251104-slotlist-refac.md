@@ -36,7 +36,8 @@ when(resultState) 블록의 크기도 줄이고..
 
 ## 2중 랩핑 제거.
 ResultState<DomainResult<SomeDomainVO>> 같은 구조로 만드니 2중 랩핑 처리하느라.. 코드가 개판이 난다..
-이걸 ResultState<SomeDomainVO>로 바꿔야 한다..
-...이걸 이제야 깨닳다니.. 
+이걸 `ResultState<SomeDomainVO>`로 바꿔야 한다.
+...이걸 이제야 깨닫다니..
 
-ResultState에 오류 코드를 넣을 수 있어야 할것 같은데..
+`ResultState`에 오류 코드를 포함할 수 있도록 개선이 필요해 보인다.
+

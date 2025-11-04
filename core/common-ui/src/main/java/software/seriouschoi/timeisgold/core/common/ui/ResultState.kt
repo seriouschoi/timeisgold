@@ -1,9 +1,7 @@
 package software.seriouschoi.timeisgold.core.common.ui
 
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.onStart
 
 sealed class ResultState<out T> {
