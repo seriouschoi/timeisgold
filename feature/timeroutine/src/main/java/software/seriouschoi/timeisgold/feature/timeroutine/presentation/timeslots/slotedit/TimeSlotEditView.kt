@@ -53,8 +53,10 @@ internal fun TimeSlotEditView(
             Spacer(
                 modifier = Modifier.weight(1f)
             )
+            // TODO: jhchoi 2025. 11. 5.
             TigTimePicker(
                 time = state.startTime,
+                timeRange = state.startTimeRange
             ) {
                 Timber.d("picked start time. time=${it}")
                 sendIntent.invoke(TimeSlotEditStateIntent.Update(
@@ -69,6 +71,7 @@ internal fun TimeSlotEditView(
 
             TigTimePicker(
                 time = state.endTime,
+                timeRange = state.endTimeRange
             ) {
                 Timber.d("picked end time. time=${it}")
                 sendIntent.invoke(TimeSlotEditStateIntent.Update(
@@ -95,10 +98,6 @@ private fun Preview() {
                 title = "Some Slot Title",
                 startTime = LocalTime.of(1, 30),
                 endTime = LocalTime.of(4, 20),
-
-                //TODO 아래 속성의 실제 동작 구현.
-                minimumTime = LocalTime.of(0, 0),
-                maximumTime = LocalTime.of(0, 0)
             )
         )
     }

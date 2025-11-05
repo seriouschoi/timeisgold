@@ -41,6 +41,7 @@ object LocalTimeUtil {
         val rounded = normalize(minutesOfDay, stepMinutes) % DAY_MINUTES
         return LocalTime.of(0, 0).plusMinutes(rounded.toLong())
     }
+
     fun normalize(
         minutesOfDay: Int, stepMinutes: Int = 1
     ): Int {
@@ -87,3 +88,4 @@ object LocalTimeUtil {
                 || range2.first in range1 || range2.last in range1
     }
 }
+
