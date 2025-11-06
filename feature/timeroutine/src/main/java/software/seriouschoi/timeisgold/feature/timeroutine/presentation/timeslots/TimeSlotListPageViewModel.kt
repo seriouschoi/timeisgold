@@ -86,9 +86,7 @@ internal class TimeSlotListPageViewModel @Inject constructor(
             watchTimeSlotListUseCase.invoke(it)
         }.map {
             it.asResultState()
-        }.withResultStateLifecycle().onEach {
-            Timber.d("received time slot list.")
-        }.stateIn(
+        }.withResultStateLifecycle().stateIn(
             scope = viewModelScope,
             started = SharingStarted.Lazily,
             initialValue = ResultState.Loading
@@ -145,6 +143,7 @@ internal class TimeSlotListPageViewModel @Inject constructor(
         val dataFlow = timeslotList.mapNotNull {
             (it as? ResultState.Success)?.data
         }.map { result: List<MetaEnvelope<TimeSlotVO>> ->
+            Timber.d("received timeslot list.")
             val slotList = result.map {
                 TimeSlotItemUiState(
                     slotUuid = it.metaInfo.uuid,
@@ -372,7 +371,9 @@ internal class TimeSlotListPageViewModel @Inject constructor(
 
         val loading = applyFlow.filterIsInstance<ResultState.Loading>()
         val failed = applyFlow.filterIsInstance<ResultState.Error>().map { it.asDomainError() }
-        val success = applyFlow.mapNotNull { it as? ResultState.Success }
+        val success = applyFlow.mapNotNull { it as? ResultState.Success }.onEach {
+            Timber.d("apply time slot success.")
+        }
 
         merge(
             loading.mapNotNull {
@@ -421,7 +422,9 @@ internal class TimeSlotListPageViewModel @Inject constructor(
         val error = applyFlow.filterIsInstance<ResultState.Error>().mapNotNull {
             it.asDomainError()
         }
-        val success = applyFlow.mapNotNull { (it as? ResultState.Success)?.data }
+        val success = applyFlow.mapNotNull { (it as? ResultState.Success)?.data }.onEach {
+            Timber.d("apply time slot list success.")
+        }
 
         val eventFlow: Flow<MetaEnvelope<TimeSlotListPageUiEvent>> = merge(
             loading.map {

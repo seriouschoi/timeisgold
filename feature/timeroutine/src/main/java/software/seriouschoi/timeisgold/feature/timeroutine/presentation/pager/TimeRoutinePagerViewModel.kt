@@ -138,7 +138,7 @@ internal class TimeRoutinePagerViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
-    private fun watchRoutineDayOfWeeks() {
+    private fun watchRoutineDayOfWeeks() { // TODO: jhchoi 2025. 11. 6. 여기가 의도되지 않은 동작이 일어나는것 같은데..
         combine(
             state.selectableDayOfWeeks,
             currentRoutine.map {

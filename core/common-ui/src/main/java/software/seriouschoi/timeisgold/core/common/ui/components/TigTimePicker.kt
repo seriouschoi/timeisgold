@@ -1,9 +1,19 @@
 package software.seriouschoi.timeisgold.core.common.ui.components
 
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import software.seriouschoi.timeisgold.core.common.ui.TigThemePreview
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import software.seriouschoi.timeisgold.core.common.util.RangeUtil
 import java.time.LocalTime
 
 /**
@@ -17,58 +27,85 @@ fun TigTimePicker(
     timeRange: Pair<LocalTime, LocalTime> = LocalTime.MIN to LocalTime.MAX,
     onChangeTime: (LocalTime) -> Unit
 ) {
-    // TODO: jhchoi 2025. 11. 5. timeRange...
-    /*
-    예시. 22:00 ~ 03:00
-    start range...어.. 22, 23.. 00, 01, 02는 선택되야 하지 않나..?
-    분도 마찬가지네..
-    분은 더 골치 아프네.
+    var currentTime by remember {
+        mutableStateOf(time)
+    }
 
-    22:20 ~ 03:10
-    이 범위만 허용한다면..
-    선택 가능한 hour는 22 ~ 03
-    minute은 가변이구나.. 선택된 hour에 따라서 제약이네..
-    22일때는 20 ~ 59
-    03일때는 00 ~ 10
+    LaunchedEffect(currentTime) {
+        if (currentTime.hour != time.hour || currentTime.minute != time.minute)
+            onChangeTime.invoke(currentTime)
+    }
 
-    range니깐.. 22 ~ 03 입력은 가능 할듯.
-    자동으로 24로 나눈 나머지 값이 아니고..
-     */
+    val hours = RangeUtil.generateCircularRange(
+        start = timeRange.first.hour,
+        end = timeRange.second.hour,
+        bound = 24
+    )
 
-    /*
-    자 시작시간부터 순회를 돌리자..
-    timeRange.first.hour 부터
-     */
-    timeRange.first.hour
+    val mins = when (currentTime.hour) {
+        timeRange.first.hour -> {
+            timeRange.first.minute to 59
+        }
 
+        timeRange.second.hour -> {
+            0 to timeRange.second.minute
+        }
+
+        else -> {
+            0 to 59
+        }
+    }.let {
+        IntRange(it.first, it.second)
+    }.toList()
+
+    val hourIndex = hours.indexOf(currentTime.hour).takeIf { it >= 0 } ?: 0
+    val minIndex = mins.indexOf(currentTime.minute).takeIf { it >= 0 } ?: 0
 
     Row(
-        modifier = modifier
+        modifier = modifier.height(120.dp)
     ) {
-        //hour
-        TigNumberPickerView(
-            value = time.hour,
-            range = timeRange.first.hour..timeRange.second.hour,
+        Spacer(
+            modifier = Modifier.weight(1f)
+        )
+        TigLabelPicker(
+            labels = hours.map {
+                "$it"
+            },
+            selectedIndex = hourIndex,
+            modifier = Modifier.weight(1f)
         ) {
-            onChangeTime.invoke(LocalTime.of(it, time.minute))
+            currentTime = LocalTime.of(it, currentTime.minute)
         }
 
-        //minute
-        TigNumberPickerView(
-            value = time.minute,
-            range = timeRange.first.minute..timeRange.second.minute,
+        Spacer(
+            modifier = Modifier.weight(1f)
+        )
+
+        TigLabelPicker(
+            labels = mins.map {
+                "$it"
+            },
+            selectedIndex = minIndex,
+            modifier = Modifier.weight(1f)
         ) {
-            onChangeTime.invoke(LocalTime.of(time.hour, it))
+            currentTime = LocalTime.of(currentTime.hour, it)
         }
+
+        Spacer(
+            modifier = Modifier.weight(1f)
+        )
     }
 }
 
 @Composable
-@TigThemePreview
+@Preview
 private fun Preview() {
     TigTimePicker(
-        time = LocalTime.of(10, 0),
-        timeRange = LocalTime.of(22, 0) to LocalTime.of(3, 59)
+        timeRange = LocalTime.of(0, 0) to LocalTime.of(23, 59),
+        time = LocalTime.of(1, 59),
+        modifier = Modifier
+            .height(120.dp)
+            .fillMaxWidth()
     ) {
 
     }

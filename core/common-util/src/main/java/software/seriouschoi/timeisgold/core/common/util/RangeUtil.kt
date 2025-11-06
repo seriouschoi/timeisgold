@@ -5,13 +5,13 @@ package software.seriouschoi.timeisgold.core.common.util
  * jhchoi
  */
 object RangeUtil {
-    fun generateRange(
+    fun generateCircularRange(
         start: Int,
         end: Int,
-        max: Int
+        bound: Int
     ): List<Int> {
         return generateSequence(start) {
-            (it + 1) % max
+            (it + 1) % bound
         }.takeWhile {
             it != end
         }.plus(end).toList()

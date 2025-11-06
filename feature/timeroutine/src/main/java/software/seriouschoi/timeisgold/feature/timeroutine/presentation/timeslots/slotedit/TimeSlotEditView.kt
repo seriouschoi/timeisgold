@@ -53,7 +53,6 @@ internal fun TimeSlotEditView(
             Spacer(
                 modifier = Modifier.weight(1f)
             )
-            // TODO: jhchoi 2025. 11. 5.
             TigTimePicker(
                 time = state.startTime,
                 timeRange = state.startTimeRange

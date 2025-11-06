@@ -47,6 +47,27 @@
 이거 안될 이유는 없구나.
 -> 근데 동작이 안되네. 이거 잡아야 할듯.
 
+```kotlin
+@Composable
+fun RestrictedHourPicker(
+    selectedHour: Int,
+    onHourSelected: (Int) -> Unit
+) {
+    val allowedHours = listOf(22, 23, 0, 1, 2, 3, 4, 5, 6)
+    val selectedIndex = allowedHours.indexOf(selectedHour).coerceAtLeast(0)
+
+    NumberPicker(
+        value = selectedIndex,
+        range = 0..allowedHours.lastIndex,
+        onValueChange = { newIndex ->
+            onHourSelected(allowedHours[newIndex])
+        },
+        label = { index -> "${allowedHours[index]}시" }
+    )
+}
+```
+이런식으로 만들고 싶은데.. numberpicker에 라벨을 못넣나..
+
 
 # 15분 길이의 타임 슬롯의 상하단 드래그 처리와 가운데 드래그 처리의 분기.
 상단 좌측, 하단 우측에 핸들 UX추가하여 명확하게 처리.
