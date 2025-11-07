@@ -9,6 +9,7 @@
 
     <string name="text_routine">시간표</string>
     <string name="text_timeslot">계획</string>
+    <string name="text_data">데이터</string>
     <string name="text_day_of_week">요일</string>
     <string name="text_title">제목</string>
     <string name="text_untitle">제목 없음</string>

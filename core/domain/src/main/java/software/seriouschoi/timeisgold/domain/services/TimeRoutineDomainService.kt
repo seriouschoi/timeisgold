@@ -19,9 +19,7 @@ class TimeRoutineDomainService @Inject constructor(
 ){
     suspend fun getOrCreateRoutineId(dayOfWeek: DayOfWeek): DomainResult<String> {
         val routineId = routineRepository.watchRoutine(dayOfWeek).first().let {
-            it as? DataResult.Success
-        }?.let { it: DataResult.Success<MetaEnvelope<TimeRoutineVO>> ->
-            it.value.metaInfo.uuid
+            (it as? DataResult.Success)?.value?.metaInfo?.uuid
         } ?: run {
             routineRepository.setTimeRoutine(
                 timeRoutine = TimeRoutineVO(

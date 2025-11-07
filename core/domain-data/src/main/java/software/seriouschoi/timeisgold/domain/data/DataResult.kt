@@ -25,7 +25,7 @@ fun <T> DataResult<T>.asDomainResult(): DomainResult<T> {
         is DataResult.Failure -> {
             when (this.error) {
                 DataError.Conflict -> DomainResult.Failure(DomainError.Conflict.Data)
-                DataError.NotFound -> DomainResult.Failure(DomainError.NotFound.TimeSlot)
+                DataError.NotFound -> DomainResult.Failure(DomainError.NotFound.Data)
                 else -> DomainResult.Failure(
                     error = DomainError.Technical.Unknown,
                     exception = this.exception

@@ -1,7 +1,5 @@
 package software.seriouschoi.timeisgold.core.domain.mapper
 
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
 import software.seriouschoi.timeisgold.core.common.ui.ResultState
 import software.seriouschoi.timeisgold.domain.data.DomainError
 import software.seriouschoi.timeisgold.domain.data.DomainResult
@@ -10,7 +8,9 @@ import software.seriouschoi.timeisgold.domain.data.DomainResult
  * Created by jhchoi on 2025. 9. 17.
  * jhchoi
  */
-class DomainErrorException(val error: DomainError, val from: Throwable? = null) : Exception()
+data class DomainErrorException(val error: DomainError, val from: Throwable? = null) : Exception() {
+    override val message: String? = "$error, from=$from"
+}
 
 fun <T> DomainResult<T>?.asResultState(): ResultState<T> {
     return when (this) {
@@ -19,9 +19,11 @@ fun <T> DomainResult<T>?.asResultState(): ResultState<T> {
                 DomainErrorException(error = this.error, from = this.exception)
             )
         }
+
         is DomainResult.Success -> ResultState.Success(
             this.value
         )
+
         null -> ResultState.Loading
     }
 }

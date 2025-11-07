@@ -39,6 +39,7 @@ sealed interface DomainError {
     sealed interface NotFound : DomainError {
         data object TimeRoutine : NotFound
         data object TimeSlot : NotFound
+        data object Data: NotFound
     }
 
     /**

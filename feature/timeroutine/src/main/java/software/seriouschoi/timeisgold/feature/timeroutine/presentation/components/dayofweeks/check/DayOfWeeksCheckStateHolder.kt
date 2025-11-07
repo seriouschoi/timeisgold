@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import software.seriouschoi.timeisgold.core.common.ui.UiText
 import software.seriouschoi.timeisgold.core.common.util.asShortText
+import timber.log.Timber
 import java.time.DayOfWeek
 import javax.inject.Inject
 
@@ -38,9 +39,10 @@ internal class DayOfWeeksCheckStateHolder @Inject constructor() {
         }
     }
 
-    fun reduce(intent: DayOfWeeksCheckIntent) {
+    fun sendIntent(intent: DayOfWeeksCheckIntent) {
         when (intent) {
             is DayOfWeeksCheckIntent.Update -> {
+                Timber.d("update - intent=$intent")
                 _state.update { state: DayOfWeeksCheckState ->
                     val newList = state.dayOfWeeksList.map {
                         val checked = intent.checked.contains(it.dayOfWeek)
@@ -52,6 +54,7 @@ internal class DayOfWeeksCheckStateHolder @Inject constructor() {
             }
 
             is DayOfWeeksCheckIntent.Check -> {
+                Timber.d("check - intent=$intent")
                 _state.update { state: DayOfWeeksCheckState ->
                     val newList = state.dayOfWeeksList.map {
                         if (it.dayOfWeek == intent.dayOfWeek) {

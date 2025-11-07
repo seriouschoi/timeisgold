@@ -32,7 +32,7 @@ internal class TimeRoutineFeatureState(
     val data: StateFlow<TimeRoutineFeatureStateData> = _data
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val routine: Flow<DomainResult<MetaEnvelope<TimeRoutineVO>>> = data.map {
+    val routine: Flow<DomainResult<MetaEnvelope<TimeRoutineVO>?>> = data.map {
         it.dayOfWeek
     }.flatMapLatest {
         watchRoutineUseCase.invoke(it)

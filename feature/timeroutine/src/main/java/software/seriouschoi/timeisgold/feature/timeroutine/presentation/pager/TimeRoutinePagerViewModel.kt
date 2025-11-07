@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -19,7 +20,9 @@ import software.seriouschoi.navigator.DestNavigatorPort
 import software.seriouschoi.timeisgold.core.common.ui.ResultState
 import software.seriouschoi.timeisgold.core.common.ui.withResultStateLifecycle
 import software.seriouschoi.timeisgold.core.common.util.MetaEnvelope
+import software.seriouschoi.timeisgold.core.domain.mapper.DomainErrorException
 import software.seriouschoi.timeisgold.core.domain.mapper.asResultState
+import software.seriouschoi.timeisgold.domain.data.DomainError
 import software.seriouschoi.timeisgold.domain.data.vo.TimeRoutineVO
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.SetRoutineUseCase
 import software.seriouschoi.timeisgold.feature.timeroutine.data.TimeRoutineFeatureState
@@ -55,12 +58,29 @@ internal class TimeRoutinePagerViewModel @Inject constructor(
 
     private val currentRoutine = state.routine.map {
         it.asResultState()
-    }.withResultStateLifecycle().mapNotNull {
-        (it as? ResultState.Success)?.data
+    }.withResultStateLifecycle().onEach {
+        Timber.d("watchCurrentRoutine - result=$it")
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.Lazily,
         initialValue = null
+    )
+
+    private val test = merge(
+        //루틴 있음.
+        currentRoutine.mapNotNull {
+            (it as? ResultState.Success)?.data
+        },
+        //루틴 없음.
+        currentRoutine.mapNotNull {
+            (it as? ResultState.Error)
+        }.mapNotNull {
+            (it.throwable as? DomainErrorException)?.error
+        }.mapNotNull {
+            it as? DomainError.NotFound
+        }.map {
+            null
+        }
     )
 
     val uiState = combine(
@@ -138,27 +158,32 @@ internal class TimeRoutinePagerViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
-    private fun watchRoutineDayOfWeeks() { // TODO: jhchoi 2025. 11. 6. 여기가 의도되지 않은 동작이 일어나는것 같은데..
+    private fun watchRoutineDayOfWeeks() {
+        val currentRoutine = currentRoutine.mapNotNull { (it as? ResultState.Success)?.data }
+        // TODO: jhchoi 2025. 11. 7. not found에 대한 처리가 없네..
         combine(
             state.selectableDayOfWeeks,
             currentRoutine.map {
-                it?.payload?.dayOfWeeks
+                it.payload.dayOfWeeks
             }
         ) { enableDayOfWeeks, routineDayOfWeeks ->
-            val currentRoutineDayOfWeeks = routineDayOfWeeks ?: emptySet()
-            Timber.d("watchRoutineDayOfWeeks - enableDayOfWeeks=$enableDayOfWeeks, currentRoutineDayOfWeeks=$currentRoutineDayOfWeeks")
+            Timber.d("watchRoutineDayOfWeeks - enableDayOfWeeks=$enableDayOfWeeks, routineDayOfWeeks=$routineDayOfWeeks")
             DayOfWeeksCheckIntent.Update(
-                checked = currentRoutineDayOfWeeks,
+                checked = routineDayOfWeeks.toSet(),
                 enabled = enableDayOfWeeks
             )
         }.onEach {
-            routineDayOfWeeksStateHolder.reduce(it)
+            routineDayOfWeeksStateHolder.sendIntent(it)
         }.launchIn(viewModelScope)
     }
 
     private fun watchCurrentRoutine() {
+        // TODO: jhchoi 2025. 11. 7. not found에 대한 처리가 없네..
+        val currentRoutine = currentRoutine.mapNotNull {
+            (it as? ResultState.Success)?.data
+        }
         currentRoutine.map {
-            val title = it?.payload?.title ?: ""
+            val title = it.payload.title
             RoutineTitleIntent.Update(title)
         }.onEach {
             Timber.d("watchCurrentRoutine - intent=$it")
@@ -180,7 +205,7 @@ internal class TimeRoutinePagerViewModel @Inject constructor(
             }
 
             is TimeRoutinePagerUiIntent.CheckDayOfWeek -> {
-                routineDayOfWeeksStateHolder.reduce(
+                routineDayOfWeeksStateHolder.sendIntent(
                     intent.dayOfWeekCheckIntent
                 )
             }
