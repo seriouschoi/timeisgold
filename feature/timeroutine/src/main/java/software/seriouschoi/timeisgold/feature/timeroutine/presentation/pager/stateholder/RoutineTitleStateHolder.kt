@@ -13,7 +13,7 @@ internal class RoutineTitleStateHolder @Inject constructor() {
     private val _state = MutableStateFlow(RoutineTitleState())
     val state: StateFlow<RoutineTitleState> = _state
 
-    fun reduce(intent: RoutineTitleIntent) {
+    fun sendIntent(intent: RoutineTitleIntent) {
         when(intent) {
             is RoutineTitleIntent.Update -> {
                 _state.update {

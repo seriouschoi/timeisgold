@@ -20,7 +20,7 @@ import java.time.DayOfWeek
 @Composable
 internal fun DayOfWeeksCheckView(
     state: DayOfWeeksCheckState,
-    sendIntent: (DayOfWeeksCheckIntent) -> Unit = {}
+    sendIntent: (DayOfWeeksCheckStateIntent) -> Unit = {}
 ) {
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
         state.dayOfWeeksList.forEach { item ->
@@ -29,7 +29,7 @@ internal fun DayOfWeeksCheckView(
                 checked = item.checked,
                 onCheckedChange = {
                     sendIntent.invoke(
-                        DayOfWeeksCheckIntent.Check(
+                        DayOfWeeksCheckStateIntent.Check(
                             dayOfWeek = item.dayOfWeek,
                             checked = it
                         )

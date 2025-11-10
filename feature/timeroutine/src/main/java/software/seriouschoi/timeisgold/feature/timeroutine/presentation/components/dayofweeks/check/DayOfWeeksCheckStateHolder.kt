@@ -39,9 +39,9 @@ internal class DayOfWeeksCheckStateHolder @Inject constructor() {
         }
     }
 
-    fun sendIntent(intent: DayOfWeeksCheckIntent) {
+    fun sendIntent(intent: DayOfWeeksCheckStateIntent) {
         when (intent) {
-            is DayOfWeeksCheckIntent.Update -> {
+            is DayOfWeeksCheckStateIntent.Update -> {
                 Timber.d("update - intent=$intent")
                 _state.update { state: DayOfWeeksCheckState ->
                     val newList = state.dayOfWeeksList.map {
@@ -53,7 +53,7 @@ internal class DayOfWeeksCheckStateHolder @Inject constructor() {
                 }
             }
 
-            is DayOfWeeksCheckIntent.Check -> {
+            is DayOfWeeksCheckStateIntent.Check -> {
                 Timber.d("check - intent=$intent")
                 _state.update { state: DayOfWeeksCheckState ->
                     val newList = state.dayOfWeeksList.map {
@@ -93,13 +93,13 @@ internal data class DayOfWeekItemUiState(
     val dayOfWeek: DayOfWeek
 )
 
-internal sealed interface DayOfWeeksCheckIntent {
+internal sealed interface DayOfWeeksCheckStateIntent {
     data class Update(
         val checked: Collection<DayOfWeek>, val enabled: Collection<DayOfWeek>
-    ) : DayOfWeeksCheckIntent
+    ) : DayOfWeeksCheckStateIntent
 
     data class Check(
         val dayOfWeek: DayOfWeek,
         val checked: Boolean
-    ) : DayOfWeeksCheckIntent
+    ) : DayOfWeeksCheckStateIntent
 }
