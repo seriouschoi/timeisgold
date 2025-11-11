@@ -4,8 +4,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
-import software.seriouschoi.timeisgold.feature.timeroutine.presentation.components.dayofweeks.pager.DayOfWeeksPagerStateHolder.Companion.DAY_OF_WEEKS
-import software.seriouschoi.timeisgold.feature.timeroutine.presentation.components.dayofweeks.pager.DayOfWeeksPagerStateHolder.Companion.DEFAULT_DAY_OF_WEEK
 import java.time.DayOfWeek
 import java.time.LocalDate
 import javax.inject.Inject
@@ -27,15 +25,11 @@ internal class DayOfWeeksPagerStateHolder @Inject constructor() {
 
     val currentDayOfWeek = state.map { it.currentDayOfWeek }
 
-    fun reduce(intent: DayOfWeeksPagerStateIntent) {
-        when (intent) {
-            is DayOfWeeksPagerStateIntent.Select -> {
-                _state.update {
-                    it.copy(
-                        currentDayOfWeek = intent.dayOfWeek
-                    )
-                }
-            }
+    fun select(dayOfWeek: DayOfWeek) {
+        _state.update {
+            it.copy(
+                currentDayOfWeek = dayOfWeek
+            )
         }
     }
 
@@ -51,16 +45,4 @@ internal class DayOfWeeksPagerStateHolder @Inject constructor() {
         )
         val DEFAULT_DAY_OF_WEEK: DayOfWeek = DayOfWeek.from(LocalDate.now())
     }
-}
-
-internal data class DayOfWeeksPagerState(
-    val dayOfWeeks: List<DayOfWeek> = DAY_OF_WEEKS,
-    val currentDayOfWeek: DayOfWeek = DEFAULT_DAY_OF_WEEK
-)
-
-internal sealed interface DayOfWeeksPagerStateIntent {
-
-    data class Select(
-        val dayOfWeek: DayOfWeek
-    ) : DayOfWeeksPagerStateIntent
 }

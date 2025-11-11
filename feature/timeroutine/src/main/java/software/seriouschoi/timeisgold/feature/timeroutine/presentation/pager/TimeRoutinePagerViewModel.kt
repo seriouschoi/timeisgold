@@ -9,7 +9,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChangedBy
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
@@ -25,14 +24,10 @@ import software.seriouschoi.timeisgold.domain.data.vo.TimeRoutineVO
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.SetRoutineUseCase
 import software.seriouschoi.timeisgold.feature.timeroutine.data.TimeRoutineFeatureState
 import software.seriouschoi.timeisgold.feature.timeroutine.data.TimeRoutineFeatureStateIntent
-import software.seriouschoi.timeisgold.feature.timeroutine.presentation.components.dayofweeks.check.DayOfWeeksCheckStateIntent
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.components.dayofweeks.check.DayOfWeeksCheckStateHolder
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.components.dayofweeks.pager.DayOfWeeksPagerStateHolder
-import software.seriouschoi.timeisgold.feature.timeroutine.presentation.components.dayofweeks.pager.DayOfWeeksPagerStateIntent
-import software.seriouschoi.timeisgold.feature.timeroutine.presentation.pager.stateholder.RoutineTitleIntent
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.pager.stateholder.RoutineTitleStateHolder
 import timber.log.Timber
-import java.time.DayOfWeek
 import javax.inject.Inject
 
 /**
@@ -88,8 +83,7 @@ internal class TimeRoutinePagerViewModel @Inject constructor(
 
     init {
         watchIntent()
-
-        watchRoutineEdit()
+        watchEditIntent()
 
         watchDayOfWeekPager()
 
@@ -107,40 +101,32 @@ internal class TimeRoutinePagerViewModel @Inject constructor(
     }
 
     @OptIn(FlowPreview::class)
-    private fun watchRoutineEdit() {
-        val editTitle = _intent.filter {
-            it.payload is TimeRoutinePagerUiIntent.UpdateRoutineTitle
+    private fun watchEditIntent() {
+        val editTitle = _intent.mapNotNull {
+            it.payload as? TimeRoutinePagerUiIntent.UpdateRoutineTitle
+        }.map {
+            it.title
         }
-        val editDayOfWeeks = _intent.filter {
-            it.payload is TimeRoutinePagerUiIntent.CheckDayOfWeek
+        val editDayOfWeeks = _intent.mapNotNull {
+            it.payload as? TimeRoutinePagerUiIntent.CheckDayOfWeek
+        }.map {
+            it.checkedDayOfWeeks
         }
 
+        val selectDayOfWeek = _intent.mapNotNull {
+            it.payload as? TimeRoutinePagerUiIntent.SelectDayOfWeek
+        }.map {
+            it.dayOfWeek
+        }
 
-
-        // TODO: jhchoi 2025. 11. 10.
-        /*
-        이게 문제인듯..
-        상태에 의해서 apply가 실행된는데..
-        상태를 명확히 한다는 장점은 있어도... apply는 사용자의 동작에 의해서만 되게 하는게 맞는것 같다.
-        즉..인텐트만 수신하는 곳을 만들어야 하네..
-
-        intent를 트리거로 해서 상태로부터 가져오는것보다..인텐트에서 직접 가져오는게 맞겠지..
-        인텐트를 콤파인 해서 말이지..
-        근데 intent가 stateHolder의 intent를 가진 구조라면..
-        stateHolder의 인텐트 타입에 따라 분기 처리를 또해야 하는데..이게 맞는건가..
-        ...
-         */
-        /*
-        현재 요일도 있어야 하네... 요일을 키 삼아서 전달하니깐...
-         */
         combine(
-            routineTitleStateHolder.state.map { it.title },
-            routineDayOfWeeksStateHolder.checkedDayOfWeeks,
-            dayOfWeeksPagerStateHolder.currentDayOfWeek
-        ) { title, dayOfWeeks: List<DayOfWeek>, currentDayOfWeek ->
+            editTitle,
+            editDayOfWeeks,
+            selectDayOfWeek
+        ) { title, dayOfWeeks, currentDayOfWeek ->
             currentDayOfWeek to TimeRoutineVO(
                 title = title,
-                dayOfWeeks = dayOfWeeks.toSet()
+                dayOfWeeks = dayOfWeeks
             )
         }.distinctUntilChangedBy {
             it.second
@@ -156,9 +142,9 @@ internal class TimeRoutinePagerViewModel @Inject constructor(
 
     private fun watchCurrentDayOfWeek() {
         state.data.map {
-            DayOfWeeksPagerStateIntent.Select(it.dayOfWeek)
+            it.dayOfWeek
         }.onEach {
-            dayOfWeeksPagerStateHolder.reduce(it)
+            dayOfWeeksPagerStateHolder.select(it)
         }.launchIn(viewModelScope)
     }
 
@@ -170,25 +156,20 @@ internal class TimeRoutinePagerViewModel @Inject constructor(
                 it.payload.dayOfWeeks
             }
         ) { enableDayOfWeeks, routineDayOfWeeks ->
-            DayOfWeeksCheckStateIntent.Update(
-                enabled = enableDayOfWeeks,
-                checked = routineDayOfWeeks.toSet()
-            )
+            Pair(enableDayOfWeeks, routineDayOfWeeks)
         }.onEach {
-            routineDayOfWeeksStateHolder.sendIntent(it)
+            routineDayOfWeeksStateHolder.update(
+                checked = it.first,
+                enabled = it.second
+            )
         }.launchIn(viewModelScope)
     }
 
     private fun watchCurrentRoutine() {
-        val currentRoutine = currentRoutine.mapNotNull {
-            (it as? ResultState.Success)?.data
-        }
-        currentRoutine.map {
-            val title = it.payload.title
-            RoutineTitleIntent.Update(title = title)
+        currentRoutine.mapNotNull {
+            (it as? ResultState.Success)?.data?.payload?.title
         }.onEach {
-            Timber.d("watchCurrentRoutine - intent=$it")
-            routineTitleStateHolder.sendIntent(it)
+            routineTitleStateHolder.updateTitle(it)
         }.launchIn(viewModelScope)
     }
 
@@ -200,24 +181,19 @@ internal class TimeRoutinePagerViewModel @Inject constructor(
 
     private fun handleIntentSideEffect(intent: TimeRoutinePagerUiIntent) {
         when (intent) {
-
-            is TimeRoutinePagerUiIntent.LoadRoutine -> {
-                // TODO: jhchoi 2025. 11. 10. 이게 intent가 맞나..?
-                dayOfWeeksPagerStateHolder.reduce(intent.stateIntent)
+            is TimeRoutinePagerUiIntent.SelectDayOfWeek -> {
+                dayOfWeeksPagerStateHolder.select(intent.dayOfWeek)
             }
 
-            // TODO: jhchoi 2025. 11. 10.
             is TimeRoutinePagerUiIntent.CheckDayOfWeek -> {
-                routineDayOfWeeksStateHolder.sendIntent(
-                    intent.dayOfWeekCheckIntent
+                routineDayOfWeeksStateHolder.check(
+                    dayOfWeeks = intent.checkedDayOfWeeks
                 )
             }
 
             is TimeRoutinePagerUiIntent.UpdateRoutineTitle -> {
                 Timber.d("handleIntentSideEffect - UpdateRoutineTitle=$intent")
-                routineTitleStateHolder.sendIntent(
-                    RoutineTitleIntent.Update(intent.title)
-                )
+                routineTitleStateHolder.updateTitle(intent.title)
             }
         }
     }

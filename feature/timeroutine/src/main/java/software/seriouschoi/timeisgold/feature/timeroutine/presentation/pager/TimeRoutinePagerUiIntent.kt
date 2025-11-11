@@ -1,7 +1,6 @@
 package software.seriouschoi.timeisgold.feature.timeroutine.presentation.pager
 
-import software.seriouschoi.timeisgold.feature.timeroutine.presentation.components.dayofweeks.check.DayOfWeeksCheckStateIntent
-import software.seriouschoi.timeisgold.feature.timeroutine.presentation.components.dayofweeks.pager.DayOfWeeksPagerStateIntent
+import java.time.DayOfWeek
 
 internal sealed interface TimeRoutinePagerUiIntent {
     // TODO: jhchoi 2025. 11. 10. 이게 인텐트이긴 좀 이상한데..
@@ -11,9 +10,9 @@ internal sealed interface TimeRoutinePagerUiIntent {
     근데 StateIntent를 감싼거니깐.. PagerIntent로 해도 될듯..
     이거 이름좀 고민해보자..
      */
-    data class LoadRoutine(val stateIntent: DayOfWeeksPagerStateIntent) : TimeRoutinePagerUiIntent
+    data class SelectDayOfWeek(val dayOfWeek: DayOfWeek) : TimeRoutinePagerUiIntent
     data class UpdateRoutineTitle(val title: String) : TimeRoutinePagerUiIntent
     data class CheckDayOfWeek(
-        val dayOfWeekCheckIntent: DayOfWeeksCheckStateIntent
+        val checkedDayOfWeeks: Set<DayOfWeek>,
     ) : TimeRoutinePagerUiIntent
 }

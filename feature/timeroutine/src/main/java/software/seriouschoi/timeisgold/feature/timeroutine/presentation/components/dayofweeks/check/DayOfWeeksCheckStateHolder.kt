@@ -18,12 +18,6 @@ internal class DayOfWeeksCheckStateHolder @Inject constructor() {
     private val _state = MutableStateFlow(DayOfWeeksCheckState())
     val state: StateFlow<DayOfWeeksCheckState> = _state
 
-    val checkedDayOfWeeks = state.map {
-        it.dayOfWeeksList.filter {
-            it.checked && it.enabled
-        }.map { it.dayOfWeek }
-    }
-
     init {
         val dayOfWeekStateList = DAY_OF_WEEKS.map {
             val dayOfWeekName = it.asShortText()
@@ -39,33 +33,23 @@ internal class DayOfWeeksCheckStateHolder @Inject constructor() {
         }
     }
 
-    fun sendIntent(intent: DayOfWeeksCheckStateIntent) {
-        when (intent) {
-            is DayOfWeeksCheckStateIntent.Update -> {
-                Timber.d("update - intent=$intent")
-                _state.update { state: DayOfWeeksCheckState ->
-                    val newList = state.dayOfWeeksList.map {
-                        val checked = intent.checked.contains(it.dayOfWeek)
-                        val enabled = intent.enabled.contains(it.dayOfWeek)
-                        it.copy(checked = checked || !enabled, enabled = enabled)
-                    }
-                    state.copy(dayOfWeeksList = newList)
-                }
+    fun check(dayOfWeeks: Set<DayOfWeek>) {
+        _state.update { state: DayOfWeeksCheckState ->
+            val newList = state.dayOfWeeksList.map {
+                it.copy(checked = dayOfWeeks.contains(it.dayOfWeek))
             }
+            state.copy(dayOfWeeksList = newList)
+        }
+    }
 
-            is DayOfWeeksCheckStateIntent.Check -> {
-                Timber.d("check - intent=$intent")
-                _state.update { state: DayOfWeeksCheckState ->
-                    val newList = state.dayOfWeeksList.map {
-                        if (it.dayOfWeek == intent.dayOfWeek) {
-                            it.copy(checked = intent.checked)
-                        } else {
-                            it
-                        }
-                    }
-                    state.copy(dayOfWeeksList = newList)
-                }
+    fun update(checked: Collection<DayOfWeek>, enabled: Collection<DayOfWeek>) {
+        _state.update { state: DayOfWeeksCheckState ->
+            val newList = state.dayOfWeeksList.map {
+                val checked = checked.contains(it.dayOfWeek)
+                val enabled = enabled.contains(it.dayOfWeek)
+                it.copy(checked = checked || !enabled, enabled = enabled)
             }
+            state.copy(dayOfWeeksList = newList)
         }
     }
 
@@ -92,14 +76,3 @@ internal data class DayOfWeekItemUiState(
     val checked: Boolean,
     val dayOfWeek: DayOfWeek
 )
-
-internal sealed interface DayOfWeeksCheckStateIntent {
-    data class Update(
-        val checked: Collection<DayOfWeek>, val enabled: Collection<DayOfWeek>
-    ) : DayOfWeeksCheckStateIntent
-
-    data class Check(
-        val dayOfWeek: DayOfWeek,
-        val checked: Boolean
-    ) : DayOfWeeksCheckStateIntent
-}

@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import software.seriouschoi.timeisgold.core.common.ui.components.InfiniteHorizontalPager
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.TimeSlotListPageScreen
+import java.time.DayOfWeek
 
 /**
  * Created by jhchoi on 2025. 10. 16.
@@ -13,7 +14,7 @@ import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslot
 internal fun DayOfWeekPagerView(
     state: DayOfWeeksPagerState,
     modifier: Modifier = Modifier,
-    sendIntent: (DayOfWeeksPagerStateIntent) -> Unit,
+    onSelectPage: (DayOfWeek) -> Unit,
 ) {
     val pagerItems = state.dayOfWeeks
     val currentDayOfWeek = state.currentDayOfWeek
@@ -24,9 +25,7 @@ internal fun DayOfWeekPagerView(
         onSelectPage = {
             val dayOfWeek = pagerItems.getOrNull(it)
             if (dayOfWeek != null) {
-                sendIntent.invoke(
-                    DayOfWeeksPagerStateIntent.Select(dayOfWeek)
-                )
+                onSelectPage(dayOfWeek)
             }
         },
         modifier = modifier,
