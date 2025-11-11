@@ -29,17 +29,12 @@ internal fun DayOfWeeksCheckView(
             TigCheckButton(
                 label = item.displayName.asString(),
                 checked = item.checked,
-                onCheckedChange = { newCheckedState ->
+                onCheckedChange = { checked ->
                     val newDayOfWeekItems = dayOfWeekItems.map {
-                        if (it.dayOfWeek == item.dayOfWeek) {
-                            it.copy(
-                                checked = newCheckedState
-                            )
-                        } else {
-                            it.copy(
-                                checked = it.checked
-                            )
-                        }
+                        if (it.dayOfWeek == item.dayOfWeek)
+                            it.copy(checked = checked)
+                        else
+                            it.copy(checked = it.checked)
                     }
                     val newDayOfWeeks = newDayOfWeekItems.mapNotNull {
                         if (it.checked && it.enabled) it.dayOfWeek

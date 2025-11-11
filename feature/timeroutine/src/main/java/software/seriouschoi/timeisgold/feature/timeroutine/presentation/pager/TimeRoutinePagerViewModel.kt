@@ -9,6 +9,8 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChangedBy
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
@@ -102,41 +104,34 @@ internal class TimeRoutinePagerViewModel @Inject constructor(
 
     @OptIn(FlowPreview::class)
     private fun watchEditIntent() {
-        val editTitle = _intent.mapNotNull {
-            it.payload as? TimeRoutinePagerUiIntent.UpdateRoutineTitle
-        }.map {
-            it.title
-        }
-        val editDayOfWeeks = _intent.mapNotNull {
-            it.payload as? TimeRoutinePagerUiIntent.CheckDayOfWeek
-        }.map {
-            it.checkedDayOfWeeks
-        }
-
-        val selectDayOfWeek = _intent.mapNotNull {
-            it.payload as? TimeRoutinePagerUiIntent.SelectDayOfWeek
-        }.map {
-            it.dayOfWeek
+        // TODO: jhchoi 2025. 11. 11.
+        /*
+        불분명한 구조가 되었다.
+        
+         */
+        val trigger = _intent.filter {
+            when(it.payload) {
+                is TimeRoutinePagerUiIntent.UpdateRoutineTitle,
+                is TimeRoutinePagerUiIntent.CheckDayOfWeek -> {
+                    true
+                }
+                else -> false
+            }
         }
 
-        combine(
-            editTitle,
-            editDayOfWeeks,
-            selectDayOfWeek
-        ) { title, dayOfWeeks, currentDayOfWeek ->
-            currentDayOfWeek to TimeRoutineVO(
+        trigger.debounce(500).onEach {
+            val title = routineTitleStateHolder.state.value.title
+            val dayOfWeeks = routineDayOfWeeksStateHolder.state.value.dayOfWeeksList.filter {
+                it.enabled && it.checked
+            }.map {
+                it.dayOfWeek
+            }
+            val currentDayOfWeek = dayOfWeeksPagerStateHolder.currentDayOfWeek.first()
+            val routineVO = TimeRoutineVO(
                 title = title,
-                dayOfWeeks = dayOfWeeks
+                dayOfWeeks = dayOfWeeks.toSet()
             )
-        }.distinctUntilChangedBy {
-            it.second
-        }.debounce(500).onEach {
-            val dayOfWeek = it.first
-            val routineVO = it.second
-            setRoutineUseCase.invoke(
-                routineVO = routineVO,
-                dayOfWeek = dayOfWeek
-            )
+            setRoutineUseCase.invoke(routineVO, currentDayOfWeek)
         }.launchIn(viewModelScope)
     }
 
@@ -149,6 +144,7 @@ internal class TimeRoutinePagerViewModel @Inject constructor(
     }
 
     private fun watchRoutineDayOfWeeks() {
+
         val currentRoutine = currentRoutine.mapNotNull { (it as? ResultState.Success)?.data }
         combine(
             state.selectableDayOfWeeks,
@@ -159,8 +155,8 @@ internal class TimeRoutinePagerViewModel @Inject constructor(
             Pair(enableDayOfWeeks, routineDayOfWeeks)
         }.onEach {
             routineDayOfWeeksStateHolder.update(
-                checked = it.first,
-                enabled = it.second
+                enabled = it.first,
+                checked = it.second
             )
         }.launchIn(viewModelScope)
     }
