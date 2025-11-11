@@ -2,7 +2,6 @@ package software.seriouschoi.timeisgold.feature.timeroutine.presentation.compone
 
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import software.seriouschoi.timeisgold.core.common.ui.UiText
 import software.seriouschoi.timeisgold.core.common.util.asShortText
@@ -34,6 +33,7 @@ internal class DayOfWeeksCheckStateHolder @Inject constructor() {
     }
 
     fun check(dayOfWeeks: Set<DayOfWeek>) {
+        Timber.d("check - dayOfWeeks=$dayOfWeeks")
         _state.update { state: DayOfWeeksCheckState ->
             val newList = state.dayOfWeeksList.map {
                 it.copy(checked = dayOfWeeks.contains(it.dayOfWeek))
@@ -43,6 +43,7 @@ internal class DayOfWeeksCheckStateHolder @Inject constructor() {
     }
 
     fun update(checked: Collection<DayOfWeek>, enabled: Collection<DayOfWeek>) {
+        Timber.d("update - checked=$checked, enabled=$enabled")
         _state.update { state: DayOfWeeksCheckState ->
             val newList = state.dayOfWeeksList.map {
                 val checked = checked.contains(it.dayOfWeek)
@@ -65,14 +66,3 @@ internal class DayOfWeeksCheckStateHolder @Inject constructor() {
         )
     }
 }
-
-internal data class DayOfWeeksCheckState(
-    val dayOfWeeksList: List<DayOfWeekItemUiState> = emptyList()
-)
-
-internal data class DayOfWeekItemUiState(
-    val displayName: UiText,
-    val enabled: Boolean,
-    val checked: Boolean,
-    val dayOfWeek: DayOfWeek
-)

@@ -2,7 +2,6 @@ package software.seriouschoi.timeisgold.feature.timeroutine.presentation.compone
 
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -22,8 +21,6 @@ internal class DayOfWeeksPagerStateHolder @Inject constructor() {
     )
 
     val state: StateFlow<DayOfWeeksPagerState> = _state
-
-    val currentDayOfWeek = state.map { it.currentDayOfWeek }
 
     fun select(dayOfWeek: DayOfWeek) {
         _state.update {

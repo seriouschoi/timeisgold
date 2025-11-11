@@ -178,7 +178,6 @@ internal class TimeSlotListPageViewModel @Inject constructor(
         }.debounce(
             timeoutMillis = 500
         ).onEach { (state, week) ->
-            // TODO: 상태를 관찰하지 말고, 의도가 발행될때 apply를 수행하자.
             applyTimeSlot(
                 slotVO = TimeSlotVO(
                     startTime = state.startTime,

@@ -52,7 +52,5 @@ class TimeRangeTest {
 
         println("hours = $hours")
         println("mins = $mins")
-        // TODO: jhchoi 2025. 11. 5. local time으로 위 내용을 다시 구현.
-
     }
 }
