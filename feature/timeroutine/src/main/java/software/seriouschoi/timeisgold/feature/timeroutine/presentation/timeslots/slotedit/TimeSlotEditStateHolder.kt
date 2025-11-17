@@ -66,7 +66,10 @@ internal sealed interface TimeSlotEditStateIntent {
 internal data class TimeSlotEditState(
     val slotUuid: String? = null,
     val title: String,
+
     val startTime: LocalTime,
     val endTime: LocalTime,
-    // TODO: jhchoi 2025. 11. 2. 선택이 가능한 시간 범위 전달.
+
+    val startTimeRange: Pair<LocalTime, LocalTime> = LocalTime.MIN to LocalTime.MAX,
+    val endTimeRange: Pair<LocalTime, LocalTime> = LocalTime.MIN to LocalTime.MAX,
 )

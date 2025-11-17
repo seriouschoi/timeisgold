@@ -70,21 +70,22 @@ internal class TimeRoutineRepositoryPortAdapter @Inject constructor(
     }.asDataResult()
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    override fun watchRoutine(dayOfWeek: DayOfWeek): Flow<DataResult<MetaEnvelope<TimeRoutineVO>>> {
+    override fun watchRoutine(dayOfWeek: DayOfWeek): Flow<DataResult<MetaEnvelope<TimeRoutineVO>?>> {
         val routineDao = database.TimeRoutineDao()
         val dayOfWeekDao = database.TimeRoutineDayOfWeekDao()
+
         return dayOfWeekDao.watchLatest(
             dayOfWeek
         ).map { it?.timeRoutineId }.flatMapLatest { routineId ->
             if (routineId == null) {
-                flowOf(DataResult.Failure(DataError.NotFound))
+                flowOf(DataResult.Success(null))
             } else {
                 combine(
                     routineDao.watch(routineId),
                     dayOfWeekDao.watch(routineId)
                 ) { routine, dayOfWeeks ->
                     if (routine == null) {
-                        return@combine DataResult.Failure(DataError.NotFound)
+                        return@combine DataResult.Success(null)
                     }
 
                     val routineMeta = MetaInfo(

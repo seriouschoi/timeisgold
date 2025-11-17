@@ -20,20 +20,28 @@ import java.time.DayOfWeek
 @Composable
 internal fun DayOfWeeksCheckView(
     state: DayOfWeeksCheckState,
-    sendIntent: (DayOfWeeksCheckIntent) -> Unit = {}
+    onChecked: (Set<DayOfWeek>) -> Unit,
 ) {
+    val dayOfWeekItems = state.dayOfWeeksList
+
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-        state.dayOfWeeksList.forEach { item ->
+        dayOfWeekItems.forEachIndexed { index, item ->
             TigCheckButton(
                 label = item.displayName.asString(),
                 checked = item.checked,
-                onCheckedChange = {
-                    sendIntent.invoke(
-                        DayOfWeeksCheckIntent.Check(
-                            dayOfWeek = item.dayOfWeek,
-                            checked = it
-                        )
-                    )
+                onCheckedChange = { checked ->
+                    val newDayOfWeekItems = dayOfWeekItems.map {
+                        if (it.dayOfWeek == item.dayOfWeek)
+                            it.copy(checked = checked)
+                        else
+                            it.copy(checked = it.checked)
+                    }
+                    val newDayOfWeeks = newDayOfWeekItems.mapNotNull {
+                        if (it.checked && it.enabled) it.dayOfWeek
+                        else null
+                    }
+
+                    onChecked(newDayOfWeeks.toSet())
                 },
                 enabled = item.enabled
             )
@@ -58,6 +66,7 @@ private fun Preview() {
                     )
                 }
             )
-        )
+        ) { selectedDayOfWeeks ->
+        }
     }
 }

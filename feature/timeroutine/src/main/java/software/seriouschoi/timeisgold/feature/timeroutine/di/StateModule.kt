@@ -4,8 +4,8 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import software.seriouschoi.timeisgold.domain.usecase.timeroutine.WatchAllRoutineDayOfWeeksUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.WatchRoutineUseCase
+import software.seriouschoi.timeisgold.domain.usecase.timeroutine.WatchSelectableDayOfWeeksUseCase
 import software.seriouschoi.timeisgold.feature.timeroutine.data.TimeRoutineFeatureState
 import javax.inject.Singleton
 
@@ -20,11 +20,11 @@ internal class StateModule {
     @Singleton()
     fun provideState(
         watchRoutineUseCase: WatchRoutineUseCase,
-        watchAllDayOfWeeksUseCase: WatchAllRoutineDayOfWeeksUseCase,
+        watchSelectableDayOfWeeksUseCase: WatchSelectableDayOfWeeksUseCase,
     ): TimeRoutineFeatureState {
         return TimeRoutineFeatureState(
             watchRoutineUseCase = watchRoutineUseCase,
-            allDayOfWeeksUseCase = watchAllDayOfWeeksUseCase
+            watchSelectableDayOfWeeksUseCase = watchSelectableDayOfWeeksUseCase
         )
     }
 }

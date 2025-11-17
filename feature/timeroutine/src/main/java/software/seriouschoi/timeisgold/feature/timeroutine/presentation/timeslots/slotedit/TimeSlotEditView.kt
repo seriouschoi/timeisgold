@@ -55,6 +55,7 @@ internal fun TimeSlotEditView(
             )
             TigTimePicker(
                 time = state.startTime,
+                timeRange = state.startTimeRange
             ) {
                 Timber.d("picked start time. time=${it}")
                 sendIntent.invoke(TimeSlotEditStateIntent.Update(
@@ -69,6 +70,7 @@ internal fun TimeSlotEditView(
 
             TigTimePicker(
                 time = state.endTime,
+                timeRange = state.endTimeRange
             ) {
                 Timber.d("picked end time. time=${it}")
                 sendIntent.invoke(TimeSlotEditStateIntent.Update(

@@ -17,7 +17,7 @@ import javax.inject.Inject
 class WatchRoutineUseCase @Inject constructor(
     private val routineRepository: TimeRoutineRepositoryPort
 ) {
-    suspend fun invoke(dayOfWeek: DayOfWeek): Flow<DomainResult<MetaEnvelope<TimeRoutineVO>>> {
+    fun invoke(dayOfWeek: DayOfWeek): Flow<DomainResult<MetaEnvelope<TimeRoutineVO>?>> {
         return routineRepository.watchRoutine(dayOfWeek).map {
             it.asDomainResult()
         }

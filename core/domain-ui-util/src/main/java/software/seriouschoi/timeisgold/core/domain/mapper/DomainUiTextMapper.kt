@@ -58,6 +58,11 @@ fun DomainError.toUiText(): UiText = when (this) {
                 CommonR.string.message_format_notfound_data,
                 CommonR.string.text_timeslot
             )
+
+            DomainError.NotFound.Data ->  UiText.MultipleResArgs.create(
+                CommonR.string.message_format_notfound_data,
+                CommonR.string.text_data
+            )
         }
     }
 

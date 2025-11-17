@@ -20,7 +20,7 @@ interface TimeRoutineRepositoryPort {
 
     fun watchRoutine(
         dayOfWeek: DayOfWeek
-    ): Flow<DataResult<MetaEnvelope<TimeRoutineVO>>>
+    ): Flow<DataResult<MetaEnvelope<TimeRoutineVO>?>>
 
     fun watchAllDayOfWeeks() : Flow<DataResult<Set<DayOfWeek>>>
 

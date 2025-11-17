@@ -28,16 +28,21 @@ class WatchTimeSlotListUseCase @Inject constructor(
     operator fun invoke(dayOfWeek: DayOfWeek): Flow<DomainResult<List<MetaEnvelope<TimeSlotVO>>>> {
         return timeRoutineRepository.watchRoutine(dayOfWeek).map {
             it.asDomainResult()
-        }.flatMapLatest { it: DomainResult<MetaEnvelope<TimeRoutineVO>> ->
+        }.flatMapLatest { it: DomainResult<MetaEnvelope<TimeRoutineVO>?> ->
             when (it) {
                 is DomainResult.Failure -> {
                     flowOf(DomainResult.Failure(DomainError.NotFound.TimeRoutine))
                 }
 
                 is DomainResult.Success -> {
-                    val routineId = it.value.metaInfo.uuid
-                    timeSlotRepository.watchTimeSlotList(routineId = routineId).map {
-                        it.asDomainResult()
+                    val routineId = it.value?.metaInfo?.uuid
+
+                    if(routineId != null) {
+                        timeSlotRepository.watchTimeSlotList(routineId = routineId).map {
+                            it.asDomainResult()
+                        }
+                    } else {
+                        flowOf(DomainResult.Success(emptyList()))
                     }
                 }
             }

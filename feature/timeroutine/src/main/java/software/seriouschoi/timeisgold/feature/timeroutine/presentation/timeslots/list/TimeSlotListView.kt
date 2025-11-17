@@ -76,7 +76,7 @@ internal fun TimeSlotListView(
                 sendIntent.invoke(intent)
             },
             onDropBound = { index, target ->
-                val intent = TimeSlotListPageUiIntent.UpdateTimeSlotList
+                val intent = TimeSlotListPageUiIntent.ApplyTimeSlotListChanges
                 sendIntent.invoke(intent)
             },
             onTapBound = onTab@{ index, target ->

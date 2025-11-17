@@ -11,7 +11,7 @@ internal sealed interface TimeSlotListPageUiIntent {
         val updateTimeType: TimeSlotUpdateTimeType,
     ) : TimeSlotListPageUiIntent
 
-    data object UpdateTimeSlotList : TimeSlotListPageUiIntent
+    data object ApplyTimeSlotListChanges : TimeSlotListPageUiIntent
 
     data object Cancel : TimeSlotListPageUiIntent
 

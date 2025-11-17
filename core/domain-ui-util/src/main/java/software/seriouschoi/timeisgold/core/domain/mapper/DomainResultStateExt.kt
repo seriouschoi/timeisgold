@@ -1,7 +1,5 @@
 package software.seriouschoi.timeisgold.core.domain.mapper
 
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
 import software.seriouschoi.timeisgold.core.common.ui.ResultState
 import software.seriouschoi.timeisgold.domain.data.DomainError
 import software.seriouschoi.timeisgold.domain.data.DomainResult
@@ -10,56 +8,26 @@ import software.seriouschoi.timeisgold.domain.data.DomainResult
  * Created by jhchoi on 2025. 9. 17.
  * jhchoi
  */
-fun <T> Flow<ResultState<DomainResult<T>>>.onlyDomainSuccess(): Flow<T?> =
-    this.map { (it as? ResultState.Success)?.data }
-        .map { (it as? DomainResult.Success)?.value }
+data class DomainErrorException(val error: DomainError, val from: Throwable? = null) : Exception() {
+    override val message: String? = "$error, from=$from"
+}
 
-fun <T> Flow<ResultState<T>>.onlyResultSuccess(): Flow<T?> =
-    this.map { (it as? ResultState.Success)?.data }
-
-
-fun <T> ResultState<T>.onlyResultSuccess(): T? {
+fun <T> DomainResult<T>?.asResultState(): ResultState<T> {
     return when (this) {
-        is ResultState.Success -> {
-            this.data
+        is DomainResult.Failure -> {
+            ResultState.Error(
+                DomainErrorException(error = this.error, from = this.exception)
+            )
         }
 
-        else -> null
+        is DomainResult.Success -> ResultState.Success(
+            this.value
+        )
+
+        null -> ResultState.Loading
     }
 }
 
-fun <T> DomainResult<T>.onlySuccess(): T? {
-    return when (this) {
-        is DomainResult.Failure -> null
-        is DomainResult.Success -> this.value
-    }
-}
-
-fun <T> ResultState<DomainResult<T>>.onlyDomainSuccess(): T? {
-    return when (this) {
-        is ResultState.Success -> {
-            when (val domainResult = this.data) {
-                is DomainResult.Failure -> null
-                is DomainResult.Success -> domainResult.value
-            }
-        }
-
-        else -> null
-    }
-}
-
-fun <T> Flow<ResultState<DomainResult<T>>>.onlyDomainResult(): Flow<DomainResult<T>?> {
-    return this.map { resultState ->
-        resultState.onlyDomainResult()
-    }
-}
-
-fun <T> ResultState<DomainResult<T>>.onlyDomainResult(): DomainResult<T>? {
-    return when (this) {
-        is ResultState.Error -> DomainResult.Failure(DomainError.Technical.Unknown)
-        ResultState.Loading -> null
-        is ResultState.Success -> {
-            this.data
-        }
-    }
+fun ResultState.Error.asDomainError(): DomainError {
+    return (this.throwable as? DomainErrorException)?.error ?: DomainError.Technical.Unknown
 }
