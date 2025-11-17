@@ -130,7 +130,7 @@ fun watchSelectableDayOfWeeks2(dayOfWeek: DayOfWeek): Flow<DomainResult<List<Day
 
 1. { } 를 줄이기보다, 한 { } 레벨 안에서 최대한 단순하게 보이게 만들어야 한다.
 2. 분기 처리는 연산자 체인 바깥에서 처리한다.
-3. 
+
 이런 구현을 하기 위해선 다음과 같이 생각을 해봐야 한다.
 
 1. usecase의 입력과 출력을 정확히 정리한다.
