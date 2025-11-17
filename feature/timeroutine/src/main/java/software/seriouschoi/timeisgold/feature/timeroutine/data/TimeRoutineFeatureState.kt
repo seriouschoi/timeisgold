@@ -31,6 +31,12 @@ internal class TimeRoutineFeatureState(
     private val watchRoutineUseCase: WatchRoutineUseCase,
     private val watchSelectableDayOfWeeksUseCase: WatchSelectableDayOfWeeksUseCase
 ) {
+    // TODO: jhchoi 2025. 11. 17. 이걸 차라리.. 들어내자..
+    /*
+    근데..선택된 요일과 관련된 상태개념 하나쯤은 있어도 되지 않나..?
+
+     */
+
     private val _data = MutableStateFlow(TimeRoutineFeatureStateData(defaultDayOfWeek))
 
     val data: StateFlow<TimeRoutineFeatureStateData> = _data

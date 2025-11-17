@@ -3,6 +3,7 @@ package software.seriouschoi.timeisgold.feature.timeroutine.presentation.pager
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -12,6 +13,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
@@ -26,6 +28,7 @@ import software.seriouschoi.timeisgold.core.domain.mapper.asResultState
 import software.seriouschoi.timeisgold.domain.data.DomainResult
 import software.seriouschoi.timeisgold.domain.data.vo.TimeRoutineVO
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.SetRoutineUseCase
+import software.seriouschoi.timeisgold.domain.usecase.timeroutine.WatchRoutineUseCase
 import software.seriouschoi.timeisgold.feature.timeroutine.data.TimeRoutineFeatureState
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.components.dayofweeks.check.DayOfWeeksCheckStateHolder
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.components.dayofweeks.pager.DayOfWeeksPagerStateHolder
@@ -37,11 +40,13 @@ import javax.inject.Inject
  * Created by jhchoi on 2025. 8. 26.
  * jhchoi
  */
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 internal class TimeRoutinePagerViewModel @Inject constructor(
     private val navigator: DestNavigatorPort,
     private val featureState: TimeRoutineFeatureState,
 
+    private val watchRoutineUseCase: WatchRoutineUseCase,
     private val routineTitleStateHolder: RoutineTitleStateHolder,
     private val routineDayOfWeeksStateHolder: DayOfWeeksCheckStateHolder,
     private val dayOfWeeksPagerStateHolder: DayOfWeeksPagerStateHolder,
@@ -51,6 +56,13 @@ internal class TimeRoutinePagerViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _intent = MutableSharedFlow<MetaEnvelope<TimeRoutinePagerUiIntent>>()
+
+    // TODO: jhchoi 2025. 11. 17.  
+    private val test = dayOfWeeksPagerStateHolder.state.map {
+        it.currentDayOfWeek
+    }.flatMapLatest {
+        watchRoutineUseCase.invoke(it)
+    }
 
     private val currentRoutine = featureState.routine.map {
         it.asResultState()
