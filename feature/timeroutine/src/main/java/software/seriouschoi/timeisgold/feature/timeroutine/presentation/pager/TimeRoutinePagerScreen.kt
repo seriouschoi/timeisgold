@@ -67,9 +67,12 @@ private fun TimeRoutinePagerRootView(
             ) {
                 DayOfWeeksCheckView(
                     state = uiState.routineDayOfWeeks,
-                ) { dayOfWeeks ->
+                ) { dayOfWeek, isCheck ->
                     sendIntent.invoke(
-                        TimeRoutinePagerUiIntent.CheckDayOfWeek(dayOfWeeks)
+                        TimeRoutinePagerUiIntent.CheckDayOfWeek(
+                            dayOfWeek = dayOfWeek,
+                            isCheck = isCheck
+                        )
                     )
                 }
                 DayOfWeekPagerView(
@@ -78,7 +81,7 @@ private fun TimeRoutinePagerRootView(
                         .fillMaxWidth()
                         .weight(1f)
                 ) {
-                    sendIntent.invoke(TimeRoutinePagerUiIntent.SelectDayOfWeek(it))
+                    sendIntent.invoke(TimeRoutinePagerUiIntent.SelectCurrentDayOfWeek(it))
                 }
             }
         },

@@ -15,6 +15,7 @@ dependencies {
     implementation(project(":core:navigator-api"))
     implementation(project(":core:common-ui"))
     implementation(project(":core:common-util"))
+
     testImplementation(project(":core:test-util"))
     androidTestImplementation(project(":core:test-util"))
     androidTestImplementation(project(":core:android-test-util"))

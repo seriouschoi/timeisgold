@@ -32,11 +32,15 @@ internal class DayOfWeeksCheckStateHolder @Inject constructor() {
         }
     }
 
-    fun check(dayOfWeeks: Set<DayOfWeek>) {
+    fun check(dayOfWeeks: DayOfWeek, checked: Boolean) {
         Timber.d("check - dayOfWeeks=$dayOfWeeks")
         _state.update { state: DayOfWeeksCheckState ->
             val newList = state.dayOfWeeksList.map {
-                it.copy(checked = dayOfWeeks.contains(it.dayOfWeek))
+                if (it.dayOfWeek == dayOfWeeks) {
+                    it.copy(checked = checked)
+                } else {
+                    it
+                }
             }
             state.copy(dayOfWeeksList = newList)
         }
