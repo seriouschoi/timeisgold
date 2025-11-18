@@ -123,7 +123,15 @@ internal class TimeRoutinePagerViewModel @Inject constructor(
 
     private fun watchCurrentRoutine() {
         currentRoutine.mapNotNull {
-            (it as? ResultState.Success)?.data?.payload?.title
+            when(it) {
+                is ResultState.Loading,
+                is ResultState.Error -> {
+                    null
+                }
+                is ResultState.Success -> {
+                    it.data?.payload?.title ?: ""
+                }
+            }
         }.onEach {
             routineTitleStateHolder.updateTitle(it)
         }.launchIn(viewModelScope)

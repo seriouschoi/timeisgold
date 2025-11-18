@@ -40,12 +40,14 @@ class TimeRoutinePagerViewModelTest {
     @get:Rule
     val dispatcherRule = MainDispatcherRule()
 
-    private lateinit var viewModel: TimeRoutinePagerViewModel
+    private val testDay1 = DayOfWeek.from(LocalDate.now())
+
     private lateinit var watchRoutineUseCase: WatchRoutineUseCase
     private lateinit var watchSelectableDayOfWeeksUseCase: WatchSelectableDayOfWeeksUseCase
-    private lateinit var setRoutineUseCase: SetRoutineUseCase
 
     private lateinit var routineFlow: MutableStateFlow<DomainResult<MetaEnvelope<TimeRoutineVO>?>>
+
+    private lateinit var setRoutineUseCase: SetRoutineUseCase
     private lateinit var selectableDayOfWeeksFlow: Flow<DomainResult<List<DayOfWeek>>>
 
     @Before
@@ -60,15 +62,13 @@ class TimeRoutinePagerViewModelTest {
         setRoutineUseCase = Mockito.mock()
     }
 
-    @Test
-    fun checkDayOfWeeks() = runTest(dispatcherRule.dispatcher) {
-        val testDay = DayOfWeek.from(LocalDate.now())
+    private suspend fun generateViewModel(): TimeRoutinePagerViewModel {
         whenever(
-            watchRoutineUseCase.invoke(testDay)
+            watchRoutineUseCase.invoke(testDay1)
         ).thenReturn(routineFlow)
 
         whenever(
-            watchSelectableDayOfWeeksUseCase.invoke(testDay)
+            watchSelectableDayOfWeeksUseCase.invoke(testDay1)
         ).thenReturn(
             selectableDayOfWeeksFlow
         )
@@ -81,7 +81,7 @@ class TimeRoutinePagerViewModelTest {
             )
         )
 
-        viewModel = TimeRoutinePagerViewModel(
+        return TimeRoutinePagerViewModel(
             dayOfWeeksPagerStateHolder = DayOfWeeksPagerStateHolder(),
             routineTitleStateHolder = RoutineTitleStateHolder(),
             routineDayOfWeeksStateHolder = DayOfWeeksCheckStateHolder(),
@@ -89,13 +89,18 @@ class TimeRoutinePagerViewModelTest {
             watchSelectableDayOfWeeksUseCase = watchSelectableDayOfWeeksUseCase,
             setRoutineUseCase = setRoutineUseCase
         )
+    }
+
+    @Test
+    fun test_checkDayOfWeek() = runTest(dispatcherRule.dispatcher) {
+        val viewModel = generateViewModel()
 
         advanceUntilIdle()
 
         //월요일 체크.
         viewModel.sendIntent(
             TimeRoutinePagerUiIntent.CheckDayOfWeek(
-                dayOfWeek = testDay,
+                dayOfWeek = testDay1,
                 isCheck = true
             )
         )
@@ -109,17 +114,16 @@ class TimeRoutinePagerViewModelTest {
             check { vo ->
                 println("setRoutineUseCase.check - vo=$vo")
                 testVo = vo
-                assertTrue(vo.dayOfWeeks.contains(testDay), "선택된 요일이 없습니다.")
+                assertTrue(vo.dayOfWeeks.contains(testDay1), "선택된 요일이 없습니다.")
             },
             check { dayOfWeek ->
                 println("setRoutineUseCase.check - dayOfWeek=$dayOfWeek")
-                assertTrue(dayOfWeek == testDay, "현재 요일이 아닙니다.")
+                assertTrue(dayOfWeek == testDay1, "현재 요일이 아닙니다.")
             }
         )
 
         routineFlow.emit(DomainResult.Success(MetaEnvelope(testVo!!)))
 
-        advanceUntilIdle()
         advanceUntilIdle()
 
         val uiState = viewModel.uiState.first()
@@ -128,8 +132,78 @@ class TimeRoutinePagerViewModelTest {
         }.map { it.dayOfWeek }.toSet()
 
         assertTrue(
-            setOf(testDay) == checkedDayOfWeeks,
+            setOf(testDay1) == checkedDayOfWeeks,
             "요일이 제대로 체크되지 않았습니다. 체크된_요일들=${checkedDayOfWeeks}"
         )
+    }
+
+    @Test
+    fun test_uncheckDayOfWeek() = runTest(dispatcherRule.dispatcher) {
+        val viewModel = generateViewModel()
+
+        //초기화.
+        advanceUntilIdle()
+
+        val defaultRoutine = TimeRoutineVO(
+            title = "test routine",
+            dayOfWeeks = setOf(testDay1)
+        )
+
+        //기본 루틴 추가.
+        routineFlow.emit(MetaEnvelope(defaultRoutine).let {
+            DomainResult.Success(it)
+        })
+
+        //갱신.
+        advanceUntilIdle()
+
+        //기본 루틴 정상 출력 확인.
+        var currentUiState = viewModel.uiState.first()
+        assertTrue(currentUiState.titleState.title == defaultRoutine.title, "루틴 제목이 잘못됐습니다.")
+        var currentRoutineDayOfWeeks = currentUiState.routineDayOfWeeks.dayOfWeeksList.filter {
+            it.enabled && it.checked
+        }.map { it.dayOfWeek }
+        println("루틴 타이틀=${currentUiState.titleState.title}")
+        println("루틴 요일=${currentRoutineDayOfWeeks}")
+        assertTrue(
+            currentRoutineDayOfWeeks.toSet() == defaultRoutine.dayOfWeeks,
+            "기본 루틴이 정상 추가되지 않았습니다."
+        )
+
+        //체크 해제.
+        viewModel.sendIntent(
+            TimeRoutinePagerUiIntent.CheckDayOfWeek(
+                dayOfWeek = testDay1,
+                isCheck = false
+            )
+        )
+
+        println("요일 체크를 해제합니다.")
+        advanceUntilIdle()
+
+        //루틴 저장 useCase실행됨.(삭제)
+        verify(setRoutineUseCase).invoke(
+            check { vo ->
+                assertTrue(vo.dayOfWeeks.isEmpty(), "선택이 해제되지 않았습니다.")
+            },
+            check { dayOfWeek ->
+                assertTrue(dayOfWeek == testDay1, "현재 요일이 아닙니다.")
+            }
+        )
+
+        //루틴 삭제됨.
+        routineFlow.emit(DomainResult.Success(null))
+        println("루틴을 삭제했습니다.")
+
+        advanceUntilIdle()
+
+        currentUiState = viewModel.uiState.value
+        currentRoutineDayOfWeeks = currentUiState.routineDayOfWeeks.dayOfWeeksList.filter {
+            it.enabled && it.checked
+        }.map { it.dayOfWeek }
+        assertTrue(currentRoutineDayOfWeeks.isEmpty(), "루틴이 요일이 남아있습니다.")
+
+        var routineTitleState = currentUiState.titleState.title
+        assertTrue(routineTitleState == "", "루텐 제목이 남아있습니다. $routineTitleState")
     }
 }
