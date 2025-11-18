@@ -11,8 +11,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.distinctUntilChangedBy
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -29,11 +27,13 @@ import software.seriouschoi.timeisgold.domain.data.DomainResult
 import software.seriouschoi.timeisgold.domain.data.vo.TimeRoutineVO
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.SetRoutineUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.WatchRoutineUseCase
-import software.seriouschoi.timeisgold.feature.timeroutine.data.TimeRoutineFeatureState
+import software.seriouschoi.timeisgold.domain.usecase.timeroutine.WatchSelectableDayOfWeeksUseCase
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.components.dayofweeks.check.DayOfWeeksCheckStateHolder
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.components.dayofweeks.pager.DayOfWeeksPagerStateHolder
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.pager.stateholder.RoutineTitleStateHolder
 import timber.log.Timber
+import java.time.DayOfWeek
+import java.time.LocalDate
 import javax.inject.Inject
 
 /**
@@ -44,34 +44,29 @@ import javax.inject.Inject
 @HiltViewModel
 internal class TimeRoutinePagerViewModel @Inject constructor(
     private val navigator: DestNavigatorPort,
-    private val featureState: TimeRoutineFeatureState,
 
-    private val watchRoutineUseCase: WatchRoutineUseCase,
+    private val dayOfWeeksPagerStateHolder: DayOfWeeksPagerStateHolder,
     private val routineTitleStateHolder: RoutineTitleStateHolder,
     private val routineDayOfWeeksStateHolder: DayOfWeeksCheckStateHolder,
-    private val dayOfWeeksPagerStateHolder: DayOfWeeksPagerStateHolder,
 
+    private val watchRoutineUseCase: WatchRoutineUseCase,
+    private val watchSelectableDayOfWeeksUseCase: WatchSelectableDayOfWeeksUseCase,
     private val setRoutineUseCase: SetRoutineUseCase
 
 ) : ViewModel() {
 
     private val _intent = MutableSharedFlow<MetaEnvelope<TimeRoutinePagerUiIntent>>()
 
-    // TODO: jhchoi 2025. 11. 17.  
-    private val test = dayOfWeeksPagerStateHolder.state.map {
+    private val currentRoutine = dayOfWeeksPagerStateHolder.state.map {
         it.currentDayOfWeek
     }.flatMapLatest {
         watchRoutineUseCase.invoke(it)
-    }
-
-    private val currentRoutine = featureState.routine.map {
+    }.map {
         it.asResultState()
-    }.withResultStateLifecycle().onEach {
-        Timber.d("watchCurrentRoutine - result=$it")
-    }.stateIn(
+    }.withResultStateLifecycle().stateIn(
         scope = viewModelScope,
         started = SharingStarted.Lazily,
-        initialValue = null
+        initialValue = ResultState.Loading
     )
 
     val uiState = combine(
@@ -97,26 +92,17 @@ internal class TimeRoutinePagerViewModel @Inject constructor(
     }
 
     init {
+        dayOfWeeksPagerStateHolder.select(DayOfWeek.from(LocalDate.now()))
+
         watchIntent()
-        watchEditIntent()
+        watchEditState()
 
-        watchDayOfWeekPager()
-
-        watchCurrentDayOfWeek()
         watchCurrentRoutine()
         watchRoutineDayOfWeeks()
     }
 
-    private fun watchDayOfWeekPager() {
-        dayOfWeeksPagerStateHolder.state.map {
-            it.currentDayOfWeek
-        }.onEach {
-            featureState.selectDayOfWeek(it)
-        }.launchIn(viewModelScope)
-    }
-
     @OptIn(FlowPreview::class)
-    private fun watchEditIntent() {
+    private fun watchEditState() {
         combine(
             dayOfWeeksPagerStateHolder.state.map {
                 it.currentDayOfWeek
@@ -141,18 +127,16 @@ internal class TimeRoutinePagerViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
-    private fun watchCurrentDayOfWeek() {
-        featureState.data.map {
-            it.dayOfWeek
-        }.onEach {
-            dayOfWeeksPagerStateHolder.select(it)
-        }.launchIn(viewModelScope)
-    }
-
     private fun watchRoutineDayOfWeeks() {
         val currentRoutine = currentRoutine.mapNotNull { (it as? ResultState.Success)?.data }
+        val selectableDayOfWeeks = dayOfWeeksPagerStateHolder.state.map {
+            it.currentDayOfWeek
+        }.flatMapLatest {
+            watchSelectableDayOfWeeksUseCase.invoke(it)
+        }
+
         combine(
-            featureState.selectableDayOfWeeks.mapNotNull {
+            selectableDayOfWeeks.mapNotNull {
                 (it as? DomainResult.Success)?.value
             }.distinctUntilChanged(),
             currentRoutine.map {

@@ -15,8 +15,8 @@ internal class DayOfWeeksPagerStateHolder @Inject constructor() {
 
     private val _state = MutableStateFlow(
         DayOfWeeksPagerState(
-            dayOfWeeks = DAY_OF_WEEKS,
-            currentDayOfWeek = DayOfWeek.from(LocalDate.now())
+            dayOfWeeks = DayOfWeeksPagerState.DAY_OF_WEEKS,
+            currentDayOfWeek = DayOfWeeksPagerState.DEFAULT_DAY_OF_WEEK
         )
     )
 
@@ -30,16 +30,5 @@ internal class DayOfWeeksPagerStateHolder @Inject constructor() {
         }
     }
 
-    companion object {
-        val DAY_OF_WEEKS = listOf(
-            DayOfWeek.MONDAY,
-            DayOfWeek.TUESDAY,
-            DayOfWeek.WEDNESDAY,
-            DayOfWeek.THURSDAY,
-            DayOfWeek.FRIDAY,
-            DayOfWeek.SATURDAY,
-            DayOfWeek.SUNDAY
-        )
-        val DEFAULT_DAY_OF_WEEK: DayOfWeek = DayOfWeek.from(LocalDate.now())
-    }
+
 }
