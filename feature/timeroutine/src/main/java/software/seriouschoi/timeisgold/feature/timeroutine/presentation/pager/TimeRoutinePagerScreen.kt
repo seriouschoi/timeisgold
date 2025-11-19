@@ -99,7 +99,7 @@ private fun TopBar(
     TopAppBar(
         title = {
             RoutineTitleText(uiState.titleState) {
-                sendIntent.invoke(TimeRoutinePagerUiIntent.UpdateRoutineTitle(it))
+                sendIntent.invoke(TimeRoutinePagerUiIntent.InputRoutineTitle(it))
             }
         },
         navigationIcon = {

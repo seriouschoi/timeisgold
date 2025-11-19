@@ -64,8 +64,6 @@ import software.seriouschoi.timeisgold.core.common.ui.R as CommonR
  */
 @HiltViewModel
 internal class TimeSlotListPageViewModel @Inject constructor(
-    private val navigator: DestNavigatorPort,
-
     private val watchTimeSlotListUseCase: WatchTimeSlotListUseCase,
     private val setTimeSlotsUseCase: SetTimeSlotListUseCase,
     private val setTimeSlotUseCase: SetTimeSlotUseCase,

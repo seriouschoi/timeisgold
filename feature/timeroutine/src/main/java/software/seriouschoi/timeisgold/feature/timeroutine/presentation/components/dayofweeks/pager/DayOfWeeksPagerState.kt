@@ -5,7 +5,7 @@ import java.time.LocalDate
 
 internal data class DayOfWeeksPagerState(
     val dayOfWeeks: List<DayOfWeek> = DAY_OF_WEEKS,
-    val currentDayOfWeek: DayOfWeek = DEFAULT_DAY_OF_WEEK
+    val currentDayOfWeek: DayOfWeek = LocalDate.now().dayOfWeek
 ) {
     companion object {
         val DAY_OF_WEEKS = listOf(
@@ -17,6 +17,5 @@ internal data class DayOfWeeksPagerState(
             DayOfWeek.SATURDAY,
             DayOfWeek.SUNDAY
         )
-        val DEFAULT_DAY_OF_WEEK: DayOfWeek = DayOfWeek.from(LocalDate.now())
     }
 }

@@ -6,7 +6,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class DestNavigatorPortAdapter @Inject constructor(
+internal class DestNavigatorPortAdapter @Inject constructor(
 ) : DestNavigatorPort {
 
     private var provider: (() -> NavHostController)? = null

@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import software.seriouschoi.timeisgold.core.common.ui.ResultState
 import software.seriouschoi.timeisgold.core.common.ui.withResultStateLifecycle
+import software.seriouschoi.timeisgold.core.common.util.CurrentDayOfWeekProviderPort
 import software.seriouschoi.timeisgold.core.common.util.MetaEnvelope
 import software.seriouschoi.timeisgold.core.domain.mapper.asResultState
 import software.seriouschoi.timeisgold.domain.data.DomainResult
@@ -28,11 +29,10 @@ import software.seriouschoi.timeisgold.domain.usecase.timeroutine.SetRoutineUseC
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.WatchRoutineUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeroutine.WatchSelectableDayOfWeeksUseCase
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.components.dayofweeks.check.DayOfWeeksCheckStateHolder
+import software.seriouschoi.timeisgold.feature.timeroutine.presentation.components.dayofweeks.check.getActiveCheckDayOfWeeks
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.components.dayofweeks.pager.DayOfWeeksPagerStateHolder
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.pager.stateholder.RoutineTitleStateHolder
 import timber.log.Timber
-import java.time.DayOfWeek
-import java.time.LocalDate
 import javax.inject.Inject
 
 /**
@@ -48,7 +48,9 @@ internal class TimeRoutinePagerViewModel @Inject constructor(
 
     private val watchRoutineUseCase: WatchRoutineUseCase,
     private val watchSelectableDayOfWeeksUseCase: WatchSelectableDayOfWeeksUseCase,
-    private val setRoutineUseCase: SetRoutineUseCase
+    private val setRoutineUseCase: SetRoutineUseCase,
+
+    private val currentDayOfWeekProviderPort: CurrentDayOfWeekProviderPort
 ) : ViewModel() {
 
     private val _intent = MutableSharedFlow<MetaEnvelope<TimeRoutinePagerUiIntent>>()
@@ -57,6 +59,8 @@ internal class TimeRoutinePagerViewModel @Inject constructor(
         it.currentDayOfWeek
     }.flatMapLatest {
         watchRoutineUseCase.invoke(it)
+    }.onEach {
+        Timber.d("currentRoutine - $it")
     }.map {
         it.asResultState()
     }.withResultStateLifecycle().stateIn(
@@ -82,7 +86,7 @@ internal class TimeRoutinePagerViewModel @Inject constructor(
     )
 
     init {
-        dayOfWeeksPagerStateHolder.select(DayOfWeek.from(LocalDate.now()))
+        dayOfWeeksPagerStateHolder.select(currentDayOfWeekProviderPort.getCurrentDayOfWeek())
 
         watchIntent()
 
@@ -97,7 +101,7 @@ internal class TimeRoutinePagerViewModel @Inject constructor(
     }
 
     private fun watchRoutineDayOfWeeks() {
-        val currentRoutine = currentRoutine.mapNotNull { (it as? ResultState.Success)?.data }
+        val currentRoutine = currentRoutine.map { (it as? ResultState.Success)?.data }
         val selectableDayOfWeeks = dayOfWeeksPagerStateHolder.state.map {
             it.currentDayOfWeek
         }.flatMapLatest {
@@ -109,7 +113,7 @@ internal class TimeRoutinePagerViewModel @Inject constructor(
                 (it as? DomainResult.Success)?.value
             }.distinctUntilChanged(),
             currentRoutine.map {
-                it.payload.dayOfWeeks
+                it?.payload?.dayOfWeeks ?: emptySet()
             }.distinctUntilChanged()
         ) { enableDayOfWeeks, routineDayOfWeeks ->
             Pair(enableDayOfWeeks, routineDayOfWeeks)
@@ -123,11 +127,12 @@ internal class TimeRoutinePagerViewModel @Inject constructor(
 
     private fun watchCurrentRoutine() {
         currentRoutine.mapNotNull {
-            when(it) {
+            when (it) {
                 is ResultState.Loading,
                 is ResultState.Error -> {
                     null
                 }
+
                 is ResultState.Success -> {
                     it.data?.payload?.title ?: ""
                 }
@@ -142,9 +147,12 @@ internal class TimeRoutinePagerViewModel @Inject constructor(
             handleIntentSideEffect(it.payload)
         }.onEach {
             when (it.payload) {
-                is TimeRoutinePagerUiIntent.CheckDayOfWeek,
-                is TimeRoutinePagerUiIntent.UpdateRoutineTitle -> {
+                is TimeRoutinePagerUiIntent.CheckDayOfWeek -> {
                     saveRoutine()
+                }
+
+                is TimeRoutinePagerUiIntent.InputRoutineTitle -> {
+                    saveRoutineWithDefaultDayOfWeek()
                 }
 
                 else -> {
@@ -152,6 +160,24 @@ internal class TimeRoutinePagerViewModel @Inject constructor(
                 }
             }
         }.launchIn(viewModelScope)
+    }
+
+    private fun saveRoutineWithDefaultDayOfWeek() {
+        /*
+        현재 요일이 선택되지 않은 상태에서,
+        타이틀을 입력했다면,
+        자동으로 현재 요일을 포함한 루틴을 만든다.
+         */
+        val currentRoutineDays = routineDayOfWeeksStateHolder.state.value.getActiveCheckDayOfWeeks()
+        val currentDayOfWeek = dayOfWeeksPagerStateHolder.state.value.currentDayOfWeek
+        if (!currentRoutineDays.contains(currentDayOfWeek)) {
+            routineDayOfWeeksStateHolder.check(
+                dayOfWeeks = currentDayOfWeek,
+                checked = true
+            )
+        }
+
+        saveRoutine()
     }
 
     private fun handleIntentSideEffect(intent: TimeRoutinePagerUiIntent) {
@@ -167,7 +193,7 @@ internal class TimeRoutinePagerViewModel @Inject constructor(
                 )
             }
 
-            is TimeRoutinePagerUiIntent.UpdateRoutineTitle -> {
+            is TimeRoutinePagerUiIntent.InputRoutineTitle -> {
                 Timber.d("handleIntentSideEffect - UpdateRoutineTitle=$intent")
                 routineTitleStateHolder.updateTitle(intent.title)
             }

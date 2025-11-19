@@ -12,5 +12,5 @@ import software.seriouschoi.navigator.DestNavigatorPortAdapter
 @InstallIn(SingletonComponent::class)
 abstract class DestNavigatorModule {
     @Binds
-    abstract fun bindDestNavigator(impl: DestNavigatorPortAdapter): DestNavigatorPort
+    internal abstract fun bindDestNavigator(impl: DestNavigatorPortAdapter): DestNavigatorPort
 }
