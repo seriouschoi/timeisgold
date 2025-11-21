@@ -46,7 +46,6 @@ import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslot
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.item.TimeSlotItemUiState
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.loadingState
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.slotedit.TimeSlotEditState
-import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.slotedit.TimeSlotEditStateIntent
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.slotedit.TimeSlotEditView
 import java.time.DayOfWeek
 import java.time.LocalTime
@@ -73,7 +72,7 @@ fun TimeSlotListPageScreen(
 
     DisposableEffect(dayOfWeek) {
         onDispose {
-            viewModel.sendIntent(TimeSlotListPageUiIntent.Cancel)
+            viewModel.sendIntent(TimeSlotListPageUiIntent.SlotEditCancel)
         }
     }
 
@@ -91,7 +90,7 @@ fun TimeSlotListPageScreen(
      */
     if(uiState.isEditMode) {
         BackHandler(enabled = isCurrentPage) {
-            viewModel.sendIntent(TimeSlotListPageUiIntent.Cancel)
+            viewModel.sendIntent(TimeSlotListPageUiIntent.SlotEditCancel)
         }
     }
 
@@ -146,9 +145,7 @@ private fun EditStateView(
             ) {
                 IconButton(onClick = {
                     sendIntent.invoke(
-                        TimeSlotListPageUiIntent.UpdateTimeSlotEdit(
-                            TimeSlotEditStateIntent.Clear
-                        )
+                        TimeSlotListPageUiIntent.SlotEditCancel
                     )
                 }) {
                     Icon(
@@ -181,12 +178,23 @@ private fun EditStateView(
                 state = state,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(200.dp)
-            ) {
-                sendIntent.invoke(
-                    TimeSlotListPageUiIntent.UpdateTimeSlotEdit(it)
-                )
-            }
+                    .height(200.dp),
+                onChangeTitle = {
+                    sendIntent.invoke(
+                        TimeSlotListPageUiIntent.ActiveSlotTitleEdit(it)
+                    )
+                },
+                onChangeStartTime = {
+                    sendIntent.invoke(
+                        TimeSlotListPageUiIntent.ActiveSlotSetStartTime(it)
+                    )
+                },
+                onChangeEndTime = {
+                    sendIntent.invoke(
+                        TimeSlotListPageUiIntent.ActiveSlotSetEndTime(it)
+                    )
+                }
+            ) 
         }
     }
 }

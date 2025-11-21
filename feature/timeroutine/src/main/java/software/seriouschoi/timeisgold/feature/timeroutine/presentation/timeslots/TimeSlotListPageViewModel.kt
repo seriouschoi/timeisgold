@@ -26,7 +26,6 @@ import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import software.seriouschoi.navigator.DestNavigatorPort
 import software.seriouschoi.timeisgold.core.common.ui.ResultState
 import software.seriouschoi.timeisgold.core.common.ui.UiText
 import software.seriouschoi.timeisgold.core.common.ui.withResultStateLifecycle
@@ -50,8 +49,6 @@ import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslot
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.logic.TimeSlotCalculator
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.slotedit.TimeSlotEditState
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.slotedit.TimeSlotEditStateHolder
-import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.slotedit.TimeSlotEditStateIntent
-import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.slotedit.TimeSlotEditStateIntent.Init
 import timber.log.Timber
 import java.time.DayOfWeek
 import java.time.LocalTime
@@ -71,6 +68,7 @@ internal class TimeSlotListPageViewModel @Inject constructor(
 
     private val timeSlotListStateHolder: TimeSlotListStateHolder,
     private val timeSlotEditStateHolder: TimeSlotEditStateHolder,
+
     private val timeSlotCalculator: TimeSlotCalculator,
 ) : ViewModel() {
 
@@ -201,10 +199,6 @@ internal class TimeSlotListPageViewModel @Inject constructor(
     }
 
     private suspend fun handleIntentSideEffect(intent: TimeSlotListPageUiIntent) {
-        // TODO: jhchoi 2025. 11. 4. 이부분을 reducer/intentHandler로 만들어야 함.
-        /*
-        근데 reducer로 만들려면, intent의 결과를 또 받아서 어떻게 해야하는거지..?
-         */
         when (intent) {
 
             is TimeSlotListPageUiIntent.ApplyTimeSlotListChanges -> {
@@ -215,15 +209,10 @@ internal class TimeSlotListPageViewModel @Inject constructor(
                 handleUpdateTimeSlotIntent(intent)
             }
 
-            TimeSlotListPageUiIntent.Cancel -> {
-                timeSlotEditStateHolder.sendIntent(TimeSlotEditStateIntent.Clear)
+            TimeSlotListPageUiIntent.SlotEditCancel -> {
+                timeSlotEditStateHolder.clear()
             }
 
-            is TimeSlotListPageUiIntent.UpdateTimeSlotEdit -> {
-                timeSlotEditStateHolder.sendIntent(
-                    intent.slotEditState
-                )
-            }
 
             is TimeSlotListPageUiIntent.SelectTimeSlice -> {
                 val currentSlotList = timeSlotListStateHolder.state.first().slotItemList.map {
@@ -234,35 +223,49 @@ internal class TimeSlotListPageViewModel @Inject constructor(
 
                 val availableTimeSlot = findAvailableTimeSlot(currentSlotList, intent.hourOfDay)
                 if (availableTimeSlot != null) {
-                    timeSlotEditStateHolder.sendIntent(
-                        Init(
-                            state = TimeSlotEditState(
-                                slotUuid = null,
-                                title = "",
-                                startTime = availableTimeSlot.first,
-                                endTime = availableTimeSlot.second,
-                            )
+                    timeSlotEditStateHolder.show(
+                        TimeSlotEditState(
+                            slotUuid = null,
+                            title = "",
+                            startTime = availableTimeSlot.first,
+                            endTime = availableTimeSlot.second
                         )
                     )
                 }
             }
 
             is TimeSlotListPageUiIntent.SelectTimeSlot -> {
-                timeSlotEditStateHolder.sendIntent(
-                    Init(
-                        state = TimeSlotEditState(
-                            slotUuid = intent.slot.slotUuid,
-                            title = intent.slot.title,
-                            startTime = LocalTimeUtil.create(intent.slot.startMinutesOfDay),
-                            endTime = LocalTimeUtil.create(intent.slot.endMinutesOfDay),
-                        )
+                timeSlotEditStateHolder.show(
+                    TimeSlotEditState(
+                        slotUuid = intent.slot.slotUuid,
+                        title = intent.slot.title,
+                        startTime = LocalTimeUtil.create(intent.slot.startMinutesOfDay),
+                        endTime = LocalTimeUtil.create(intent.slot.endMinutesOfDay),
                     )
                 )
             }
 
             is TimeSlotListPageUiIntent.DeleteTimeSlot -> {
-                timeSlotEditStateHolder.sendIntent(TimeSlotEditStateIntent.Clear)
+                timeSlotEditStateHolder.clear()
                 deleteTimeSlot(intent.slotId)
+            }
+
+            is TimeSlotListPageUiIntent.ActiveSlotSetEndTime -> {
+                timeSlotEditStateHolder.changeEndTime(
+                    intent.endTime
+                )
+            }
+
+            is TimeSlotListPageUiIntent.ActiveSlotSetStartTime -> {
+                timeSlotEditStateHolder.changeStartTime(
+                    intent.startTime
+                )
+            }
+
+            is TimeSlotListPageUiIntent.ActiveSlotTitleEdit -> {
+                timeSlotEditStateHolder.changeTitle(
+                    intent.title
+                )
             }
         }
     }
@@ -338,10 +341,10 @@ internal class TimeSlotListPageViewModel @Inject constructor(
             // 업데이트된 목록에서 현재 편집 중인 슬롯의 최신 정보를 찾음
             newList.find { it.slotUuid == editingSlotUuid }?.let { updatedSlot ->
                 // TimeSlotEditStateHolder에 변경된 시간 정보로 업데이트 인텐트를 보냄
-                timeSlotEditStateHolder.sendIntent(
-                    intent = TimeSlotEditStateIntent.Update(
-                        slotId = updatedSlot.slotUuid,
-                        slotTitle = updatedSlot.title,
+                timeSlotEditStateHolder.show(
+                    TimeSlotEditState(
+                        slotUuid = updatedSlot.slotUuid,
+                        title = updatedSlot.title,
                         startTime = LocalTimeUtil.create(updatedSlot.startMinutesOfDay),
                         endTime = LocalTimeUtil.create(updatedSlot.endMinutesOfDay),
                     )
@@ -355,42 +358,25 @@ internal class TimeSlotListPageViewModel @Inject constructor(
         slotVO: TimeSlotVO,
         slotId: String?,
     ) {
-        val applyFlow = flow {
+        flow {
             setTimeSlotUseCase.execute(
                 dayOfWeek = dayOfWeek,
                 timeSlot = slotVO,
                 slotId = slotId
-            ).let {
-                emit(it)
+            ).asResultState().let { emit(it) }
+        }.withResultStateLifecycle().onEach { state ->
+            when(state) {
+                is ResultState.Error -> {
+                    // no work.
+                }
+                ResultState.Loading -> {
+                    // no work.
+                }
+                is ResultState.Success -> {
+                    val updatedId = state.data.uuid
+                    timeSlotEditStateHolder.changeSlotId(updatedId)
+                }
             }
-        }.map { it.asResultState() }.withResultStateLifecycle()
-
-
-        val loading = applyFlow.filterIsInstance<ResultState.Loading>()
-        val failed = applyFlow.filterIsInstance<ResultState.Error>().map { it.asDomainError() }
-        val success = applyFlow.mapNotNull { it as? ResultState.Success }.onEach {
-            Timber.d("apply time slot success.")
-        }
-
-        merge(
-            loading.mapNotNull {
-                //no work.
-                null
-            },
-            failed.mapNotNull {
-                //no work.
-                null
-            },
-            success.mapNotNull {
-                //uuid 갱신.
-                TimeSlotEditStateIntent.Update(
-                    slotId = it.data.uuid,
-                )
-            }
-        ).onEach {
-            timeSlotEditStateHolder.sendIntent(
-                it
-            )
         }.launchIn(viewModelScope)
     }
 

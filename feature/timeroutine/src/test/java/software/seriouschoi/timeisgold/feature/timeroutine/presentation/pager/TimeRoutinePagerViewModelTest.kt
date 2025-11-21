@@ -43,6 +43,7 @@ import kotlin.test.assertTrue
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class TimeRoutinePagerViewModelTest {
+    // TODO: jhchoi 2025. 11. 20. 참고할 테스트
 
     @get:Rule
     val dispatcherRule = MainDispatcherRule()

@@ -1,7 +1,7 @@
 package software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots
 
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.item.TimeSlotItemUiState
-import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.slotedit.TimeSlotEditStateIntent
+import java.time.LocalTime
 
 internal sealed interface TimeSlotListPageUiIntent {
 
@@ -13,11 +13,21 @@ internal sealed interface TimeSlotListPageUiIntent {
 
     data object ApplyTimeSlotListChanges : TimeSlotListPageUiIntent
 
-    data object Cancel : TimeSlotListPageUiIntent
+    data object SlotEditCancel : TimeSlotListPageUiIntent
 
-    data class UpdateTimeSlotEdit(
-        val slotEditState: TimeSlotEditStateIntent,
-    ) : TimeSlotListPageUiIntent
+    data class ActiveSlotTitleEdit(
+        val title: String,
+    ): TimeSlotListPageUiIntent
+
+    data class ActiveSlotSetStartTime(
+        val startTime: LocalTime
+    ): TimeSlotListPageUiIntent
+
+    data class ActiveSlotSetEndTime(
+        val endTime: LocalTime
+    ): TimeSlotListPageUiIntent
+
+
 
     data class SelectTimeSlot(
         val slot: TimeSlotItemUiState,

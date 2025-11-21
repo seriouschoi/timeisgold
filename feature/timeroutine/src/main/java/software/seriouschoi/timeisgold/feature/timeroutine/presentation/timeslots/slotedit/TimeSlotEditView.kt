@@ -23,7 +23,9 @@ import software.seriouschoi.timeisgold.core.common.ui.R as CommonR
 internal fun TimeSlotEditView(
     modifier: Modifier = Modifier,
     state: TimeSlotEditState,
-    sendIntent: (TimeSlotEditStateIntent) -> Unit = {},
+    onChangeTitle: (String) -> Unit = {},
+    onChangeStartTime: (LocalTime) -> Unit = {},
+    onChangeEndTime: (LocalTime) -> Unit = {},
 ) {
     Timber.d("state=$state")
     Column(
@@ -32,12 +34,7 @@ internal fun TimeSlotEditView(
         TigSingleLineTextField(
             value = state.title,
             onValueChange = {
-                sendIntent.invoke(
-                    TimeSlotEditStateIntent.Update(
-                        slotTitle = it,
-                        slotId = state.slotUuid
-                    )
-                )
+                onChangeTitle(it)
             },
             modifier = Modifier.fillMaxWidth(),
             hint = stringResource(
@@ -58,10 +55,7 @@ internal fun TimeSlotEditView(
                 timeRange = state.startTimeRange
             ) {
                 Timber.d("picked start time. time=${it}")
-                sendIntent.invoke(TimeSlotEditStateIntent.Update(
-                    startTime = it,
-                    slotId = state.slotUuid
-                ))
+                onChangeStartTime(it)
             }
 
             Spacer(
@@ -73,10 +67,7 @@ internal fun TimeSlotEditView(
                 timeRange = state.endTimeRange
             ) {
                 Timber.d("picked end time. time=${it}")
-                sendIntent.invoke(TimeSlotEditStateIntent.Update(
-                    endTime = it,
-                    slotId = state.slotUuid
-                ))
+                onChangeEndTime(it)
             }
 
             Spacer(

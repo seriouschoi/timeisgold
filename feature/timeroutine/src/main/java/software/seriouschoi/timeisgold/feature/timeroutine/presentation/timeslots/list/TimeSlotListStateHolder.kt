@@ -43,6 +43,7 @@ internal class TimeSlotListStateHolder @Inject constructor(
     }
 }
 
+@Deprecated("Deprecated use simple method")
 internal sealed interface TimeSlotListStateIntent {
     data class Error(val message: UiText) : TimeSlotListStateIntent
     data class UpdateList(val itemList: List<TimeSlotItemUiState>) : TimeSlotListStateIntent

@@ -3,7 +3,6 @@ package software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslo
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
-import timber.log.Timber
 import java.time.LocalTime
 import javax.inject.Inject
 
@@ -18,36 +17,52 @@ internal class TimeSlotEditStateHolder @Inject constructor() {
 
     val state: StateFlow<TimeSlotEditState?> = _state
 
-    fun sendIntent(intent: TimeSlotEditStateIntent) {
-        when (intent) {
-            is TimeSlotEditStateIntent.Init -> {
-                _state.update {
-                    intent.state
-                }
-            }
+    fun show(state: TimeSlotEditState) {
+        _state.update {
+            state
+        }
+    }
 
-            is TimeSlotEditStateIntent.Update -> {
-                _state.update {
-                    val newState = it?.copy(
-                        slotUuid = intent.slotId ?: it.slotUuid,
-                        title = intent.slotTitle ?: it.title,
-                        startTime = intent.startTime ?: it.startTime,
-                        endTime = intent.endTime ?: it.endTime
-                    )
-                    Timber.d("update intent. intent=$intent, newState=$newState")
-                    newState
-                }
-            }
+    fun changeSlotId(slotId: String) {
+        _state.update {
+            it?.copy(
+                slotUuid = slotId
+            )
+        }
+    }
 
-            is TimeSlotEditStateIntent.Clear -> {
-                _state.update {
-                    null
-                }
-            }
+    fun changeTitle(title: String) {
+        _state.update {
+            it?.copy(
+                title = title
+            )
+        }
+    }
+
+    fun changeStartTime(startTime: LocalTime) {
+        _state.update {
+            it?.copy(
+                startTime = startTime
+            )
+        }
+    }
+
+    fun changeEndTime(endTime: LocalTime) {
+        _state.update {
+            it?.copy(
+                endTime = endTime
+            )
+        }
+    }
+
+    fun clear() {
+        _state.update {
+            null
         }
     }
 }
 
+@Deprecated("Deprecated use simple method")
 internal sealed interface TimeSlotEditStateIntent {
     data class Init(
         val state: TimeSlotEditState
