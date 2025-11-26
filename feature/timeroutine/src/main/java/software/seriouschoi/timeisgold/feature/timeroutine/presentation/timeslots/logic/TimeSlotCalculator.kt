@@ -24,11 +24,11 @@ internal class TimeSlotCalculator @Inject constructor(
     private val getPolicyValidUseCase: GetTimeSlotPolicyValidUseCase,
 ) {
     fun adjustSlotList(
-        intent: TimeSlotListPageUiIntent.UpdateTimeSlotUi,
+        intent: TimeSlotListPageUiIntent.DragTimeSlot,
         currentList: List<TimeSlotItemUiState>,
         dragAcc: Int
     ): Pair<List<TimeSlotItemUiState>, Int> {
-        val targetItem = currentList.find { it.slotUuid == intent.uuid } ?: return currentList to 0
+        val targetItem = currentList.find { it.slotUuid == intent.slotId } ?: return currentList to 0
 
         val newStart = normalizeMinutesForUiUseCase.invoke(targetItem.startMinutesOfDay + dragAcc)
         val newEnd = normalizeMinutesForUiUseCase.invoke(targetItem.endMinutesOfDay + dragAcc)

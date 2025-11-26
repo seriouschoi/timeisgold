@@ -52,7 +52,7 @@ internal fun TimeSlotEditView(
             )
             TigTimePicker(
                 time = state.startTime,
-                timeRange = state.startTimeRange
+                timeRange = state.selectableStartTimeRange
             ) {
                 Timber.d("picked start time. time=${it}")
                 onChangeStartTime(it)
@@ -64,7 +64,7 @@ internal fun TimeSlotEditView(
 
             TigTimePicker(
                 time = state.endTime,
-                timeRange = state.endTimeRange
+                timeRange = state.selectableEndTimeRange
             ) {
                 Timber.d("picked end time. time=${it}")
                 onChangeEndTime(it)

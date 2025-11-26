@@ -68,8 +68,8 @@ internal fun TimeSlotListView(
                     DragTarget.Top -> TimeSlotUpdateTimeType.START
                     DragTarget.Bottom -> TimeSlotUpdateTimeType.END
                 }
-                val intent = TimeSlotListPageUiIntent.UpdateTimeSlotUi(
-                    uuid = selectedItem.slotUuid,
+                val intent = TimeSlotListPageUiIntent.DragTimeSlot(
+                    slotId = selectedItem.slotUuid,
                     minuteFactor = minutesFactor.toInt(),
                     updateTimeType = updateTime
                 )

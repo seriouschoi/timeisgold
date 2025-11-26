@@ -62,22 +62,6 @@ internal class TimeSlotEditStateHolder @Inject constructor() {
     }
 }
 
-@Deprecated("Deprecated use simple method")
-internal sealed interface TimeSlotEditStateIntent {
-    data class Init(
-        val state: TimeSlotEditState
-    ) : TimeSlotEditStateIntent
-
-    data class Update(
-        val slotId: String? = null,
-        val slotTitle: String? = null,
-        val startTime: LocalTime? = null,
-        val endTime: LocalTime? = null
-    ) : TimeSlotEditStateIntent
-
-    data object Clear : TimeSlotEditStateIntent
-}
-
 internal data class TimeSlotEditState(
     val slotUuid: String? = null,
     val title: String,
@@ -85,6 +69,6 @@ internal data class TimeSlotEditState(
     val startTime: LocalTime,
     val endTime: LocalTime,
 
-    val startTimeRange: Pair<LocalTime, LocalTime> = LocalTime.MIN to LocalTime.MAX,
-    val endTimeRange: Pair<LocalTime, LocalTime> = LocalTime.MIN to LocalTime.MAX,
+    val selectableStartTimeRange: Pair<LocalTime, LocalTime> = LocalTime.MIN to LocalTime.MAX,
+    val selectableEndTimeRange: Pair<LocalTime, LocalTime> = LocalTime.MIN to LocalTime.MAX,
 )

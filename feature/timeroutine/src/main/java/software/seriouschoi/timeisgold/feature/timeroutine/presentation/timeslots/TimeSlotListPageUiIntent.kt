@@ -5,8 +5,8 @@ import java.time.LocalTime
 
 internal sealed interface TimeSlotListPageUiIntent {
 
-    data class UpdateTimeSlotUi(
-        val uuid: String,
+    data class DragTimeSlot(
+        val slotId: String,
         val minuteFactor: Int,
         val updateTimeType: TimeSlotUpdateTimeType,
     ) : TimeSlotListPageUiIntent
@@ -26,8 +26,6 @@ internal sealed interface TimeSlotListPageUiIntent {
     data class ActiveSlotSetEndTime(
         val endTime: LocalTime
     ): TimeSlotListPageUiIntent
-
-
 
     data class SelectTimeSlot(
         val slot: TimeSlotItemUiState,

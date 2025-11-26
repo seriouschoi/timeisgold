@@ -36,7 +36,6 @@ import software.seriouschoi.timeisgold.core.common.util.asMinutes
 import software.seriouschoi.timeisgold.core.domain.mapper.asDomainError
 import software.seriouschoi.timeisgold.core.domain.mapper.asResultState
 import software.seriouschoi.timeisgold.core.domain.mapper.toUiText
-import software.seriouschoi.timeisgold.domain.data.DomainError
 import software.seriouschoi.timeisgold.domain.data.DomainResult
 import software.seriouschoi.timeisgold.domain.data.vo.TimeSlotVO
 import software.seriouschoi.timeisgold.domain.usecase.timeslot.DeleteTimeSlotUseCase
@@ -44,7 +43,6 @@ import software.seriouschoi.timeisgold.domain.usecase.timeslot.SetTimeSlotListUs
 import software.seriouschoi.timeisgold.domain.usecase.timeslot.SetTimeSlotUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeslot.WatchTimeSlotListUseCase
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.TimeSlotListStateHolder
-import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.TimeSlotListStateIntent
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.item.TimeSlotItemUiState
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.logic.TimeSlotCalculator
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.slotedit.TimeSlotEditState
@@ -93,11 +91,11 @@ internal class TimeSlotListPageViewModel @Inject constructor(
     //state holder의 조합만 이뤄짐.
     val uiState = combine(
         timeSlotListStateHolder.state,
-        timeSlotEditStateHolder.state
+        timeSlotEditStateHolder.state,
     ) { listState, editState ->
         TimeSlotListPageUiState(
             slotListState = listState,
-            editState = editState
+            editState = editState,
         )
     }.stateIn(
         scope = viewModelScope,
@@ -116,49 +114,30 @@ internal class TimeSlotListPageViewModel @Inject constructor(
     }
 
     private fun watchSlotList() {
-        val loadingFlow: Flow<TimeSlotListStateIntent> =
-            timeslotList.filterIsInstance<ResultState.Loading>().map {
-                TimeSlotListStateIntent.Loading
-            }
-        val errorFlow: Flow<TimeSlotListStateIntent> =
-            timeslotList.filterIsInstance<ResultState.Error>().mapNotNull {
-                if (it.asDomainError() !is DomainError.NotFound) {
-                    TimeSlotListStateIntent.Error(it.asDomainError().toUiText())
-                } else null
-            }
-
-        val emptyFlow: Flow<TimeSlotListStateIntent> =
-            timeslotList.filterIsInstance<ResultState.Error>().mapNotNull {
-                if (it.asDomainError() is DomainError.NotFound) {
-                    TimeSlotListStateIntent.UpdateList(
-                        itemList = emptyList()
+        timeslotList.onEach { resultState ->
+            when (resultState) {
+                is ResultState.Error -> {
+                    timeSlotListStateHolder.showError(
+                        resultState.asDomainError().toUiText()
                     )
-                } else null
-            }
+                }
 
-        val dataFlow = timeslotList.mapNotNull {
-            (it as? ResultState.Success)?.data
-        }.map { result: List<MetaEnvelope<TimeSlotVO>> ->
-            Timber.d("received timeslot list.")
-            val slotList = result.map {
-                TimeSlotItemUiState(
-                    slotUuid = it.metaInfo.uuid,
-                    title = it.payload.title,
-                    startMinutesOfDay = it.payload.startTime.asMinutes(),
-                    endMinutesOfDay = it.payload.endTime.asMinutes(),
-                    isSelected = false,
-                )
-            }
-            TimeSlotListStateIntent.UpdateList(slotList)
-        }
+                is ResultState.Loading -> {
+                    timeSlotListStateHolder.showLoading()
+                }
 
-        merge(
-            loadingFlow,
-            errorFlow,
-            emptyFlow,
-            dataFlow
-        ).onEach {
-            timeSlotListStateHolder.sendIntent(it)
+                is ResultState.Success -> {
+                    val itemList = resultState.data.map {
+                        TimeSlotItemUiState(
+                            slotUuid = it.metaInfo.uuid,
+                            title = it.payload.title,
+                            startMinutesOfDay = it.payload.startTime.asMinutes(),
+                            endMinutesOfDay = it.payload.endTime.asMinutes(),
+                        )
+                    }
+                    timeSlotListStateHolder.setList(itemList)
+                }
+            }
         }.launchIn(viewModelScope)
     }
 
@@ -199,13 +178,14 @@ internal class TimeSlotListPageViewModel @Inject constructor(
     }
 
     private suspend fun handleIntentSideEffect(intent: TimeSlotListPageUiIntent) {
+        Timber.d("intent received. ${intent.javaClass.simpleName}")
         when (intent) {
 
             is TimeSlotListPageUiIntent.ApplyTimeSlotListChanges -> {
                 applyTimeSlotList()
             }
 
-            is TimeSlotListPageUiIntent.UpdateTimeSlotUi -> {
+            is TimeSlotListPageUiIntent.DragTimeSlot -> {
                 handleUpdateTimeSlotIntent(intent)
             }
 
@@ -321,7 +301,7 @@ internal class TimeSlotListPageViewModel @Inject constructor(
     private var dragMinsAcc = 0
 
     private suspend fun handleUpdateTimeSlotIntent(
-        intent: TimeSlotListPageUiIntent.UpdateTimeSlotUi,
+        intent: TimeSlotListPageUiIntent.DragTimeSlot,
     ) {
         val slotListState = timeSlotListStateHolder.state.first()
         val (newList, nextAcc) = timeSlotCalculator.adjustSlotList(
@@ -330,9 +310,7 @@ internal class TimeSlotListPageViewModel @Inject constructor(
             dragAcc = dragMinsAcc
         )
         dragMinsAcc = nextAcc
-        timeSlotListStateHolder.sendIntent(
-            TimeSlotListStateIntent.UpdateList(newList)
-        )
+        timeSlotListStateHolder.setList(newList)
 
         // time slot edit이 표시 상태라면, 함께 갱신한다.
         // 현재 편집 중인 슬롯이 있는지 확인
@@ -365,13 +343,15 @@ internal class TimeSlotListPageViewModel @Inject constructor(
                 slotId = slotId
             ).asResultState().let { emit(it) }
         }.withResultStateLifecycle().onEach { state ->
-            when(state) {
+            when (state) {
                 is ResultState.Error -> {
                     // no work.
                 }
+
                 ResultState.Loading -> {
                     // no work.
                 }
+
                 is ResultState.Success -> {
                     val updatedId = state.data.uuid
                     timeSlotEditStateHolder.changeSlotId(updatedId)

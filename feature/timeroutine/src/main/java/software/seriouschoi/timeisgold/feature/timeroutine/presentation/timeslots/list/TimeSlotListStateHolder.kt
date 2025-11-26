@@ -3,6 +3,7 @@ package software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslo
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
+import software.seriouschoi.timeisgold.core.common.ui.R as CommonR
 import software.seriouschoi.timeisgold.core.common.ui.UiText
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.item.TimeSlotItemUiState
 import javax.inject.Inject
@@ -13,39 +14,33 @@ internal class TimeSlotListStateHolder @Inject constructor(
 
     val state: StateFlow<TimeSlotListState> = _state
 
-    fun sendIntent(intent: TimeSlotListStateIntent) {
-        when (intent) {
-            TimeSlotListStateIntent.Loading -> {
-                _state.update {
-                    it.loadingState()
-                }
-            }
-
-            is TimeSlotListStateIntent.Error -> {
-                _state.update {
-                    it.copy(
-                        loadingMessage = null,
-                        errorMessage = intent.message
-                    )
-                }
-            }
-
-            is TimeSlotListStateIntent.UpdateList -> {
-                _state.update {
-                    it.copy(
-                        loadingMessage = null,
-                        errorMessage = null,
-                        slotItemList = intent.itemList
-                    )
-                }
-            }
+    fun setList(
+        itemList: List<TimeSlotItemUiState>
+    ) {
+        _state.update {
+            TimeSlotListState(
+                slotItemList = itemList
+            )
         }
     }
-}
 
-@Deprecated("Deprecated use simple method")
-internal sealed interface TimeSlotListStateIntent {
-    data class Error(val message: UiText) : TimeSlotListStateIntent
-    data class UpdateList(val itemList: List<TimeSlotItemUiState>) : TimeSlotListStateIntent
-    object Loading : TimeSlotListStateIntent
+    fun showLoading() {
+        _state.update {
+            it.copy(
+                loadingMessage = UiText.MultipleResArgs.create(
+                    CommonR.string.message_format_loading,
+                    CommonR.string.text_routine
+                ),
+                errorMessage = null
+            )
+        }
+    }
+
+    fun showError(errorMessage: UiText) {
+        _state.update {
+            TimeSlotListState(
+                errorMessage = errorMessage,
+            )
+        }
+    }
 }

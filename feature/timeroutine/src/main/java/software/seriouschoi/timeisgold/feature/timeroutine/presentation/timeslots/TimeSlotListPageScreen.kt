@@ -44,7 +44,6 @@ import software.seriouschoi.timeisgold.core.common.util.asMinutes
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.TimeSlotListState
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.TimeSlotListView
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.item.TimeSlotItemUiState
-import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.loadingState
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.slotedit.TimeSlotEditState
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.slotedit.TimeSlotEditView
 import java.time.DayOfWeek
@@ -88,10 +87,8 @@ fun TimeSlotListPageScreen(
     `BackHandler(enabled = isCurrentPage)` 와 같이 설정.
     이를 통해 현재 화면에 보이는 페이지의 BackHandler만 활성화하여 문제를 해결함.
      */
-    if(uiState.isEditMode) {
-        BackHandler(enabled = isCurrentPage) {
-            viewModel.sendIntent(TimeSlotListPageUiIntent.SlotEditCancel)
-        }
+    BackHandler(enabled = isCurrentPage) {
+        viewModel.sendIntent(TimeSlotListPageUiIntent.SlotEditCancel)
     }
 
     val snackBarHostState = remember { SnackbarHostState() }
@@ -113,7 +110,7 @@ private fun StateView(
         snackbarHost = { SnackbarHost(snackBarHostState) },
         content = { innerPadding ->
             Box(
-                Modifier.Companion
+                Modifier
                     .fillMaxSize()
                     .padding(innerPadding)
             ) {
@@ -194,7 +191,7 @@ private fun EditStateView(
                         TimeSlotListPageUiIntent.ActiveSlotSetEndTime(it)
                     )
                 }
-            ) 
+            )
         }
     }
 }
@@ -235,6 +232,7 @@ private fun ListStateView(
             sendIntent.invoke(it)
         }
     }
+
     if (currentState.loadingMessage != null) {
         Loading(currentState.loadingMessage)
     }
@@ -342,7 +340,10 @@ private fun Loading(loadingMessage: UiText?) {
 @Composable
 private fun PreviewLoading() {
     Loading(
-        TimeSlotListState().loadingState().loadingMessage
+        UiText.MultipleResArgs.create(
+            CommonR.string.message_format_loading,
+            CommonR.string.text_routine
+        )
     )
 }
 

@@ -135,9 +135,11 @@ class TimeRoutinePagerViewModelTest {
         )
     }
 
+    /**
+     * 요일 선택
+     */
     @Test
     fun test_checkDayOfWeek() = runTest(dispatcherRule.dispatcher) {
-
         advanceUntilIdle()
 
         //월요일 체크.
@@ -179,6 +181,9 @@ class TimeRoutinePagerViewModelTest {
         )
     }
 
+    /**
+     * 요일 선택 해제.
+     */
     @Test
     fun test_uncheckDayOfWeek() = runTest(dispatcherRule.dispatcher) {
 
@@ -245,6 +250,9 @@ class TimeRoutinePagerViewModelTest {
         assertEquals(routineTitleState, "", "루텐 제목이 남아있습니다. $routineTitleState")
     }
 
+    /**
+     * 여러개의 요일 선택.
+     */
     @Test
     fun test_checkMultipleDayOfWeeks() = runTest(dispatcherRule.dispatcher) {
         /*
@@ -316,6 +324,10 @@ class TimeRoutinePagerViewModelTest {
         }
     }
 
+    /**
+     * 동작: 현재 요일이 아닌 다른 요일 선택 해제.
+     * 기대: 현재 요일만 남아있음.
+     */
     @Test
     fun test_uncheckOtherDayOfWeek() = runTest(dispatcherRule.dispatcher) {
         //init.
@@ -362,6 +374,10 @@ class TimeRoutinePagerViewModelTest {
         }
     }
 
+    /**
+     * 동작: 현재 요일 선택 해제.
+     * 기대: 현재 요일이 아닌 다른 요일이 비활성 체크 상태로 전환.
+     */
     @Test
     fun test_uncheckCurrentDayOfWeek() = runTest(dispatcherRule.dispatcher) {
         val today = testDay1
@@ -424,6 +440,9 @@ class TimeRoutinePagerViewModelTest {
         }
     }
 
+    /**
+     * 제목 입력시 루틴 생성.
+     */
     @Test
     fun test_inputTitle_makeRoutine() = runTest {
         //기본 값.
@@ -475,6 +494,13 @@ class TimeRoutinePagerViewModelTest {
         }
     }
 
+    /**
+     * 동작: 비어있는 다른 요일 선택.
+     * 기대:
+     * 현재 선택된 루틴 없음.
+     * 타이틀 없음.
+     * 현재 선택된 활성 요일 없음.
+     */
     @Test
     fun test_selectEmptyRoutineDay_showEmptyState() = runTest(dispatcherRule.dispatcher) {
         val fromDay = testDay1
@@ -535,6 +561,13 @@ class TimeRoutinePagerViewModelTest {
         }
     }
 
+    /**
+     * 동작: 루틴이 있는 요일 선택.
+     * 기대:
+     * 현재 선택된 루틴 있음.
+     * 타이틀 있음.
+     * 현재 선택된 활성 요일 있음.
+     */
     @Test
     fun test_fromEmptyDay_changeRoutineDay_showRoutineState() = runTest(dispatcherRule.dispatcher) {
         val fromDay = testDay1

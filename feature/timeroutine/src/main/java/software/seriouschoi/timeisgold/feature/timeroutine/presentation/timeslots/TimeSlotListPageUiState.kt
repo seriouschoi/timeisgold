@@ -6,7 +6,4 @@ import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslot
 internal data class TimeSlotListPageUiState(
     val slotListState: TimeSlotListState = TimeSlotListState(),
     val editState: TimeSlotEditState? = null,
-) {
-    val isEditMode: Boolean
-        get() = editState != null
-}
+)

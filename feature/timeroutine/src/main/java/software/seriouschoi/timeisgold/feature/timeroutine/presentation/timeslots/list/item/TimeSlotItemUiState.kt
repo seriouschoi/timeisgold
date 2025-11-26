@@ -8,7 +8,7 @@ internal data class TimeSlotItemUiState(
     val title: String,
     val startMinutesOfDay: Int,
     val endMinutesOfDay: Int,
-    val isSelected: Boolean,
+    val isSelected: Boolean = false,
 )
 
 internal fun TimeSlotItemUiState.getStartTimeText(): String {
