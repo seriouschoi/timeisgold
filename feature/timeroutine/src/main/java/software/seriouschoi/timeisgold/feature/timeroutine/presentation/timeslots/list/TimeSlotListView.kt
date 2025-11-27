@@ -29,7 +29,6 @@ import software.seriouschoi.timeisgold.core.common.ui.components.DragTarget
 import software.seriouschoi.timeisgold.core.common.ui.components.multipleGesture
 import software.seriouschoi.timeisgold.core.common.ui.times.TimePixelUtil
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.TimeSlotListPageUiIntent
-import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.TimeSlotUpdateTimeType
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.item.TimeSlotItemCardView
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.item.TimeSlotItemUiState
 import timber.log.Timber
@@ -63,16 +62,28 @@ internal fun TimeSlotListView(
                 val selectedItem = currentSlotList.getOrNull(index) ?: return@onDrag
 
                 val minutesFactor = TimePixelUtil.pxToMinutes(dy.toLong(), hourHeightPx)
-                val updateTime = when (target) {
-                    DragTarget.Card -> TimeSlotUpdateTimeType.START_AND_END
-                    DragTarget.Top -> TimeSlotUpdateTimeType.START
-                    DragTarget.Bottom -> TimeSlotUpdateTimeType.END
+                val intent = when (target) {
+                    DragTarget.Card -> {
+                        TimeSlotListPageUiIntent.DragTimeSlotBody(
+                            slotId = selectedItem.slotUuid,
+                            minuteFactor = minutesFactor.toInt()
+                        )
+                    }
+                    DragTarget.Top ->{
+                        TimeSlotListPageUiIntent.DragTimeSlotHeader(
+                            slotId = selectedItem.slotUuid,
+                            minuteFactor = minutesFactor.toInt()
+                        )
+
+                    }
+                    DragTarget.Bottom -> {
+                        TimeSlotListPageUiIntent.DragTimeSlotFooter(
+                            slotId = selectedItem.slotUuid,
+                            minuteFactor = minutesFactor.toInt()
+                        )
+                    }
                 }
-                val intent = TimeSlotListPageUiIntent.DragTimeSlot(
-                    slotId = selectedItem.slotUuid,
-                    minuteFactor = minutesFactor.toInt(),
-                    updateTimeType = updateTime
-                )
+
                 sendIntent.invoke(intent)
             },
             onDropBound = { index, target ->

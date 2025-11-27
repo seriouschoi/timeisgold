@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.update
 import software.seriouschoi.timeisgold.core.common.ui.R as CommonR
 import software.seriouschoi.timeisgold.core.common.ui.UiText
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.item.TimeSlotItemUiState
+import timber.log.Timber
 import javax.inject.Inject
 
 internal class TimeSlotListStateHolder @Inject constructor(
@@ -17,6 +18,7 @@ internal class TimeSlotListStateHolder @Inject constructor(
     fun setList(
         itemList: List<TimeSlotItemUiState>
     ) {
+        Timber.d("setList itemList.size=${itemList.size}")
         _state.update {
             TimeSlotListState(
                 slotItemList = itemList

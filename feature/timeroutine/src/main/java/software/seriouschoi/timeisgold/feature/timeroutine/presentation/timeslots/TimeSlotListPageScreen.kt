@@ -178,17 +178,17 @@ private fun EditStateView(
                     .height(200.dp),
                 onChangeTitle = {
                     sendIntent.invoke(
-                        TimeSlotListPageUiIntent.ActiveSlotTitleEdit(it)
+                        TimeSlotListPageUiIntent.ChangeSelectedTimeSlotTitle(it)
                     )
                 },
                 onChangeStartTime = {
                     sendIntent.invoke(
-                        TimeSlotListPageUiIntent.ActiveSlotSetStartTime(it)
+                        TimeSlotListPageUiIntent.ChangeSelectedTimeSlotStartTime(it)
                     )
                 },
                 onChangeEndTime = {
                     sendIntent.invoke(
-                        TimeSlotListPageUiIntent.ActiveSlotSetEndTime(it)
+                        TimeSlotListPageUiIntent.ChangeSelectedTimeSlotEndTime(it)
                     )
                 }
             )

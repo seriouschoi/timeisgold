@@ -6,8 +6,6 @@ import software.seriouschoi.timeisgold.domain.data.DomainResult
 import software.seriouschoi.timeisgold.domain.data.vo.TimeSlotVO
 import software.seriouschoi.timeisgold.domain.usecase.timeslot.NormalizeMinutesForUiUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeslot.valid.GetTimeSlotPolicyValidUseCase
-import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.TimeSlotListPageUiIntent
-import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.TimeSlotUpdateTimeType
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.item.TimeSlotItemUiState
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.item.midMinute
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.item.splitOverMidnight
@@ -15,6 +13,9 @@ import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslot
 import timber.log.Timber
 import javax.inject.Inject
 
+internal enum class TimeSlotChangeTimeType {
+    START_TIME, END_TIME, START_AND_END
+}
 /**
  * Created by jhchoi on 2025. 10. 20.
  * jhchoi
@@ -23,23 +24,30 @@ internal class TimeSlotCalculator @Inject constructor(
     private val normalizeMinutesForUiUseCase: NormalizeMinutesForUiUseCase,
     private val getPolicyValidUseCase: GetTimeSlotPolicyValidUseCase,
 ) {
-    fun adjustSlotList(
-        intent: TimeSlotListPageUiIntent.DragTimeSlot,
-        currentList: List<TimeSlotItemUiState>,
-        dragAcc: Int
-    ): Pair<List<TimeSlotItemUiState>, Int> {
-        val targetItem = currentList.find { it.slotUuid == intent.slotId } ?: return currentList to 0
+    private var dragMinsAcc = 0
 
-        val newStart = normalizeMinutesForUiUseCase.invoke(targetItem.startMinutesOfDay + dragAcc)
-        val newEnd = normalizeMinutesForUiUseCase.invoke(targetItem.endMinutesOfDay + dragAcc)
-        val nextDragAcc = if (targetItem.startMinutesOfDay == newStart)
-            dragAcc + intent.minuteFactor
+    fun adjustSlotList(
+        targetSlotId: String,
+        slotMinuteFactor: Int,
+        currentList: List<TimeSlotItemUiState>,
+        changeType: TimeSlotChangeTimeType
+    ): List<TimeSlotItemUiState> {
+        val targetItem = currentList.find { it.slotUuid == targetSlotId }
+        if(targetItem == null) {
+            dragMinsAcc = 0
+            return currentList
+        }
+
+        val newStart = normalizeMinutesForUiUseCase.invoke(targetItem.startMinutesOfDay + dragMinsAcc)
+        val newEnd = normalizeMinutesForUiUseCase.invoke(targetItem.endMinutesOfDay + dragMinsAcc)
+        dragMinsAcc = if (targetItem.startMinutesOfDay == newStart)
+            dragMinsAcc + slotMinuteFactor
         else 0
 
-        val updatedItem = when (intent.updateTimeType) {
-            TimeSlotUpdateTimeType.START -> targetItem.copy(startMinutesOfDay = newStart)
-            TimeSlotUpdateTimeType.END -> targetItem.copy(endMinutesOfDay = newEnd)
-            TimeSlotUpdateTimeType.START_AND_END -> targetItem.copy(
+        val updatedItem = when (changeType) {
+            TimeSlotChangeTimeType.START_TIME -> targetItem.copy(startMinutesOfDay = newStart)
+            TimeSlotChangeTimeType.END_TIME -> targetItem.copy(endMinutesOfDay = newEnd)
+            TimeSlotChangeTimeType.START_AND_END -> targetItem.copy(
                 startMinutesOfDay = newStart,
                 endMinutesOfDay = newEnd
             )
@@ -52,9 +60,9 @@ internal class TimeSlotCalculator @Inject constructor(
                 title = updatedItem.title
             )
         )
-        if (policy !is DomainResult.Success) return currentList to nextDragAcc
+        if (policy !is DomainResult.Success) return currentList
 
-        val result = if (intent.updateTimeType == TimeSlotUpdateTimeType.START_AND_END)
+        val result = if (changeType == TimeSlotChangeTimeType.START_AND_END)
             currentList.swapSlotList(updatedItem)
         else
             currentList.update(updatedItem)
@@ -68,7 +76,7 @@ internal class TimeSlotCalculator @Inject constructor(
             }
         }.distinct()
 
-        return normalized to nextDragAcc
+        return normalized
     }
 }
 

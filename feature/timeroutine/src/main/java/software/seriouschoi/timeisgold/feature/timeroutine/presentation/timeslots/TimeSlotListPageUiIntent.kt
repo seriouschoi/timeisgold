@@ -5,25 +5,34 @@ import java.time.LocalTime
 
 internal sealed interface TimeSlotListPageUiIntent {
 
-    data class DragTimeSlot(
+    data class DragTimeSlotHeader(
         val slotId: String,
         val minuteFactor: Int,
-        val updateTimeType: TimeSlotUpdateTimeType,
+    ) : TimeSlotListPageUiIntent
+
+    data class DragTimeSlotFooter(
+        val slotId: String,
+        val minuteFactor: Int,
+    ) : TimeSlotListPageUiIntent
+
+    data class DragTimeSlotBody(
+        val slotId: String,
+        val minuteFactor: Int,
     ) : TimeSlotListPageUiIntent
 
     data object ApplyTimeSlotListChanges : TimeSlotListPageUiIntent
 
     data object SlotEditCancel : TimeSlotListPageUiIntent
 
-    data class ActiveSlotTitleEdit(
+    data class ChangeSelectedTimeSlotTitle(
         val title: String,
     ): TimeSlotListPageUiIntent
 
-    data class ActiveSlotSetStartTime(
+    data class ChangeSelectedTimeSlotStartTime(
         val startTime: LocalTime
     ): TimeSlotListPageUiIntent
 
-    data class ActiveSlotSetEndTime(
+    data class ChangeSelectedTimeSlotEndTime(
         val endTime: LocalTime
     ): TimeSlotListPageUiIntent
 
@@ -39,8 +48,4 @@ internal sealed interface TimeSlotListPageUiIntent {
         val slotId: String
     ): TimeSlotListPageUiIntent
 
-}
-
-internal enum class TimeSlotUpdateTimeType {
-    START, END, START_AND_END
 }

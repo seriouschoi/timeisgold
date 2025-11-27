@@ -1,16 +1,29 @@
 package software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots
 
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.invocation.InvocationOnMock
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
+import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.mock
-import org.mockito.kotlin.never
+import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 import software.seriouschoi.testutil.MainDispatcherRule
+import software.seriouschoi.timeisgold.core.common.util.LocalTimeUtil
+import software.seriouschoi.timeisgold.core.common.util.MetaEnvelope
+import software.seriouschoi.timeisgold.core.common.util.MetaInfo
+import software.seriouschoi.timeisgold.domain.data.DomainResult
+import software.seriouschoi.timeisgold.domain.data.vo.TimeSlotVO
 import software.seriouschoi.timeisgold.domain.usecase.timeslot.DeleteTimeSlotUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeslot.NormalizeMinutesForUiUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeslot.SetTimeSlotListUseCase
@@ -18,10 +31,10 @@ import software.seriouschoi.timeisgold.domain.usecase.timeslot.SetTimeSlotUseCas
 import software.seriouschoi.timeisgold.domain.usecase.timeslot.WatchTimeSlotListUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeslot.valid.GetTimeSlotPolicyValidUseCase
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.TimeSlotListStateHolder
-import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.item.TimeSlotItemUiState
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.logic.TimeSlotCalculator
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.slotedit.TimeSlotEditState
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.slotedit.TimeSlotEditStateHolder
+import java.time.DayOfWeek
 import java.time.LocalTime
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -33,6 +46,30 @@ import kotlin.test.assertTrue
 @OptIn(ExperimentalCoroutinesApi::class)
 class TimeSlotListPageViewModelTest {
     // TODO: jhchoi 2025. 11. 20. 테스트 작성.
+
+    private val slotListFlow =
+        MutableStateFlow<List<MetaEnvelope<TimeSlotVO>>>(emptyList())
+
+    companion object {
+        val testDayOfWeek = DayOfWeek.MONDAY
+        val sampleSlotList = listOf(
+            TimeSlotVO(
+                title = "wake up and prepare.",
+                startTime = LocalTime.of(6, 0),
+                endTime = LocalTime.of(7, 0)
+            ),
+            TimeSlotVO(
+                title = "go to work",
+                startTime = LocalTime.of(7, 0),
+                endTime = LocalTime.of(8, 0)
+            ),
+            TimeSlotVO(
+                title = "sleep",
+                startTime = LocalTime.of(11, 0),
+                endTime = LocalTime.of(6, 0)
+            )
+        )
+    }
 
     private lateinit var timeSlotEditStateHolder: TimeSlotEditStateHolder
     private lateinit var timeSlotListStateHolder: TimeSlotListStateHolder
@@ -56,6 +93,25 @@ class TimeSlotListPageViewModelTest {
     @get:Rule
     val dispatcherRule = MainDispatcherRule()
 
+    private fun List<MetaEnvelope<TimeSlotVO>>.upsertSlot(
+        slotId: String?,
+        timeSlot: TimeSlotVO,
+    ): Pair<List<MetaEnvelope<TimeSlotVO>>, MetaInfo> {
+        val index = indexOfFirst { it.metaInfo.uuid == slotId }
+
+        return if (index >= 0) {
+            // update
+            val target = this[index]
+            val updated = target.copy(payload = timeSlot)
+            val newList = toMutableList().apply { set(index, updated) }
+            newList to updated.metaInfo
+        } else {
+            // insert
+            val newSlot = MetaEnvelope(payload = timeSlot)
+            (this + newSlot) to newSlot.metaInfo
+        }
+    }
+
     @Before
     fun setup() {
 
@@ -75,68 +131,64 @@ class TimeSlotListPageViewModelTest {
             getPolicyValidUseCase = getPolicyValidUseCase
         )
 
-        // TODO: jhchoi 2025. 11. 20. whenever로 모킹 구현.
+        runBlocking {
+            whenever(
+                setTimeSlotUseCase.execute(
+                    any(),
+                    any(),
+                    anyOrNull()
+                )
+            ).thenAnswer { invocation: InvocationOnMock ->
+                val dayOfWeek = invocation.getArgument<DayOfWeek>(0)
+                val timeSlot = invocation.getArgument<TimeSlotVO>(1)
+                val slotId = invocation.getArgument<String?>(2)
+
+                println("setTimeSlotUseCase called. vo=$timeSlot, dayOfWeek=$dayOfWeek, slotId=$slotId")
+
+                val (newList, metaInfo) = slotListFlow.value.upsertSlot(slotId, timeSlot)
+                slotListFlow.update { newList }
+
+                DomainResult.Success(metaInfo)
+            }
+            whenever(setTimeSlotsUseCase.invoke(any(), any())).thenAnswer {
+                DomainResult.Success(Unit)
+            }
+            whenever(deleteTimeSlotUseCase.invoke(any())).thenAnswer {
+                DomainResult.Success(Unit)
+            }
+        }
+        whenever(watchTimeSlotListUseCase.invoke(any())).thenAnswer {
+            println("update slot list.")
+            slotListFlow.map {
+                DomainResult.Success(it)
+            }
+        }
+
+        whenever(getPolicyValidUseCase.invoke(any())).thenAnswer {
+            return@thenAnswer true
+        }
+
 
         viewModel = TimeSlotListPageViewModel(
             watchTimeSlotListUseCase = watchTimeSlotListUseCase,
             setTimeSlotsUseCase = setTimeSlotsUseCase,
             setTimeSlotUseCase = setTimeSlotUseCase,
             deleteTimeSlotUseCase = deleteTimeSlotUseCase,
+
             timeSlotListStateHolder = timeSlotListStateHolder,
             timeSlotEditStateHolder = timeSlotEditStateHolder,
             timeSlotCalculator = timeSlotCalculator
         )
+
+        viewModel.load(testDayOfWeek)
     }
 
     @Test
-    fun test() = runTest(dispatcherRule.dispatcher) {
-        // TODO: jhchoi 2025. 11. 20.
-        /*
-        빈 공간을 터치해서 슬롯을 추가하는걸 먼저 해보자.
-         */
-        val newAddTimeHour = 5
-        viewModel.sendIntent(
-            TimeSlotListPageUiIntent.SelectTimeSlice(
-                hourOfDay = newAddTimeHour
-            )
-        )
-        advanceUntilIdle()
-
-        /*
-        edit이 켜지겠지..?
-        그리고 아마 setTimeSlot도 동작할꺼야...
-         */
-
-        /*
-        이게 문제같아...난 지금 이걸 완전히 새로 만들어야할수도 있어..
-        모든 기능들이 정책없이 일단 만들자하고 만들다보니..
-        폭주된 상태야..
-
-        뭐가 어떻게 흘러갈지 암시적인 흐름에 맡긴 상태이지...
-        이 테스트에서 모든 흐름을 명시적으로 다시 만들어야해.
-         */
-
-        /*
-        그나마 다행인건..  state는 비교적 정상...이 아니군..
-        state {
-            editState,
-            listState {
-                list,
-                loadingMessage,
-                errorMessage
-            }
-        }
-        이게..아마 처음에 목록 상태에서 오류랑 에러를 표시했는데... 로딩과 오류는 editState와 상관없이 돌아가야 할것 같다.
-         */
-        viewModel.uiState.value.let { currentUiState ->
-
-        }
-    }
-
-    @Test
-    fun addTimeSlot() = runTest(dispatcherRule.dispatcher) {
+    fun test_addTimeSlot() = runTest(dispatcherRule.dispatcher) {
         //비어 있는 5시를 선택.
         val newAddTimeHour = 5
+        val sampleTime = LocalTime.of(newAddTimeHour, 0) to LocalTime.of(newAddTimeHour + 1, 0)
+
         viewModel.sendIntent(
             TimeSlotListPageUiIntent.SelectTimeSlice(
                 hourOfDay = newAddTimeHour
@@ -152,27 +204,44 @@ class TimeSlotListPageViewModelTest {
             val expectedEditState = TimeSlotEditState(
                 slotUuid = null,
                 title = "",
-                startTime = LocalTime.of(newAddTimeHour, 0),
-                endTime = LocalTime.of(newAddTimeHour + 1, 0)
+                startTime = sampleTime.first,
+                endTime = sampleTime.second
             )
-            assertEquals(editState, expectedEditState)
+            assertEquals(expectedEditState, editState)
         }
 
         advanceUntilIdle()
 
+        // TODO: jhchoi 2025. 11. 27.
+        /*
+        동작 시나리오를 정리해보자...
+        slot edit이 추가되면.. 바로 저장...
+        일단 slotEditState가 변경될때마다 저장하긴 하는데..
+
+        일단 저장 시나리오로 가자.
+         */
         //setTimeSlotUseCase 이 호출되면 안됨.
-        verify(setTimeSlotUseCase, never())
-            .execute(any(), any(), any())
+        val voCaptor = argumentCaptor<TimeSlotVO>()
+        verify(setTimeSlotUseCase, times(1)).execute(
+            dayOfWeek = anyOrNull(),
+            timeSlot = voCaptor.capture(),
+            slotId = anyOrNull()
+        )
 
-        //setTimeSlotsUseCase 가 호출되서도 안됨.
-        verify(setTimeSlotsUseCase, never())
-            .invoke(any(), any())
+        advanceUntilIdle()
 
-        // 목록에 아직 루틴이 있으면 안됨.
+        // 목록에 아직 루틴추가 됨.
         viewModel.uiState.value.let { currentState ->
-            val currentList = currentState.slotListState.slotItemList
-            val expectedList = emptyList<TimeSlotItemUiState>()
-            assertEquals(currentList, expectedList)
+            val currentVoList = currentState.slotListState.slotItemList.map {
+                TimeSlotVO(
+                    startTime = LocalTimeUtil.create(it.startMinutesOfDay),
+                    endTime = LocalTimeUtil.create(it.endMinutesOfDay),
+                    title = it.title
+                )
+            }.toSet()
+            val expectedList = setOf(voCaptor.firstValue)
+
+            assertEquals(expectedList, currentVoList, "목록이 추가되지 않았습니다.")
         }
     }
 }

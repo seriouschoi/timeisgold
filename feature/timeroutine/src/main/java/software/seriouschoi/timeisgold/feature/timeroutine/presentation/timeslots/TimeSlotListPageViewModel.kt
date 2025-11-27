@@ -45,6 +45,7 @@ import software.seriouschoi.timeisgold.domain.usecase.timeslot.WatchTimeSlotList
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.TimeSlotListStateHolder
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.item.TimeSlotItemUiState
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.logic.TimeSlotCalculator
+import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.logic.TimeSlotChangeTimeType
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.slotedit.TimeSlotEditState
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.slotedit.TimeSlotEditStateHolder
 import timber.log.Timber
@@ -60,6 +61,8 @@ import software.seriouschoi.timeisgold.core.common.ui.R as CommonR
 @HiltViewModel
 internal class TimeSlotListPageViewModel @Inject constructor(
     private val watchTimeSlotListUseCase: WatchTimeSlotListUseCase,
+
+    @Deprecated("use only swap. swap will deprecate")
     private val setTimeSlotsUseCase: SetTimeSlotListUseCase,
     private val setTimeSlotUseCase: SetTimeSlotUseCase,
     private val deleteTimeSlotUseCase: DeleteTimeSlotUseCase,
@@ -82,7 +85,7 @@ internal class TimeSlotListPageViewModel @Inject constructor(
             it.asResultState()
         }.withResultStateLifecycle().stateIn(
             scope = viewModelScope,
-            started = SharingStarted.Lazily,
+            started = SharingStarted.Eagerly,
             initialValue = ResultState.Loading
         )
 
@@ -153,6 +156,7 @@ internal class TimeSlotListPageViewModel @Inject constructor(
         }.debounce(
             timeoutMillis = 500
         ).onEach { (state, week) ->
+            Timber.d("change time slot edit.")
             applyTimeSlot(
                 slotVO = TimeSlotVO(
                     startTime = state.startTime,
@@ -183,10 +187,6 @@ internal class TimeSlotListPageViewModel @Inject constructor(
 
             is TimeSlotListPageUiIntent.ApplyTimeSlotListChanges -> {
                 applyTimeSlotList()
-            }
-
-            is TimeSlotListPageUiIntent.DragTimeSlot -> {
-                handleUpdateTimeSlotIntent(intent)
             }
 
             TimeSlotListPageUiIntent.SlotEditCancel -> {
@@ -230,21 +230,38 @@ internal class TimeSlotListPageViewModel @Inject constructor(
                 deleteTimeSlot(intent.slotId)
             }
 
-            is TimeSlotListPageUiIntent.ActiveSlotSetEndTime -> {
-                timeSlotEditStateHolder.changeEndTime(
-                    intent.endTime
+            is TimeSlotListPageUiIntent.ChangeSelectedTimeSlotEndTime -> {
+                timeSlotEditStateHolder.changeEndTime(intent.endTime)
+            }
+
+            is TimeSlotListPageUiIntent.ChangeSelectedTimeSlotStartTime -> {
+                timeSlotEditStateHolder.changeStartTime(intent.startTime)
+            }
+
+            is TimeSlotListPageUiIntent.ChangeSelectedTimeSlotTitle -> {
+                timeSlotEditStateHolder.changeTitle(intent.title)
+            }
+
+            is TimeSlotListPageUiIntent.DragTimeSlotBody -> {
+                handleUpdateTimeSlotIntent(
+                    intent.slotId, intent.minuteFactor,
+                    TimeSlotChangeTimeType.START_AND_END
                 )
             }
 
-            is TimeSlotListPageUiIntent.ActiveSlotSetStartTime -> {
-                timeSlotEditStateHolder.changeStartTime(
-                    intent.startTime
+            is TimeSlotListPageUiIntent.DragTimeSlotFooter -> {
+                handleUpdateTimeSlotIntent(
+                    intent.slotId,
+                    intent.minuteFactor,
+                    TimeSlotChangeTimeType.END_TIME
                 )
             }
 
-            is TimeSlotListPageUiIntent.ActiveSlotTitleEdit -> {
-                timeSlotEditStateHolder.changeTitle(
-                    intent.title
+            is TimeSlotListPageUiIntent.DragTimeSlotHeader -> {
+                handleUpdateTimeSlotIntent(
+                    intent.slotId,
+                    intent.minuteFactor,
+                    TimeSlotChangeTimeType.START_TIME
                 )
             }
         }
@@ -298,18 +315,18 @@ internal class TimeSlotListPageViewModel @Inject constructor(
         return null
     }
 
-    private var dragMinsAcc = 0
-
     private suspend fun handleUpdateTimeSlotIntent(
-        intent: TimeSlotListPageUiIntent.DragTimeSlot,
+        slotId: String,
+        minuteFactor: Int,
+        changeTimeType: TimeSlotChangeTimeType
     ) {
         val slotListState = timeSlotListStateHolder.state.first()
-        val (newList, nextAcc) = timeSlotCalculator.adjustSlotList(
-            intent = intent,
+        val newList = timeSlotCalculator.adjustSlotList(
+            slotMinuteFactor = minuteFactor,
+            targetSlotId = slotId,
             currentList = slotListState.slotItemList,
-            dragAcc = dragMinsAcc
+            changeType = changeTimeType
         )
-        dragMinsAcc = nextAcc
         timeSlotListStateHolder.setList(newList)
 
         // time slot edit이 표시 상태라면, 함께 갱신한다.
