@@ -2,6 +2,7 @@ package software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslo
 
 import software.seriouschoi.timeisgold.core.common.util.LocalTimeUtil
 import software.seriouschoi.timeisgold.core.common.util.asFormattedString
+import software.seriouschoi.timeisgold.domain.data.vo.TimeSlotVO
 
 internal data class TimeSlotItemUiState(
     val slotUuid: String,
@@ -11,11 +12,19 @@ internal data class TimeSlotItemUiState(
     val isSelected: Boolean = false,
 )
 
+internal fun TimeSlotItemUiState.toVo(): TimeSlotVO {
+    return TimeSlotVO(
+        title = title,
+        startTime = LocalTimeUtil.create(startMinutesOfDay),
+        endTime = LocalTimeUtil.create(endMinutesOfDay)
+    )
+}
+
 internal fun TimeSlotItemUiState.getStartTimeText(): String {
     return LocalTimeUtil.create(startMinutesOfDay).asFormattedString()
 }
 
-internal fun TimeSlotItemUiState.getEndTimeText() : String {
+internal fun TimeSlotItemUiState.getEndTimeText(): String {
     return LocalTimeUtil.create(endMinutesOfDay).asFormattedString()
 }
 
@@ -25,7 +34,7 @@ internal fun TimeSlotItemUiState.timeLog(): String {
     """.trimIndent()
 }
 
-internal fun TimeSlotItemUiState.midMinute() : Float {
+internal fun TimeSlotItemUiState.midMinute(): Float {
     return startMinutesOfDay + ((endMinutesOfDay - startMinutesOfDay) / 2f)
 }
 

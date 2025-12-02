@@ -32,6 +32,7 @@ import software.seriouschoi.timeisgold.core.common.ui.withResultStateLifecycle
 import software.seriouschoi.timeisgold.core.common.util.LocalTimeUtil
 import software.seriouschoi.timeisgold.core.common.util.MetaEnvelope
 import software.seriouschoi.timeisgold.core.common.util.MetaInfo
+import software.seriouschoi.timeisgold.core.common.util.MinuteOfDayUtil
 import software.seriouschoi.timeisgold.core.common.util.asMinutes
 import software.seriouschoi.timeisgold.core.domain.mapper.asDomainError
 import software.seriouschoi.timeisgold.core.domain.mapper.asResultState
@@ -44,7 +45,7 @@ import software.seriouschoi.timeisgold.domain.usecase.timeslot.SetTimeSlotUseCas
 import software.seriouschoi.timeisgold.domain.usecase.timeslot.WatchTimeSlotListUseCase
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.TimeSlotListStateHolder
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.item.TimeSlotItemUiState
-import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.logic.TimeSlotCalculator
+import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.logic.TimeSlotAdjustHelper
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.logic.TimeSlotChangeTimeType
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.slotedit.TimeSlotEditState
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.slotedit.TimeSlotEditStateHolder
@@ -70,7 +71,7 @@ internal class TimeSlotListPageViewModel @Inject constructor(
     private val timeSlotListStateHolder: TimeSlotListStateHolder,
     private val timeSlotEditStateHolder: TimeSlotEditStateHolder,
 
-    private val timeSlotCalculator: TimeSlotCalculator,
+    private val timeSlotAdjustHelper: TimeSlotAdjustHelper,
 ) : ViewModel() {
 
     private val dayOfWeekFlow = MutableStateFlow<DayOfWeek?>(null)
@@ -146,6 +147,7 @@ internal class TimeSlotListPageViewModel @Inject constructor(
 
     @OptIn(FlowPreview::class)
     private fun watchTimeSlotEditState() {
+        // TODO: jhchoi 2025. 12. 1. 여기도 상태기반이 아니라.. 인텐트에 의해 호출되게 하자..
         combine(
             timeSlotEditStateHolder.state.mapNotNull { it },
             dayOfWeekFlow.mapNotNull { it }
@@ -195,20 +197,47 @@ internal class TimeSlotListPageViewModel @Inject constructor(
 
 
             is TimeSlotListPageUiIntent.SelectTimeSlice -> {
-                val currentSlotList = timeSlotListStateHolder.state.first().slotItemList.map {
-                    val startTime = LocalTimeUtil.create(it.startMinutesOfDay)
-                    val endTime = LocalTimeUtil.create(it.endMinutesOfDay)
-                    startTime to endTime
+                val currentSlotList: List<Pair<LocalTime, LocalTime>> =
+                    timeSlotListStateHolder.state.first().slotItemList.map {
+                        val startTime = LocalTimeUtil.create(it.startMinutesOfDay)
+                        val endTime = LocalTimeUtil.create(it.endMinutesOfDay)
+                        startTime to endTime
+                    }
+                val selectedHour = intent.hourOfDay
+
+                val sortedSlotList = currentSlotList.map {
+                    it.first.asMinutes() to it.second.asMinutes()
+                }.let {
+                    MinuteOfDayUtil.sortAndSplitOvernightList(it)
                 }
 
-                val availableTimeSlot = findAvailableTimeSlot(currentSlotList, intent.hourOfDay)
-                if (availableTimeSlot != null) {
+                val availableTimeRange = MinuteOfDayUtil.findAvailableRange(sortedSlotList, selectedHour)?.let {
+                    it.first to it.second
+                }
+
+                if (availableTimeRange != null) {
+
+                    val startTimeRange = MinuteOfDayUtil.findStartTimeRange(
+                        sortedSlotList,
+                        availableTimeRange.second
+                    ).let {
+                        LocalTimeUtil.create(it.first) to LocalTimeUtil.create(it.second)
+                    }
+                    val endTimeRange = MinuteOfDayUtil.findEndTimeRange(
+                        sortedSlotList,
+                        availableTimeRange.first
+                    ).let {
+                        LocalTimeUtil.create(it.first) to LocalTimeUtil.create(it.second)
+                    }
+
                     timeSlotEditStateHolder.show(
                         TimeSlotEditState(
                             slotUuid = null,
                             title = "",
-                            startTime = availableTimeSlot.first,
-                            endTime = availableTimeSlot.second
+                            startTime = LocalTimeUtil.create(availableTimeRange.first),
+                            endTime = LocalTimeUtil.create(availableTimeRange.second),
+                            selectableStartTimeRange = startTimeRange,
+                            selectableEndTimeRange = endTimeRange
                         )
                     )
                 }
@@ -267,6 +296,7 @@ internal class TimeSlotListPageViewModel @Inject constructor(
         }
     }
 
+
     private fun deleteTimeSlot(slotId: String) {
         flow {
             emit(deleteTimeSlotUseCase.invoke(slotId))
@@ -275,53 +305,13 @@ internal class TimeSlotListPageViewModel @Inject constructor(
         }.withResultStateLifecycle().launchIn(viewModelScope)
     }
 
-    /**
-     * @param existingSlots 현재 시간 슬롯 목록
-     * @param startHourOfDay 시작 시간 (hour)
-     * @return 시작 시간과 종료 시간 Pair
-     */
-    private fun findAvailableTimeSlot(
-        existingSlots: List<Pair<LocalTime, LocalTime>>,
-        startHourOfDay: Int,
-    ): Pair<LocalTime, LocalTime>? {
-
-        val startOfHour = startHourOfDay * 60
-        val endOfHour = startOfHour + 60
-
-        val slotsInMinutes = existingSlots
-            .map { it.first.asMinutes() to it.second.asMinutes() }
-            .sortedBy { it.first }
-
-        var potentialStartTime = startOfHour
-
-        for ((slotStart, slotEnd) in slotsInMinutes) {
-            if (potentialStartTime >= slotEnd) continue
-
-            if (potentialStartTime < slotStart) {
-                val availableEnd = minOf(slotStart, endOfHour)
-                if (potentialStartTime < availableEnd) {
-                    return LocalTimeUtil.create(potentialStartTime) to LocalTimeUtil.create(
-                        availableEnd
-                    )
-                }
-            }
-            potentialStartTime = maxOf(potentialStartTime, slotEnd)
-        }
-
-        if (potentialStartTime < endOfHour) {
-            return LocalTimeUtil.create(potentialStartTime) to LocalTimeUtil.create(endOfHour)
-        }
-
-        return null
-    }
-
     private suspend fun handleUpdateTimeSlotIntent(
         slotId: String,
         minuteFactor: Int,
         changeTimeType: TimeSlotChangeTimeType
     ) {
         val slotListState = timeSlotListStateHolder.state.first()
-        val newList = timeSlotCalculator.adjustSlotList(
+        val newList = timeSlotAdjustHelper.adjustSlotList(
             slotMinuteFactor = minuteFactor,
             targetSlotId = slotId,
             currentList = slotListState.slotItemList,

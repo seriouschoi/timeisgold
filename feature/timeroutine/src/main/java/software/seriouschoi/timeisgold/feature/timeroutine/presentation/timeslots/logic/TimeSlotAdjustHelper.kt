@@ -4,7 +4,6 @@ import software.seriouschoi.timeisgold.core.common.util.LocalTimeUtil
 import software.seriouschoi.timeisgold.core.common.util.asMinutes
 import software.seriouschoi.timeisgold.domain.data.DomainResult
 import software.seriouschoi.timeisgold.domain.data.vo.TimeSlotVO
-import software.seriouschoi.timeisgold.domain.usecase.timeslot.NormalizeMinutesForUiUseCase
 import software.seriouschoi.timeisgold.domain.usecase.timeslot.valid.GetTimeSlotPolicyValidUseCase
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.item.TimeSlotItemUiState
 import software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslots.list.item.midMinute
@@ -20,11 +19,14 @@ internal enum class TimeSlotChangeTimeType {
  * Created by jhchoi on 2025. 10. 20.
  * jhchoi
  */
-internal class TimeSlotCalculator @Inject constructor(
-    private val normalizeMinutesForUiUseCase: NormalizeMinutesForUiUseCase,
+internal class TimeSlotAdjustHelper @Inject constructor(
     private val getPolicyValidUseCase: GetTimeSlotPolicyValidUseCase,
 ) {
     private var dragMinsAcc = 0
+
+    private fun normalize(minutesOfDay: Int): Int {
+        return LocalTimeUtil.normalize(minutesOfDay, 15)
+    }
 
     fun adjustSlotList(
         targetSlotId: String,
@@ -38,8 +40,8 @@ internal class TimeSlotCalculator @Inject constructor(
             return currentList
         }
 
-        val newStart = normalizeMinutesForUiUseCase.invoke(targetItem.startMinutesOfDay + dragMinsAcc)
-        val newEnd = normalizeMinutesForUiUseCase.invoke(targetItem.endMinutesOfDay + dragMinsAcc)
+        val newStart = normalize(targetItem.startMinutesOfDay + dragMinsAcc)
+        val newEnd = normalize(targetItem.endMinutesOfDay + dragMinsAcc)
         dragMinsAcc = if (targetItem.startMinutesOfDay == newStart)
             dragMinsAcc + slotMinuteFactor
         else 0
@@ -53,14 +55,14 @@ internal class TimeSlotCalculator @Inject constructor(
             )
         }
 
-        val policy = getPolicyValidUseCase.invoke(
+        val policyResult = getPolicyValidUseCase.invoke(
             TimeSlotVO(
                 startTime = LocalTimeUtil.create(updatedItem.startMinutesOfDay),
                 endTime = LocalTimeUtil.create(updatedItem.endMinutesOfDay),
                 title = updatedItem.title
             )
         )
-        if (policy !is DomainResult.Success) return currentList
+        if (policyResult !is DomainResult.Success) return currentList
 
         val result = if (changeType == TimeSlotChangeTimeType.START_AND_END)
             currentList.swapSlotList(updatedItem)
@@ -84,10 +86,7 @@ private fun List<TimeSlotItemUiState>.swapSlotList(
     updateItem: TimeSlotItemUiState,
 ): List<TimeSlotItemUiState> {
 
-    val overlapItem = this.getOverlapItem(updateItem)
-    if (overlapItem == null) {
-        return this.update(updateItem)
-    }
+    val overlapItem = this.getOverlapItem(updateItem) ?: return this.update(updateItem)
 
     val updateSourceTime: TimeSlotItemUiState = this.find {
         updateItem.slotUuid == it.slotUuid
@@ -146,19 +145,15 @@ private fun List<TimeSlotItemUiState>.swapSlotList(
 private fun List<TimeSlotItemUiState>.update(
     updateItem: TimeSlotItemUiState,
 ): List<TimeSlotItemUiState> {
-    val overlapItem = this.getOverlapItem(updateItem)
-
-    if (overlapItem == null) {
-        //중복 없음. 업데이트.
-        return this.map {
-            if (it.slotUuid == updateItem.slotUuid) updateItem
-            else it
-        }
+    val overlapItem = this.getOverlapItem(updateItem) ?: //중복 없음. 업데이트.
+    return this.map {
+        if (it.slotUuid == updateItem.slotUuid) updateItem
+        else it
     }
 
     val updateOriginItem = this.find { it.slotUuid == updateItem.slotUuid } ?: return this
 
-    //update와 updateOirigin의 중앙값을 비교하여, 진행 방향 확인.
+    //update와 updateOrigin의 중앙값을 비교하여, 진행 방향 확인.
     val adjustedItem = when {
         updateItem.midMinute() < updateOriginItem.midMinute() -> {
             //아래에서 위로.

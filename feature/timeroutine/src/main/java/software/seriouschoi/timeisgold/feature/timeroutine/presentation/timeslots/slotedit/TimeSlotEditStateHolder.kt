@@ -3,6 +3,7 @@ package software.seriouschoi.timeisgold.feature.timeroutine.presentation.timeslo
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
+import software.seriouschoi.timeisgold.domain.data.vo.TimeSlotVO
 import java.time.LocalTime
 import javax.inject.Inject
 
@@ -72,3 +73,11 @@ internal data class TimeSlotEditState(
     val selectableStartTimeRange: Pair<LocalTime, LocalTime> = LocalTime.MIN to LocalTime.MAX,
     val selectableEndTimeRange: Pair<LocalTime, LocalTime> = LocalTime.MIN to LocalTime.MAX,
 )
+
+internal fun TimeSlotEditState.toVo(): TimeSlotVO {
+    return TimeSlotVO(
+        title = title,
+        startTime = startTime,
+        endTime = endTime
+    )
+}

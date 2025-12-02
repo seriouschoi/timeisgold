@@ -5,6 +5,10 @@ import java.time.LocalTime
 
 internal sealed interface TimeSlotListPageUiIntent {
 
+    data class SelectTimeSlice(
+        val hourOfDay: Int,
+    ): TimeSlotListPageUiIntent
+
     data class DragTimeSlotHeader(
         val slotId: String,
         val minuteFactor: Int,
@@ -38,10 +42,6 @@ internal sealed interface TimeSlotListPageUiIntent {
 
     data class SelectTimeSlot(
         val slot: TimeSlotItemUiState,
-    ): TimeSlotListPageUiIntent
-
-    data class SelectTimeSlice(
-        val hourOfDay: Int,
     ): TimeSlotListPageUiIntent
 
     data class DeleteTimeSlot(
