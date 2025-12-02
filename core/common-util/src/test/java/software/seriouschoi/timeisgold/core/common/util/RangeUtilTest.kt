@@ -1,12 +1,13 @@
+package software.seriouschoi.timeisgold.core.common.util
+
 import org.junit.Test
-import software.seriouschoi.timeisgold.core.common.util.RangeUtil
 import java.time.LocalTime
 
 /**
  * Created by jhchoi on 2025. 11. 5.
  * jhchoi
  */
-class TimeRangeTest {
+class RangeUtilTest {
 
     @Test
     fun test() {
@@ -31,18 +32,26 @@ class TimeRangeTest {
             bound = 24
         )
 
+        val expected = listOf(
+            IntRange(22, 23),
+            IntRange(0, 3)
+        ).flatten()
+        assert(hours == expected)
+
         /*
         minutes
         선택된 시가 start hour라면.. start min ~ 59
         선택된 시가 end hour라면.. 00 ~ end min
          */
-        val mins = when(selectedTime.hour) {
+        val mins = when (selectedTime.hour) {
             rangeTime.first.hour -> {
                 rangeTime.first.minute to 59
             }
+
             rangeTime.second.hour -> {
                 0 to rangeTime.second.minute
             }
+
             else -> {
                 0 to 59
             }

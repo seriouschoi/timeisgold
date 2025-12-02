@@ -20,89 +20,6 @@ fun LocalTime.normalize(stepMinutes: Int = 1): LocalTime {
     )
 }
 
-object MinuteOfDayUtil {
-    /**
-     * @param existingSlots 현재 시간 슬롯 목록
-     * @param startHourOfDay 시작 시간 (hour)
-     * @return 시작 시간과 종료 시간 Pair
-     */
-    fun findAvailableRange(
-        sortedSlotList: List<Pair<Int, Int>>,
-        startHourOfDay: Int,
-    ): Pair<Int, Int>? {
-
-        val range = hourRange(startHourOfDay)
-        val result = findGap(sortedSlotList, range) ?: return null
-
-        return result.first to result.second
-    }
-
-    fun hourRange(startHour: Int): IntRange {
-        val start = startHour * 60
-        val end = start + 60
-        return start..end
-    }
-
-    fun findGap(
-        sortedSlots: List<Pair<Int, Int>>,
-        range: IntRange
-    ): Pair<Int, Int>? {
-        var cursor = range.first
-
-        for ((slotStart, slotEnd) in sortedSlots) {
-            if (cursor >= slotEnd) continue
-
-            if (cursor < slotStart) {
-                val gapEnd = minOf(slotStart, range.last)
-                if (cursor < gapEnd)
-                    return cursor to gapEnd
-            }
-            cursor = maxOf(cursor, slotEnd)
-        }
-
-        return if (cursor < range.last) cursor to range.last else null
-    }
-
-    fun findStartTimeRange(
-        sortedSlots: List<Pair<Int, Int>>,
-        minutesOfDay: Int
-    ): Pair<Int, Int> {
-
-        // availableTimeRange의 시작 시간 바로 이전에 끝나는 슬롯을 찾습니다.
-        val previousSlot = sortedSlots.lastOrNull { it.second <= minutesOfDay }
-
-        // 이전 슬롯이 있으면 그 슬롯의 종료 시간이 시작 범위의 시작이 됩니다.
-        // 이전 슬롯이 없으면, 하루의 시작(00:00)이 시작 범위의 시작이 됩니다.
-        val startTimeRangeStart = previousSlot?.second ?: LocalTime.MIN.asMinutes()
-
-        return startTimeRangeStart to minutesOfDay
-    }
-
-    fun findEndTimeRange(
-        sortedSlots: List<Pair<Int, Int>>,
-        minutesOfDay: Int
-    ): Pair<Int, Int> {
-
-        // availableTimeRange의 시작 시간 바로 이전에 끝나는 슬롯을 찾습니다.
-        val nextSlot = sortedSlots.firstOrNull { it.first >= minutesOfDay }
-            ?: sortedSlots.firstOrNull {
-                it.first >= minutesOfDay - LocalTimeUtil.DAY_MINUTES
-            }
-
-        // 이전 슬롯이 있으면 그 슬롯의 종료 시간이 시작 범위의 시작이 됩니다.
-        // 이전 슬롯이 없으면, 하루의 시작(00:00)이 시작 범위의 시작이 됩니다.
-        val startTimeRangeStart = nextSlot?.first ?: LocalTime.MAX.asMinutes()
-
-        return minutesOfDay to startTimeRangeStart
-    }
-
-    fun sortAndSplitOvernightList(list: List<Pair<Int, Int>>): List<Pair<Int, Int>> {
-        return list.map {
-            LocalTimeUtil.splitWhenOverMidnight(it.first, it.second)
-        }.flatten().sortedBy { it.first }
-    }
-}
-
 object LocalTimeUtil {
     const val DAY_MINUTES = 60 * 24
     fun create(
@@ -158,6 +75,83 @@ object LocalTimeUtil {
     ): Boolean {
         return range1.first in range2 || range1.last in range2
                 || range2.first in range1 || range2.last in range1
+    }
+
+    fun sortAndSplitOvernightList(list: List<Pair<Int, Int>>): List<Pair<Int, Int>> {
+        return list.map {
+            splitWhenOverMidnight(it.first, it.second)
+        }.flatten().sortedBy { it.first }
+    }
+
+    fun findNextTime(
+        sortedList: List<Pair<Int, Int>>,
+        minutesOfDay: Int
+    ): Pair<Int, Int>? {
+        // availableTimeRange의 시작 시간 바로 이전에 끝나는 슬롯을 찾습니다.
+        val nextSlot = sortedList.firstOrNull { it.first >= minutesOfDay }
+            ?: sortedList.firstOrNull {
+                it.first >= minutesOfDay - DAY_MINUTES
+            }
+        return nextSlot
+    }
+
+    fun findPreviousTime(
+        sortedList: List<Pair<Int, Int>>,
+        minutesOfDay: Int
+    ): Pair<Int, Int>? {
+        val previousSlot = sortedList.lastOrNull { it.second <= minutesOfDay }
+            ?: sortedList.lastOrNull {
+                it.second <= DAY_MINUTES + minutesOfDay
+            }
+        return previousSlot
+    }
+
+
+    /**
+     * @param sortedSlotList 현재 시간 슬롯 목록
+     * @param startHourOfDay 시작 시간 (hour)
+     * @return 시작 시간과 종료 시간 Pair
+     */
+    fun findAvailableRange(
+        sortedSlotList: List<Pair<Int, Int>>,
+        startHourOfDay: Int,
+    ): Pair<Int, Int>? {
+
+        val range = hourRange(startHourOfDay)
+        val result = findGap(sortedSlotList, range.first to range.last) ?: return null
+
+        return result.first to result.second
+    }
+
+    fun hourRange(startHour: Int): IntRange {
+        val start = startHour * 60
+        val end = start + 60
+        return start..end
+    }
+
+    fun findGap(
+        sortedSlots: List<Pair<Int, Int>>,
+        range: Pair<Int, Int>
+    ): Pair<Int, Int>? {
+        var current = range.first
+
+        for ((slotStart, slotEnd) in sortedSlots) {
+            // 이 슬롯이 range 밖이면 건너뛴다
+            if (slotEnd <= current) continue
+            if (range.second <= slotStart) break
+
+            // current ~ slotStart 사이에 gap이 있는지 검사
+            val gapEnd = minOf(slotStart, range.second)
+            if (current < gapEnd) {
+                return current to gapEnd
+            }
+
+            // 슬롯이 current를 덮고 있으니 current를 슬롯 끝으로 이동
+            current = maxOf(current, slotEnd)
+        }
+
+        // 마지막 슬롯 이후에도 range 안에 여유가 있으면 gap
+        return if (current < range.second) current to range.second else null
     }
 }
 

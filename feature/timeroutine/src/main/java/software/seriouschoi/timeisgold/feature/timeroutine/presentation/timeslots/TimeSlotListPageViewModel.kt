@@ -32,7 +32,6 @@ import software.seriouschoi.timeisgold.core.common.ui.withResultStateLifecycle
 import software.seriouschoi.timeisgold.core.common.util.LocalTimeUtil
 import software.seriouschoi.timeisgold.core.common.util.MetaEnvelope
 import software.seriouschoi.timeisgold.core.common.util.MetaInfo
-import software.seriouschoi.timeisgold.core.common.util.MinuteOfDayUtil
 import software.seriouschoi.timeisgold.core.common.util.asMinutes
 import software.seriouschoi.timeisgold.core.domain.mapper.asDomainError
 import software.seriouschoi.timeisgold.core.domain.mapper.asResultState
@@ -208,27 +207,32 @@ internal class TimeSlotListPageViewModel @Inject constructor(
                 val sortedSlotList = currentSlotList.map {
                     it.first.asMinutes() to it.second.asMinutes()
                 }.let {
-                    MinuteOfDayUtil.sortAndSplitOvernightList(it)
+                    LocalTimeUtil.sortAndSplitOvernightList(it)
                 }
 
-                val availableTimeRange = MinuteOfDayUtil.findAvailableRange(sortedSlotList, selectedHour)?.let {
+                val availableTimeRange = LocalTimeUtil.findAvailableRange(sortedSlotList, selectedHour)?.let {
                     it.first to it.second
                 }
 
                 if (availableTimeRange != null) {
 
-                    val startTimeRange = MinuteOfDayUtil.findStartTimeRange(
+                    val startTimeRange = LocalTimeUtil.findPreviousTime(
                         sortedSlotList,
                         availableTimeRange.second
-                    ).let {
+                    )?.let {
+                        it.second to availableTimeRange.second
+                    }?.let {
                         LocalTimeUtil.create(it.first) to LocalTimeUtil.create(it.second)
-                    }
-                    val endTimeRange = MinuteOfDayUtil.findEndTimeRange(
+                    } ?: (LocalTime.MIN to LocalTime.MAX)
+
+                    val endTimeRange = LocalTimeUtil.findNextTime(
                         sortedSlotList,
                         availableTimeRange.first
-                    ).let {
+                    )?.let {
+                        availableTimeRange.first to it.first
+                    }?.let {
                         LocalTimeUtil.create(it.first) to LocalTimeUtil.create(it.second)
-                    }
+                    } ?: (LocalTime.MIN to LocalTime.MAX)
 
                     timeSlotEditStateHolder.show(
                         TimeSlotEditState(
